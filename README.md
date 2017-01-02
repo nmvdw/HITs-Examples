@@ -2,4 +2,4 @@
 
 Needed: https://github.com/HoTT/HoTT
 
-In the pdf more can be found on HITs and the work.
+More information on the work is in HITs.pdf.
