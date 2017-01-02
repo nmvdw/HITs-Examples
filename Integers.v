@@ -1,25 +1,6 @@
 Require Import HoTT.
 Require Export HoTT.
 
-Theorem useful :
-  forall (A  B : Type)
-         (f g : A -> B)
-         (a a' : A)
-         (p : a = a')
-         (q : f a = g a),
-  transport (fun x => f x = g x) p q = (ap f p)^ @ q @ (ap g p).
-Proof.
-intros.
-induction p.
-rewrite transport_1.
-rewrite ap_1.
-rewrite ap_1.
-rewrite concat_p1.
-simpl.
-rewrite concat_1p.
-reflexivity.
-Qed.
-
 Module Export Ints.
 
 Private Inductive Z : Type0 :=
@@ -175,7 +156,7 @@ refine (Z_rec _ _ _ _ _ _).
   Focus 2.
   apply loop.
 
-  rewrite useful.
+  rewrite @HoTT.Types.Paths.transport_paths_FlFr.
   rewrite ap_idmap.
   rewrite concat_Vp.
   rewrite concat_1p.
@@ -417,7 +398,7 @@ refine (Z'_ind _ _ _ _).
   reflexivity.
 
   simpl.
-  rewrite useful.
+  rewrite @HoTT.Types.Paths.transport_paths_FlFr.
   rewrite concat_p1.
   rewrite ap_idmap.
 
