@@ -422,3 +422,211 @@ Definition isomorphism : IsEquiv Z'_to_Int.
 Proof.
 apply (BuildIsEquiv Z' Int Z'_to_Int Int_to_Z' isoEq1 isoEq2 adj).
 Qed.
+
+Axiom everythingSet : forall T : Type, IsHSet T.
+
+Definition Z_to_Z' : Z -> Z'.
+Proof.
+refine (Z_rec _ _ _ _ _ _).
+ Unshelve.
+ Focus 1.
+ apply (positive 0).
+
+ Focus 3.
+ apply succ_Z'.
+
+ Focus 3.
+ apply pred_Z'.
+
+ Focus 1.
+ refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 2.
+  intros.
+  reflexivity.
+
+  Focus 2.
+  intros.
+  induction x.
+   Focus 1.
+   compute.
+   apply path^.
+
+   reflexivity.
+
+  apply everythingSet.
+
+ refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 2.
+  intros.
+  induction x.
+   Focus 1.
+   compute.
+   apply path.
+
+   reflexivity.
+
+  Focus 2.
+  intros.
+  reflexivity.
+
+  apply everythingSet.
+
+Defined.
+
+Definition Z'_to_Z : Z' -> Z.
+Proof.
+refine (Z'_ind _ _ _ _).
+ Unshelve.
+ Focus 2.
+ induction 1.
+  apply nul.
+
+  apply (succ IHx).
+
+ Focus 2.
+ induction 1.
+  Focus 1.
+  apply nul.
+
+  apply (pred IHx).
+
+ simpl.
+ rewrite transport_const.
+ reflexivity.
+
+Defined.
+
+Theorem isoZEq1 : forall n : Z', Z_to_Z'(Z'_to_Z n) = n.
+Proof.
+refine (Z'_ind _ _ _ _).
+ Unshelve.
+ Focus 3.
+ intros.
+ induction x.
+  compute.
+  apply path.
+
+  transitivity (Z_to_Z' (pred (Z'_to_Z (negative x)))).
+   enough (Z'_to_Z (negative x.+1) = pred (Z'_to_Z (negative x))).
+    rewrite X.
+    reflexivity.
+
+    reflexivity.
+
+   transitivity (pred_Z' (Z_to_Z' (Z'_to_Z (negative x)))).
+    Focus 1.
+    reflexivity.
+
+    rewrite IHx.
+    reflexivity.
+
+ Focus 2.
+ intros.
+ induction x.
+  Focus 1.
+  reflexivity.
+
+  transitivity (Z_to_Z' (succ (Z'_to_Z (positive x)))).
+   reflexivity.
+
+   transitivity (succ_Z' (Z_to_Z' (Z'_to_Z (positive x)))).
+    reflexivity.
+
+    rewrite IHx.
+    reflexivity.
+
+ apply everythingSet.
+Defined.
+
+Theorem isoZEq2 : forall n : Z, Z'_to_Z(Z_to_Z' n) = n.
+Proof.
+refine (Z_ind _ _ _ _ _ _).
+ Unshelve.
+ Focus 1.
+ reflexivity.
+
+ Focus 1.
+ intros.
+ apply everythingSet.
+
+ Focus 1.
+ intros.
+ apply everythingSet.
+
+ Focus 1.
+ intro n.
+ intro X.
+ transitivity (Z'_to_Z (succ_Z' (Z_to_Z' n))).
+  reflexivity.
+
+  transitivity (succ (Z'_to_Z (Z_to_Z' n))).
+   Focus 2.
+   rewrite X.
+   reflexivity.
+
+   enough (forall m : Z', Z'_to_Z (succ_Z' m) = succ (Z'_to_Z m)).
+    rewrite X0.
+    reflexivity.
+
+    refine (Z'_ind _ _ _ _).
+     Unshelve.
+     Focus 2.
+     intros.
+     reflexivity.
+
+     Focus 2.
+     intros.
+     induction x.
+      Focus 1.
+      reflexivity.
+
+      compute.
+      rewrite <- inv2.
+      reflexivity.
+
+     apply everythingSet.
+
+ intros.
+ transitivity (Z'_to_Z (pred_Z' (Z_to_Z' n))).
+  reflexivity.
+
+  transitivity (pred (Z'_to_Z (Z_to_Z' n))).
+   Focus 2.
+   rewrite X.
+   reflexivity.
+
+   enough (forall m : Z', Z'_to_Z (pred_Z' m) = pred (Z'_to_Z m)).
+    rewrite X0.
+    reflexivity.
+
+    refine (Z'_ind _ _ _ _).
+     Unshelve.
+     Focus 1.
+     apply everythingSet.
+
+     Focus 1.
+     intro x.
+     induction x.
+      reflexivity.
+
+      compute.
+      rewrite <- inv1.
+      reflexivity.
+
+     intro x.
+     reflexivity.
+Defined.
+
+Theorem adj2 : 
+  forall x : Z', isoZEq2 (Z'_to_Z x) = ap Z'_to_Z (isoZEq1 x).
+Proof.
+intro x.
+apply everythingSet.
+Defined.
+
+Definition isomorphism2 : IsEquiv Z'_to_Z.
+Proof.
+apply (BuildIsEquiv Z' Z Z'_to_Z Z_to_Z' isoZEq2 isoZEq1 adj2).
+Qed.
