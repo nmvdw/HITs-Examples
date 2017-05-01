@@ -1,0 +1,6 @@
+-R . "" COQC = hoqc COQDEP = hoqdep
+
+Mod2.v
+FinSets.v
+Expressions.v
+Integers.v
