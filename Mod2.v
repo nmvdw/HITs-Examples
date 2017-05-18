@@ -1,6 +1,6 @@
-Require Import HoTT.
 Require Export HoTT.
 
+Require Import HitTactics.
 Module Export modulo.
 
 Private Inductive Mod2 : Type0 :=
@@ -51,44 +51,38 @@ Axiom Mod2_rec_beta_mod : forall
   (mod' : a = s (s a))
   , ap (Mod2_rec P a s mod') mod = mod'.
 
+
+Definition Mod2CL : HitRec.class Mod2 _ := 
+   HitRec.Class Mod2 (fun x P a s p => Mod2_ind P a s p x).
+Canonical Structure Mod2ty : HitRec.type := HitRec.Pack Mod2 _ Mod2CL.
+
 End modulo.
 
-Definition negate : Mod2 -> Mod2.
-Proof.
-refine (Mod2_ind _ _ _ _).
- Unshelve.
- Focus 2.
- apply (succ Z).
-
- Focus 2.
- intros.
- apply (succ H).
-
- simpl.
- rewrite transport_const.
- rewrite <- mod.
- reflexivity.
-Defined.
 
 Theorem modulo2 : forall n : Mod2, n = succ(succ n).
 Proof.
-refine (Mod2_ind _ _ _ _).
- Unshelve.
- Focus 2.
- apply mod.
+intro n.
+hrecursion n.
+- apply mod.
+- intros n p.
+  apply (ap succ p).
+- simpl.
+  etransitivity.
+  eapply (@transport_paths_FlFr _ _ idmap (fun n => succ (succ n))).
+  hott_simpl.
+  apply ap_compose.
+Defined.
 
- Focus 2.
- intro n.
- intro p.
- apply (ap succ p).
-
- simpl.
- rewrite @HoTT.Types.Paths.transport_paths_FlFr.
- rewrite ap_idmap.
- rewrite concat_Vp.
- rewrite concat_1p.
- rewrite ap_compose.
- reflexivity.
+Definition negate : Mod2 -> Mod2.
+Proof.
+intro x.
+hrecursion x.
+- apply Z. 
+- intros. apply (succ H).
+- simpl.
+  etransitivity.
+  eapply transport_const.
+  eapply modulo2.
 Defined.
 
 Definition plus : Mod2 -> Mod2 -> Mod2.

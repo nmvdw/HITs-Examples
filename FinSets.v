@@ -1,5 +1,5 @@
-Require Import HoTT.
 Require Export HoTT.
+Require Import HitTactics.
 
 Module Export FinSet.
 
@@ -44,6 +44,10 @@ Fixpoint FinSets_rec
            (FinSets_rec A P e l u assocP commP nlP nrP idemP y)
            (FinSets_rec A P e l u assocP commP nlP nrP idemP z)
       end) assocP commP nlP nrP idemP.
+
+Definition FinSetsCL A : HitRec.class (FinSets A) _ := 
+   HitRec.Class (FinSets A) (fun x P e l u aP cP lP rP iP => FinSets_rec A P e l u aP cP lP rP iP x).
+Canonical Structure FinSetsTy A : HitRec.type := HitRec.Pack _ _ (FinSetsCL A).
 
 Axiom FinSets_beta_assoc : forall
   (A : Type)
@@ -133,129 +137,66 @@ Axiom FinSets_beta_idem : forall
   idemP x.
 End FinSet.
 
-Definition isIn : forall 
-  (A : Type)
-  (eq : A -> A -> Bool),
-  A -> FinSets A -> Bool.
+Section functions.
+Parameter A : Type.
+Parameter eq : A -> A -> Bool.
+Definition isIn : A -> FinSets A -> Bool.
 Proof.
-intro A.
-intro eq.
-intro a.
-refine (FinSets_rec A _ _ _ _ _ _ _ _ _).
-  Unshelve.
-
-  Focus 6.
-  apply false.
-
-  Focus 6.
-  intro a'.
-  apply (eq a a').
-
-  Focus 6.
-  intro b.
-  intro b'.
-  apply (orb b b').
-
-  Focus 3.
-  intros.
-  compute.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x.
-  reflexivity.
-  destruct y.
-  reflexivity.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x.
-  destruct y.
-  reflexivity.
-  reflexivity.
-  destruct y.
-  reflexivity.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x.
-  reflexivity.
-  reflexivity.
-
-  intros.
-  compute.
-  destruct (eq a x).
-  reflexivity.
-  reflexivity.
+intros a X.
+hrecursion X.
+- exact false.
+- intro a'. apply (eq a a').
+- apply orb. 
+- intros x y z. compute. destruct x; reflexivity.
+- intros x y. compute. destruct x, y; reflexivity.
+- intros x. compute. reflexivity. 
+- intros x. compute. destruct x; reflexivity.
+- intros a'. compute. destruct (eq a a'); reflexivity.
 Defined.
 
-Definition comprehension : forall
-  (A : Type)
-  (eq : A -> A -> Bool),
+
+Definition comprehension : 
   (A -> Bool) -> FinSets A -> FinSets A.
 Proof.
-intro A.
-intro eq.
-intro phi.
-refine (FinSets_rec A _ _ _ _ _ _ _ _ _).
-  Unshelve.
-
-  Focus 6.
-  apply empty.
-
-  Focus 6.
-  intro a.
-  apply (if (phi a) then L A a else (empty A)).
-
-  Focus 6.
-  intro x.
-  intro y.
-  apply (U A x y).
-
-  Focus 3.
-  intros.
-  compute.
-  apply nl.
-
-  Focus 1.
-  intros.
-  compute.
-  apply assoc.
-
-  Focus 1.
-  intros.
-  compute.
-  apply comm.
-
-  Focus 1.
-  intros.
-  compute.
-  apply nr.
-
-  intros.
-  compute.
-  destruct (phi x).
-  apply idem.
-  apply nl.
+intros P X.
+hrecursion X.
+- apply empty.
+- intro a.
+  refine (if (P a) then L A a else empty A).
+- intros X Y.
+  apply (U A X Y).
+- intros. cbv. apply assoc.
+- intros. cbv. apply comm.
+- intros. cbv. apply nl.
+- intros. cbv. apply nr.
+- intros. cbv. 
+  destruct (P x); simpl.
+  + apply idem.
+  + apply nl.
 Defined.
 
-Definition intersection : forall (A : Type) (eq : A -> A -> Bool), 
+Definition intersection : 
   FinSets A -> FinSets A -> FinSets A.
 Proof.
-intro A.
-intro eq.
-intro x.
-intro y.
-apply (comprehension A eq (fun (a : A) => isIn A eq a x) y).
+intros X Y.
+apply (comprehension (fun (a : A) => isIn a X) Y).
 Defined.
 
-Definition subset (A : Type) (eq : A -> A -> Bool) (x : FinSets A) (y : FinSets A) : Bool.
+Definition subset (x : FinSets A) (y : FinSets A) : Bool.
+Proof.
+hrecursion x.
+- apply true.
+- intro a. apply (isIn a y).
+- apply andb.
+- intros a b c. compute. destruct a; reflexivity.
+- intros a b. compute. destruct a, b; reflexivity.
+- intros x. compute. reflexivity.
+- intros x. compute. destruct x;reflexivity.
+- intros a. simpl. 
+  destruct (isIn a y); reflexivity.
+Defined.
+
+Definition subset' (x : FinSets A) (y : FinSets A) : Bool.
 Proof.
 refine (FinSets_rec A _ _ _ _ _ _ _ _ _ _).
   Unshelve.
@@ -268,7 +209,7 @@ refine (FinSets_rec A _ _ _ _ _ _ _ _ _ _).
 
   Focus 6.
   intro a.
-  apply (isIn A eq a y).
+  apply (isIn a y).
 
   Focus 6.
   intro b.
@@ -308,15 +249,16 @@ refine (FinSets_rec A _ _ _ _ _ _ _ _ _ _).
   reflexivity.
 
   intros.
-  destruct (isIn A eq x0 y).
+  destruct (isIn x0 y).
   compute.
   reflexivity.
   compute.
   reflexivity.
 Defined.
+(* TODO: subset = subset' *)
 
-Definition equal_set (A : Type) (eq : A -> A -> Bool) (x : FinSets A) (y : FinSets A) : Bool
-  := andb (subset A eq x y) (subset A eq y x).
+Definition equal_set (x : FinSets A) (y : FinSets A) : Bool
+  := andb (subset x y) (subset y x).
 
 Fixpoint eq_nat n m : Bool :=
   match n, m with
@@ -325,3 +267,5 @@ Fixpoint eq_nat n m : Bool :=
     | S _, O => false
     | S n1, S m1 => eq_nat n1 m1
   end.
+
+End functions.
