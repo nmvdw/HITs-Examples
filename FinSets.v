@@ -45,10 +45,6 @@ Fixpoint FinSets_rec
            (FinSets_rec A P e l u assocP commP nlP nrP idemP z)
       end) assocP commP nlP nrP idemP.
 
-Definition FinSetsCL A : HitRec.class (FinSets A) _ := 
-   HitRec.Class (FinSets A) (fun x P e l u aP cP lP rP iP => FinSets_rec A P e l u aP cP lP rP iP x).
-Canonical Structure FinSetsTy A : HitRec.type := HitRec.Pack _ _ (FinSetsCL A).
-
 Axiom FinSets_beta_assoc : forall
   (A : Type)
   (P : Type)
@@ -135,6 +131,12 @@ Axiom FinSets_beta_idem : forall
   ap (FinSets_rec A P e l u assocP commP nlP nrP idemP) (idem A x)
   =
   idemP x.
+
+(* TODO: add an induction principle *)
+Definition FinSetsCL A : HitRec.class (FinSets A) _ _ := 
+   HitRec.Class (FinSets A) (fun x P e l u aP cP lP rP iP => FinSets_rec A P e l u aP cP lP rP iP x) (fun x P e l u aP cP lP rP iP => FinSets_rec A P e l u aP cP lP rP iP x).
+Canonical Structure FinSetsTy A : HitRec.type := HitRec.Pack _ _ _ (FinSetsCL A).
+
 End FinSet.
 
 Section functions.
