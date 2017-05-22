@@ -334,6 +334,19 @@ Parameter A : Type.
 Parameter A_eqdec : forall (x y : A), Decidable (x = y).
 Definition deceq (x y : A) :=
   if dec (x = y) then true else false.
+
+Lemma union_idem : forall (X : FSet A), U X X = X.
+Proof.
+hinduction; try (intros; apply set_path2).
+- apply nr.
+- intros. apply idem.
+- intros X Y HX HY. etransitivity.
+  rewrite assoc. rewrite (comm _ X Y). rewrite <- (assoc _ Y X X).
+  rewrite comm.  
+  rewrite assoc. rewrite HX. rewrite HY. reflexivity.
+  rewrite comm. reflexivity.
+Defined.
+
 Definition isIn : A -> FSet A -> Bool.
 Proof.
 intros a.
@@ -397,11 +410,11 @@ hrecursion Y; try (intros; apply set_path2).
   reflexivity.
 Defined.
 
-Require Import FunextAxiom.
-Lemma comprehension_idem: 
+Lemma comprehension_idem' `{Funext}: 
    forall (X:FSet A), forall Y, comprehension (fun x => isIn x (U X Y)) X = X.
 Proof.
-hinduction; try (intros; apply set_path2).
+hinduction.
+all: try (intros; apply path_forall; intro; apply set_path2).
 - intro Y. cbv. reflexivity.
 - intros a Y. cbn.
   unfold deceq;
@@ -415,7 +428,16 @@ hinduction; try (intros; apply set_path2).
   + rewrite (comm _ X1 X2).
     rewrite <- (assoc _ X2 X1 Y).
     apply (IH2 (U X1 Y)).
-Admitted.
+Defined.
+
+Lemma comprehension_idem `{Funext}: 
+   forall (X:FSet A), comprehension (fun x => isIn x X) X = X.
+Proof.
+intros X.
+enough (comprehension (fun x : A => isIn x (U X X)) X = X).
+rewrite (union_idem) in X0. assumption.
+apply comprehension_idem'.
+Defined.
 
 Definition intersection : 
   FSet A -> FSet A -> FSet A.
