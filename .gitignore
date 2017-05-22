@@ -3,4 +3,6 @@
 *.glob
 *.v.d
 *.aux
+*.DS_Store
+*.agdai
 Makefile
