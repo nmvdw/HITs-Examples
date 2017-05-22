@@ -319,10 +319,9 @@ Axiom FSet_ind_beta_idem : forall
 
 End FSet.
 
-(* TODO: add an induction principle *)
-Definition FSetCL A : HitRec.class (FSet A) _ _ := 
-   HitRec.Class (FSet A) (fun x P H e l u aP cP lP rP iP => FSet_rec A P H e l u aP cP lP rP iP x) (fun x P H e l u aP cP lP rP iP => FSet_ind A P H e l u aP cP lP rP iP x).
-Canonical Structure FSetTy A : HitRec.type := HitRec.Pack _ _ _ (FSetCL A).
+Instance FSet_recursion A : HitRecursion (FSet A) := {
+  indTy := _; recTy := _; 
+  H_inductor := FSet_ind A; H_recursor := FSet_rec A }.
 
 Arguments E {_}.
 Arguments U {_} _ _.
@@ -332,28 +331,45 @@ End FinSet.
 
 Section functions.
 Parameter A : Type.
-Parameter eq : A -> A -> Bool.
-Parameter eq_refl: forall a:A, eq a a = true.
-
+Parameter A_eqdec : forall (x y : A), Decidable (x = y).
+Definition deceq (x y : A) :=
+  if dec (x = y) then true else false.
 Definition isIn : A -> FSet A -> Bool.
 Proof.
-intros a X.
-hrecursion X.
+intros a.
+hrecursion.
 - exact false.
-- intro a'. apply (eq a a').
+- intro a'. apply (deceq a a').
 - apply orb. 
 - intros x y z. compute. destruct x; reflexivity.
 - intros x y. compute. destruct x, y; reflexivity.
 - intros x. compute. reflexivity. 
 - intros x. compute. destruct x; reflexivity.
-- intros a'. compute. destruct (eq a a'); reflexivity.
+- intros a'. compute. destruct (A_eqdec a a'); reflexivity.
 Defined.
+
+Lemma isIn_eq a b : isIn a (L b) = true -> a = b.
+Proof. cbv.
+destruct (A_eqdec a b). intro. apply p.
+intro X. 
+pose (false_ne_true X). contradiction.
+Defined.
+
+Lemma isIn_empt_false a : isIn a E = true -> Empty.
+Proof. 
+cbv. intro X.
+pose (false_ne_true X). contradiction.
+Defined.
+
+Lemma isIn_union a X Y : isIn a (U X Y) = orb (isIn a X) (isIn a Y).
+Proof. reflexivity. Qed. 
+
 
 Definition comprehension : 
   (A -> Bool) -> FSet A -> FSet A.
 Proof.
-intros P X.
-hrecursion X.
+intros P.
+hrecursion.
 - apply E.
 - intro a.
   refine (if (P a) then L a else E).
@@ -367,28 +383,39 @@ hrecursion X.
   + apply idem.
   + apply nl.
 Defined.
+
+Lemma comprehension_false Y : comprehension (fun a => isIn a E) Y = E.
+Proof.
+hrecursion Y; try (intros; apply set_path2).
+- cbn. reflexivity.
+- cbn. reflexivity.
+- intros x y IHa IHb.
+  cbn.
+  rewrite IHa.
+  rewrite IHb.
+  rewrite nl.
+  reflexivity.
+Defined.
+
 Require Import FunextAxiom.
 Lemma comprehension_idem: 
    forall (X:FSet A), forall Y, comprehension (fun x => isIn x (U X Y)) X = X.
 Proof.
-simple refine (FSet_ind _ _ _ _ _ _ _ _ _ _ _); simpl.
+hinduction; try (intros; apply set_path2).
 - intro Y. cbv. reflexivity.
-- intros a Y. unfold comprehension. unfold HitRec.hrecursion. simpl.
-  enough (isIn a (U (L a) Y) = true).
-  + rewrite X. reflexivity.
-  + unfold isIn. unfold HitRec.hrecursion. simpl.
-    rewrite eq_refl. auto.
+- intros a Y. cbn.
+  unfold deceq;
+  destruct (dec (a = a)); simpl.
+  + reflexivity.
+  + contradiction n. reflexivity.
 - intros X1 X2 IH1 IH2 Y.
-  unfold comprehension. unfold  HitRec.hrecursion. simpl.
-  rewrite <- (assoc _ X1 X2 Y).
+  cbn -[isIn].
   f_ap. 
-  + apply (IH1 (U X2 Y)).
-  + rewrite (assoc _ X1 X2 Y).
-    rewrite (comm _ X1 X2).
+  + rewrite <- assoc. apply (IH1 (U X2 Y)).
+  + rewrite (comm _ X1 X2).
     rewrite <- (assoc _ X2 X1 Y).
     apply (IH2 (U X1 Y)).
 Admitted.
-
 
 Definition intersection : 
   FSet A -> FSet A -> FSet A.
@@ -410,68 +437,6 @@ hrecursion x.
 - intros a. simpl. 
   destruct (isIn a y); reflexivity.
 Defined.
-
-
-Definition subset' (x : FSet A) (y : FSet A) : Bool.
-Proof.
-refine (FSet_rec A _ _ _ _ _ _ _ _ _ _).
-  Unshelve.
-
-  Focus 6.
-  apply x.
-
-  Focus 6.
-  apply true.
-
-  Focus 6.
-  intro a.
-  apply (isIn a y).
-
-  Focus 6.
-  intro b.
-  intro b'.
-  apply (andb b b').
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x0.
-  destruct y0.
-  reflexivity.
-  reflexivity.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x0.
-  destruct y0.
-  reflexivity.
-  reflexivity.
-  destruct y0.
-  reflexivity.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x0.
-  reflexivity.
-  reflexivity.
-
-  intros.
-  destruct (isIn x0 y).
-  compute.
-  reflexivity.
-  compute.
-  reflexivity.
-Defined.
-(* TODO: subset = subset' *)
 
 Definition equal_set (x : FSet A) (y : FSet A) : Bool
   := andb (subset x y) (subset y x).

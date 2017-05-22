@@ -1,6 +1,6 @@
 Require Export HoTT.
-
 Require Import HitTactics.
+
 Module Export modulo.
 
 Private Inductive Mod2 : Type0 :=
@@ -51,10 +51,10 @@ Axiom Mod2_rec_beta_mod : forall
   (mod' : a = s (s a))
   , ap (Mod2_rec P a s mod') mod = mod'.
 
-
-Definition Mod2CL : HitRec.class Mod2 _ _ := 
-   HitRec.Class Mod2 (fun x P a s p => Mod2_rec P a s p x) (fun x P a s p => Mod2_ind P a s p x).
-Canonical Structure Mod2ty : HitRec.type := HitRec.Pack Mod2 _ _ Mod2CL.
+Instance: HitRecursion Mod2 := {
+  indTy := _; recTy := _; 
+  H_inductor := Mod2_ind;
+  H_recursor := Mod2_rec }.
 
 End modulo.
 
@@ -62,7 +62,7 @@ End modulo.
 Theorem modulo2 : forall n : Mod2, n = succ(succ n).
 Proof.
 intro n.
-hrecursion n.
+hinduction n.
 - apply mod.
 - intros n p.
   apply (ap succ p).
@@ -75,8 +75,7 @@ Defined.
 
 Definition negate : Mod2 -> Mod2.
 Proof.
-intro x.
-hrecursion x.
+hrecursion.
 - apply Z. 
 - intros. apply (succ H).
 - simpl. apply mod.
@@ -137,8 +136,7 @@ hinduction n.
   rewrite ap_compose. 
   enough (ap Mod2_to_Bool mod = idpath).
   + rewrite X. hott_simpl.
-  + unfold Mod2_to_Bool. unfold HitRec.hrecursion. simpl. 
-    apply (Mod2_rec_beta_mod Bool false negb 1).
+  + apply (Mod2_rec_beta_mod Bool false negb 1).
 Defined.
 
 Theorem adj : 
