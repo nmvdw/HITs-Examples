@@ -126,10 +126,6 @@ Defined.
 
 Definition intersection_0r (X: FSet A): intersection X E = E := idpath.
 
-Theorem absorbtion_1 : forall (X1 X2 Y : FSet A),
-    intersection (U X1 X2) Y = U (intersection X1 Y) (intersection X2 Y).
-Admitted.
-
 Theorem intersection_La : forall (a : A) (X : FSet A),
     intersection (L a) X = if isIn a X then L a else E.
 Proof.
@@ -155,6 +151,53 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2).
   * apply nl.
 Defined.
 
+Lemma absorb_La (z : FSet A) (a : A) : forall Y : FSet A, intersection (U (L a) z) Y = U (intersection (L a) Y) (intersection z Y).
+Proof.
+simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2) ; cbn.
+- symmetry ; apply nl.
+- intros b.
+  unfold operations.deceq.
+  destruct (dec (b = a)) ; cbn.
+  * destruct (isIn b z).
+    + rewrite union_idem.
+      reflexivity.
+    + rewrite nr.
+      reflexivity.
+  * rewrite nl ; reflexivity.
+- intros X1 X2 P Q.
+  rewrite comprehension_or.
+  rewrite comprehension_or.
+  rewrite <- assoc.
+  rewrite (comm (comprehension (fun a0 : A => isIn a0 z) X1)).
+  rewrite <- assoc.
+  rewrite assoc.
+  rewrite (comm (comprehension (fun a0 : A => isIn a0 z) X2)).
+  reflexivity.
+Defined.
+
+Theorem absorbtion_1 (X1 X2 Y : FSet A) :
+    intersection (U X1 X2) Y = U (intersection X1 Y) (intersection X2 Y).
+Proof.
+simple refine (FSet_ind A
+  (fun z => intersection (U z X2) Y = U (intersection z Y) (intersection X2 Y))
+  _ _ _ _ _ _ _ _ _ X1) ; try (intros ; apply set_path2) ; cbn.
+- rewrite intersection_0l.
+  rewrite nl.
+  rewrite nl.
+  reflexivity.
+- intro a.
+  rewrite intersection_La.
+  rewrite absorb_La.
+  rewrite intersection_La.
+  reflexivity.
+- intros Z1 Z2 P Q.
+  unfold intersection in *.
+  cbn.
+  rewrite comprehension_or.
+  rewrite comprehension_or.
+  reflexivity.
+Defined.
+  
 Theorem intersection_isIn : forall a (x y: FSet A),
     isIn a (intersection x y) = andb (isIn a x) (isIn a y).
 Proof.
