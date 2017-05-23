@@ -21,10 +21,10 @@ Parameter A_eqdec : forall (x y : A), Decidable (x = y).
 Definition deceq (x y : A) :=
   if dec (x = y) then true else false.
   
-Theorem deceq_sym : forall x y, deceq x y = deceq y x.
+Theorem deceq_sym : forall x y, operations.deceq A x y = operations.deceq A y x.
 Proof.
 intros x y.
-unfold deceq.
+unfold operations.deceq.
 destruct (dec (x = y)) ; destruct (dec (y = x)) ; cbn.
 - reflexivity. 
 - pose (n (p^)) ; contradiction.
@@ -32,7 +32,7 @@ destruct (dec (x = y)) ; destruct (dec (y = x)) ; cbn.
 - reflexivity.
 Defined.
   
- 
+
 Lemma comprehension_false: forall Y: FSet A, 
 	    comprehension (fun a => isIn a E) Y = E.
 Proof.
@@ -92,47 +92,6 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2).
   reflexivity.
 Defined.
 
-Theorem intersection_isIn : forall a (x y: FSet A),
-    isIn a (intersection x y) = andb (isIn a x) (isIn a y).
-Proof.
-Admitted.
-(*
-intros a.
-simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; cbn.
-- intros y.
-  rewrite intersection_E.
-  reflexivity.
-- intros b y.
-  rewrite intersection_La.
-  unfold deceq.
-  destruct (dec (a = b)) ; cbn.
-  * rewrite p.
-    destruct (isIn b y).
-    + cbn.
-      unfold deceq.
-      destruct (dec (b = b)).
-      { reflexivity. }
-      { pose (n idpath). contradiction. }
-    + reflexivity.
-  * destruct (isIn b y).
-    + cbn.
-      unfold deceq.
-      destruct (dec (a = b)).
-      { pose (n p). contradiction. }
-      { reflexivity. }
-    + reflexivity.
-- intros x y P Q z.
-  enough (intersection (U x y) z = U (intersection x z) (intersection y z)).
-  rewrite X.
-  cbn.
-  rewrite P.
-  rewrite Q.
-  destruct (isIn a x) ; destruct (isIn a y) ; destruct (isIn a z) ; reflexivity.
-  admit.
-Admitted.
-*)
-
-
 Theorem union_idem : forall x: FSet A, U x x = x.
 Proof.
 simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; 
@@ -167,8 +126,68 @@ Defined.
 
 Definition intersection_0r (X: FSet A): intersection X E = E := idpath.
 
+Theorem absorbtion_1 : forall (X1 X2 Y : FSet A),
+    intersection (U X1 X2) Y = U (intersection X1 Y) (intersection X2 Y).
+Admitted.
 
-     
+Theorem intersection_La : forall (a : A) (X : FSet A),
+    intersection (L a) X = if isIn a X then L a else E.
+Proof.
+intro a.
+simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2).
+- reflexivity.
+- intro b.
+  cbn.
+  rewrite deceq_sym.
+  unfold operations.deceq.
+  destruct (dec (a = b)).
+  * rewrite p ; reflexivity.
+  * reflexivity.
+- unfold intersection.
+  intros x y P Q.
+  cbn.
+  rewrite P.
+  rewrite Q.
+  destruct (isIn a x) ; destruct (isIn a y).
+  * apply idem.
+  * apply nr.
+  * apply nl. 
+  * apply nl.
+Defined.
+
+Theorem intersection_isIn : forall a (x y: FSet A),
+    isIn a (intersection x y) = andb (isIn a x) (isIn a y).
+Proof.
+intros a x y.
+simple refine (FSet_ind A (fun z => isIn a (intersection z y) = andb (isIn a z) (isIn a y)) _ _ _ _ _ _ _ _ _ x) ; try (intros ; apply set_path2) ; cbn.
+- rewrite intersection_0l.
+  reflexivity.
+- intro b.
+  rewrite intersection_La.
+  unfold operations.deceq.
+  destruct (dec (a = b)) ; cbn.
+  * rewrite p.
+    destruct (isIn b y).
+    + cbn.
+      unfold operations.deceq.
+      destruct (dec (b = b)).
+      { reflexivity. }
+      { pose (n idpath). contradiction. }
+    + reflexivity.
+  * destruct (isIn b y).
+    + cbn.
+      unfold operations.deceq.
+      destruct (dec (a = b)).
+      { pose (n p). contradiction. }
+      { reflexivity. }
+    + reflexivity.
+- intros X1 X2 P Q.
+  rewrite absorbtion_1.
+  cbn.
+  rewrite P.
+  rewrite Q.
+  destruct (isIn a X1) ; destruct (isIn a X2) ; destruct (isIn a y) ; reflexivity.
+Defined.
 
 Lemma intersection_comm (X Y: FSet A): intersection X Y = intersection Y X.
 Proof.
@@ -233,31 +252,32 @@ hrecursion X; try (intros; apply set_path2).
   apply comm.
 Defined.*)
 
-Theorem intersection_assoc : forall (x y z: FSet A),
-    intersection x (intersection y z) = intersection (intersection x y) z.
-Admitted.
-(*
-simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2).
-- intros y z.
-  cbn.
-  rewrite intersection_E.
-  rewrite intersection_E.
-  rewrite intersection_E.
+Theorem intersection_assoc (X Y Z: FSet A) :
+    intersection X (intersection Y Z) = intersection (intersection X Y) Z.
+Proof.
+simple refine
+  (FSet_ind A
+    (fun z => intersection z (intersection Y Z) = intersection (intersection z Y) Z)
+     _ _ _ _ _ _ _ _ _ X) ; try (intros ; apply set_path2).
+- cbn.
+  rewrite intersection_0l.
+  rewrite intersection_0l.
+  rewrite intersection_0l.
   reflexivity.
-- intros a y z.
+- intros a.
   cbn.
   rewrite intersection_La.
   rewrite intersection_La.
   rewrite intersection_isIn.
-  destruct (isIn a y).
+  destruct (isIn a Y).
   * rewrite intersection_La.
-    destruct (isIn a z).
+    destruct (isIn a Z).
     + reflexivity.
     + reflexivity.
-  * rewrite intersection_E.
+  * rewrite intersection_0l.
     reflexivity.      
 - unfold intersection. cbn.
-  intros x y P Q z z'.
+  intros X1 X2 P Q.
   rewrite comprehension_or.
   rewrite P.
   rewrite Q.
@@ -265,7 +285,7 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2).
   cbn.
   rewrite comprehension_or.
   reflexivity.
- *)
+Defined.
 
 Theorem comprehension_subset : forall ϕ (X : FSet A),
     U (comprehension ϕ X) X = X.
