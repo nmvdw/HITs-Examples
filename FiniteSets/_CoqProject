@@ -1,0 +1,5 @@
+-R . "" COQC = hoqc COQDEP = hoqdep
+
+definition.v
+operations.v
+properties.v
