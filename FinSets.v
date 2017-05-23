@@ -331,10 +331,15 @@ End FinSet.
 
 Section functions.
 Parameter A : Type.
-Parameter A_eqdec : forall (x y : A), Decidable (x = y).
+Context (A_eqdec: forall (x y : A), Decidable (x = y)).
 Definition deceq (x y : A) :=
   if dec (x = y) then true else false.
 
+Notation "{| x |}" :=  (L x).
+Infix "∪" := U (at level 8, right associativity).
+Notation "∅" := E.
+
+(** Properties of union *)
 Lemma union_idem : forall (X : FSet A), U X X = X.
 Proof.
 hinduction; try (intros; apply set_path2).
@@ -347,6 +352,7 @@ hinduction; try (intros; apply set_path2).
   rewrite comm. reflexivity.
 Defined.
 
+(** Membership predicate *)
 Definition isIn : A -> FSet A -> Bool.
 Proof.
 intros a.
@@ -361,23 +367,25 @@ hrecursion.
 - intros a'. compute. destruct (A_eqdec a a'); reflexivity.
 Defined.
 
-Lemma isIn_eq a b : isIn a (L b) = true -> a = b.
+Infix "∈" := isIn (at level 9, right associativity).
+
+Lemma isIn_singleton_eq a b : a ∈ {| b |} = true -> a = b.
 Proof. cbv.
 destruct (A_eqdec a b). intro. apply p.
 intro X. 
-pose (false_ne_true X). contradiction.
+contradiction (false_ne_true X).
 Defined.
 
-Lemma isIn_empt_false a : isIn a E = true -> Empty.
+Lemma isIn_empty_false a : a ∈ ∅ = true -> Empty.
 Proof. 
 cbv. intro X.
-pose (false_ne_true X). contradiction.
+contradiction (false_ne_true X). 
 Defined.
 
-Lemma isIn_union a X Y : isIn a (U X Y) = orb (isIn a X) (isIn a Y).
+Lemma isIn_union a X Y : a ∈ (X ∪ Y) = (a ∈ X || a ∈ Y)%Bool.
 Proof. reflexivity. Qed. 
 
-
+(** Set comprehension *)
 Definition comprehension : 
   (A -> Bool) -> FSet A -> FSet A.
 Proof.
@@ -397,7 +405,7 @@ hrecursion.
   + apply nl.
 Defined.
 
-Lemma comprehension_false Y : comprehension (fun a => isIn a E) Y = E.
+Lemma comprehension_false Y : comprehension (fun a => a ∈ ∅) Y = E.
 Proof.
 hrecursion Y; try (intros; apply set_path2).
 - cbn. reflexivity.
@@ -411,7 +419,7 @@ hrecursion Y; try (intros; apply set_path2).
 Defined.
 
 Lemma comprehension_idem' `{Funext}: 
-   forall (X:FSet A), forall Y, comprehension (fun x => isIn x (U X Y)) X = X.
+   forall (X:FSet A), forall Y, comprehension (fun x => x ∈ (U X Y)) X = X.
 Proof.
 hinduction.
 all: try (intros; apply path_forall; intro; apply set_path2).
@@ -431,7 +439,7 @@ all: try (intros; apply path_forall; intro; apply set_path2).
 Defined.
 
 Lemma comprehension_idem `{Funext}: 
-   forall (X:FSet A), comprehension (fun x => isIn x X) X = X.
+   forall (X:FSet A), comprehension (fun x => x ∈ X) X = X.
 Proof.
 intros X.
 enough (comprehension (fun x : A => isIn x (U X X)) X = X).
@@ -439,6 +447,7 @@ rewrite (union_idem) in X0. assumption.
 apply comprehension_idem'.
 Defined.
 
+(** Set intersection *)
 Definition intersection : 
   FSet A -> FSet A -> FSet A.
 Proof.
@@ -446,12 +455,13 @@ intros X Y.
 apply (comprehension (fun (a : A) => isIn a X) Y).
 Defined.
 
-Definition subset (x : FSet A) (y : FSet A) : Bool.
-Proof.
+(** Subset ordering *)
+Definition subset : forall (x : FSet A) (y : FSet A), Bool.
+Proof. intros x y.
 hrecursion x.
 - apply true.
 - intro a. apply (isIn a y).
-- apply andb.
+- intros a b. apply (andb a b).
 - intros a b c. compute. destruct a; reflexivity.
 - intros a b. compute. destruct a, b; reflexivity.
 - intros x. compute. reflexivity.
@@ -460,15 +470,6 @@ hrecursion x.
   destruct (isIn a y); reflexivity.
 Defined.
 
-Definition equal_set (x : FSet A) (y : FSet A) : Bool
-  := andb (subset x y) (subset y x).
-
-Fixpoint eq_nat n m : Bool :=
-  match n, m with
-    | O, O => true
-    | O, S _ => false
-    | S _, O => false
-    | S n1, S m1 => eq_nat n1 m1
-  end.
+Infix "⊆" := subset (at level 8, right associativity).
 
 End functions.
