@@ -265,7 +265,50 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2).
   cbn.
   rewrite comprehension_or.
   reflexivity.
-*)
+ *)
 
-End properties.
+Theorem comprehension_subset : forall ϕ (X : FSet A),
+    U (comprehension ϕ X) X = X.
+Proof.
+intros ϕ.
+simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2) ; cbn.
+- apply nl.
+- intro a.
+  destruct (ϕ a).
+  * apply union_idem.
+  * apply nl.
+- intros X Y P Q.
+  rewrite assoc.
+  rewrite <- (assoc (comprehension ϕ X) (comprehension ϕ Y) X).
+  rewrite (comm (comprehension ϕ Y) X).
+  rewrite assoc.
+  rewrite P.
+  rewrite <- assoc.
+  rewrite Q.
+  reflexivity.
+Defined.
+
+Theorem intersection_idem : forall (X : FSet A), intersection X X = X.
+Proof.
+simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2) ; cbn.
+- reflexivity.
+- intro a.
+  unfold operations.deceq.
+  destruct (dec (a = a)).
+  * reflexivity.
+  * contradiction (n idpath).
+- intros X Y IHX IHY.
+  cbn in *.
+  rewrite comprehension_or.
+  rewrite comprehension_or.
+  unfold intersection in *.
+  rewrite IHX.  
+  rewrite IHY.
+  rewrite comprehension_subset.
+  rewrite (comm X).
+  rewrite comprehension_subset.
+  reflexivity.
+Defined.
   
+
+End properties. 
