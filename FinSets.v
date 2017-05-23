@@ -331,9 +331,7 @@ End FinSet.
 
 Section functions.
 Parameter A : Type.
-Context (A_eqdec: forall (x y : A), Decidable (x = y)).
-Definition deceq (x y : A) :=
-  if dec (x = y) then true else false.
+Context {A_eqdec: DecidablePaths A}.
 
 Notation "{| x |}" :=  (L x).
 Infix "∪" := U (at level 8, right associativity).
@@ -358,7 +356,7 @@ Proof.
 intros a.
 hrecursion.
 - exact false.
-- intro a'. apply (deceq a a').
+- intro a'. destruct (dec (a = a')); [exact true | exact false].
 - apply orb. 
 - intros x y z. compute. destruct x; reflexivity.
 - intros x y. compute. destruct x, y; reflexivity.
@@ -457,7 +455,6 @@ hinduction.
 all: try (intros; apply path_forall; intro; apply set_path2).
 - intro Y. cbv. reflexivity.
 - intros a Y. cbn.
-  unfold deceq;
   destruct (dec (a = a)); simpl.
   + reflexivity.
   + contradiction n. reflexivity.
@@ -494,7 +491,7 @@ hrecursion X;  try (intros; apply set_path2).
 - cbn. unfold intersection. intros a.
   hrecursion Y; try (intros; apply set_path2).
   + cbn. reflexivity.
-  + cbn. intros. unfold deceq. 
+  + cbn. intros.
   		destruct  (dec (a0 = a)). 
   		rewrite p. destruct (dec (a=a)).
   		reflexivity.
@@ -504,17 +501,14 @@ hrecursion X;  try (intros; apply set_path2).
 		contradiction n. apply p^. reflexivity.
  	+ cbn -[isIn]. intros Y1 Y2 IH1 IH2.
  	 	rewrite IH1. 
- 	 	rewrite IH2.
- 	 	symmetry.
- 	 	rewrite 	(comprehension_union (L a)).
- 	 	reflexivity.
+ 	 	rewrite IH2. 	 	
+ 	 	apply 	(comprehension_union (L a)).
 - intros X1 X2 IH1 IH2.
   cbn.
   unfold intersection in *.
   rewrite <- IH1.
-  rewrite <- IH2.
-	rewrite comprehension_union.
-	reflexivity.
+  rewrite <- IH2. symmetry.
+	apply comprehension_union.
 Defined.
 
 
