@@ -32,116 +32,8 @@ Axiom idem : forall (x : A),
 
 Axiom trunc : IsHSet FSet.
 
-Fixpoint FSet_rec
-  (P : Type)
-  (H: IsHSet P)
-  (e : P)
-  (l : A -> P)
-  (u : P -> P -> P)
-  (assocP : forall (x y z : P), u x (u y z) = u (u x y) z)
-  (commP : forall (x y : P), u x y = u y x)
-  (nlP : forall (x : P), u e x = x)
-  (nrP : forall (x : P), u x e = x)
-  (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x : FSet)
-  {struct x}
-  : P
-  := (match x return _ -> _ -> _ -> _ -> _ -> _ -> P with
-        | E => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => e
-        | L a => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => l a
-        | U y z => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => u 
-           (FSet_rec P H e l u assocP commP nlP nrP idemP y)
-           (FSet_rec P H e l u assocP commP nlP nrP idemP z)
-      end) assocP commP nlP nrP idemP H.
-
-Axiom FSet_rec_beta_assoc : forall
-  (P : Type)
-  (H: IsHSet P)
-  (e : P)
-  (l : A -> P)
-  (u : P -> P -> P)
-  (assocP : forall (x y z : P), u x (u y z) = u (u x y) z)
-  (commP : forall (x y : P), u x y = u y x)
-  (nlP : forall (x : P), u e x = x)
-  (nrP : forall (x : P), u x e = x)
-  (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x y z : FSet),
-  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (assoc x y z) 
-  =
-  (assocP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
-          (FSet_rec P H e l u assocP commP nlP nrP idemP y)
-          (FSet_rec P H e l u assocP commP nlP nrP idemP z)
-  ).
-
-Axiom FSet_rec_beta_comm : forall
-  (P : Type)
-  (H: IsHSet P)
-  (e : P)
-  (l : A -> P)
-  (u : P -> P -> P)
-  (assocP : forall (x y z : P), u x (u y z) = u (u x y) z)
-  (commP : forall (x y : P), u x y = u y x)
-  (nlP : forall (x : P), u e x = x)
-  (nrP : forall (x : P), u x e = x)
-  (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x y : FSet),
-  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (comm x y)
-  =
-  (commP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
-         (FSet_rec P H e l u assocP commP nlP nrP idemP y)
-  ).
-
-Axiom FSet_rec_beta_nl : forall
-  (P : Type)
-  (H: IsHSet P)
-  (e : P)
-  (l : A -> P)
-  (u : P -> P -> P)
-  (assocP : forall (x y z : P), u x (u y z) = u (u x y) z)
-  (commP : forall (x y : P), u x y = u y x)
-  (nlP : forall (x : P), u e x = x)
-  (nrP : forall (x : P), u x e = x)
-  (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x : FSet),
-  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (nl x)
-  =
-  (nlP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
-  ).
-
-Axiom FSet_rec_beta_nr : forall
-  (P : Type)
-  (H: IsHSet P)
-  (e : P)
-  (l : A -> P)
-  (u : P -> P -> P)
-  (assocP : forall (x y z : P), u x (u y z) = u (u x y) z)
-  (commP : forall (x y : P), u x y = u y x)
-  (nlP : forall (x : P), u e x = x)
-  (nrP : forall (x : P), u x e = x)
-  (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x : FSet),
-  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (nr x)
-  =
-  (nrP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
-  ).
-
-Axiom FSet_rec_beta_idem : forall
-  (P : Type)
-  (H: IsHSet P)
-  (e : P)
-  (l : A -> P)
-  (u : P -> P -> P)
-  (assocP : forall (x y z : P), u x (u y z) = u (u x y) z)
-  (commP : forall (x y : P), u x y = u y x)
-  (nlP : forall (x : P), u e x = x)
-  (nrP : forall (x : P), u x e = x)
-  (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x : A),
-  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (idem x)
-  =
-  idemP x.
-
 End FSet.
+
 Section FSet_induction.
 Arguments E {_}.
 Arguments U {_} _ _.
@@ -201,7 +93,95 @@ Axiom FSet_ind_beta_nr : forall (x : FSet A),
   apD FSet_ind (nr x) = (nrP x (FSet_ind x)).
 
 Axiom FSet_ind_beta_idem : forall (x : A), apD FSet_ind (idem x) = idemP x.
-
-
 End FSet_induction.
+
+Section FSet_recursion.
+
+Variable A : Type.
+Variable P : Type.
+Variable H: IsHSet P.
+Variable e : P.
+Variable l : A -> P.
+Variable u : P -> P -> P.
+Variable assocP : forall (x y z : P), u x (u y z) = u (u x y) z.
+Variable commP : forall (x y : P), u x y = u y x.
+Variable nlP : forall (x : P), u e x = x.
+Variable nrP : forall (x : P), u x e = x.
+Variable idemP : forall (x : A), u (l x) (l x) = l x.
+
+Definition FSet_rec : FSet A -> P.
+Proof.
+simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; simple refine ((transport_const _ _) @ _)) ; cbn.
+- apply e.
+- apply l.
+- intros x y ; apply u.
+- apply assocP.
+- apply commP.
+- apply nlP.
+- apply nrP.
+- apply idemP.
+Defined.
+
+Definition FSet_rec_beta_assoc : forall (x y z : FSet A),
+  ap FSet_rec (assoc A x y z) 
+  =
+  assocP (FSet_rec x) (FSet_rec y) (FSet_rec z).
+Proof.
+intros.
+unfold FSet_rec.
+eapply (cancelL (transport_const (assoc A x y z) _)).
+simple refine ((apD_const _ _)^ @ _).
+apply FSet_ind_beta_assoc.
+Defined.
+
+Definition FSet_rec_beta_comm : forall (x y : FSet A),
+  ap FSet_rec (comm A x y) 
+  =
+  commP (FSet_rec x) (FSet_rec y).
+Proof.
+intros.
+unfold FSet_rec.
+eapply (cancelL (transport_const (comm A x y) _)).
+simple refine ((apD_const _ _)^ @ _).
+apply FSet_ind_beta_comm.
+Defined.
+
+Definition FSet_rec_beta_nl : forall (x : FSet A),
+  ap FSet_rec (nl A x) 
+  =
+  nlP (FSet_rec x).
+Proof.
+intros.
+unfold FSet_rec.
+eapply (cancelL (transport_const (nl A x) _)).
+simple refine ((apD_const _ _)^ @ _).
+apply FSet_ind_beta_nl.
+Defined.
+
+Definition FSet_rec_beta_nr : forall (x : FSet A),
+  ap FSet_rec (nr A x) 
+  =
+  nrP (FSet_rec x).
+Proof.
+intros.
+unfold FSet_rec.
+eapply (cancelL (transport_const (nr A x) _)).
+simple refine ((apD_const _ _)^ @ _).
+apply FSet_ind_beta_nr.
+Defined.
+
+Definition FSet_rec_beta_idem : forall (a : A),
+  ap FSet_rec (idem A a) 
+  =
+  idemP a.
+Proof.
+intros.
+unfold FSet_rec.
+eapply (cancelL (transport_const (idem A a) _)).
+simple refine ((apD_const _ _)^ @ _).
+apply FSet_ind_beta_idem.
+Defined.
+  
+End FSet_recursion.
+
 End definition.
