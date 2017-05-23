@@ -418,6 +418,38 @@ hrecursion Y; try (intros; apply set_path2).
   reflexivity.
 Defined.
 
+Lemma comprehension_union X Y Z : 
+	U (comprehension (fun a => isIn a Y) X)
+	  (comprehension (fun a => isIn a Z) X) =
+	  comprehension (fun a => isIn a (U Y Z)) X.
+Proof.
+hrecursion X; try (intros; apply set_path2).
+- cbn. apply nl.
+- cbn. intro a. 
+		destruct (isIn a Y); simpl;
+		destruct (isIn a Z); simpl.
+		apply idem.
+		apply nr.
+		apply nl.
+		apply nl.
+- cbn. intros X1 X2 IH1 IH2.
+	rewrite assoc.
+	rewrite (comm _ (comprehension (fun a : A => isIn a Y) X1) 
+				  (comprehension (fun a : A => isIn a Y) X2)).
+  rewrite <- (assoc _   
+  				  (comprehension (fun a : A => isIn a Y) X2)
+       		 (comprehension (fun a : A => isIn a Y) X1)
+       		 (comprehension (fun a : A => isIn a Z) X1)
+       		 ).
+  rewrite IH1.
+  rewrite comm.
+  rewrite assoc. 
+  rewrite (comm _ (comprehension (fun a : A => isIn a Z) X2) _).
+  rewrite IH2.
+  apply comm.
+Defined.
+
+
 Lemma comprehension_idem' `{Funext}: 
    forall (X:FSet A), forall Y, comprehension (fun x => x ∈ (U X Y)) X = X.
 Proof.
@@ -455,9 +487,40 @@ intros X Y.
 apply (comprehension (fun (a : A) => isIn a X) Y).
 Defined.
 
+Lemma intersection_comm X Y: intersection X Y = intersection Y X.
+Proof.
+hrecursion X;  try (intros; apply set_path2).
+- cbn. unfold intersection. apply comprehension_false.
+- cbn. unfold intersection. intros a.
+  hrecursion Y; try (intros; apply set_path2).
+  + cbn. reflexivity.
+  + cbn. intros. unfold deceq. 
+  		destruct  (dec (a0 = a)). 
+  		rewrite p. destruct (dec (a=a)).
+  		reflexivity.
+  		contradiction n. 
+  		reflexivity. 
+		destruct  (dec (a = a0)).
+		contradiction n. apply p^. reflexivity.
+ 	+ cbn -[isIn]. intros Y1 Y2 IH1 IH2.
+ 	 	rewrite IH1. 
+ 	 	rewrite IH2.
+ 	 	symmetry.
+ 	 	rewrite 	(comprehension_union (L a)).
+ 	 	reflexivity.
+- intros X1 X2 IH1 IH2.
+  cbn.
+  unfold intersection in *.
+  rewrite <- IH1.
+  rewrite <- IH2.
+	rewrite comprehension_union.
+	reflexivity.
+Defined.
+
+
 (** Subset ordering *)
-Definition subset : forall (x : FSet A) (y : FSet A), Bool.
-Proof. intros x y.
+Definition subset (x : FSet A) (y : FSet A) : Bool.
+Proof.
 hrecursion x.
 - apply true.
 - intro a. apply (isIn a y).
