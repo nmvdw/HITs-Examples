@@ -1,5 +1,6 @@
 -R . "" COQC = hoqc COQDEP = hoqdep
 
+HitTactics.v
 Mod2.v
 FinSets.v
 Expressions.v

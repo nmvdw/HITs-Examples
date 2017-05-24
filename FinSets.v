@@ -1,31 +1,39 @@
-Require Import HoTT.
 Require Export HoTT.
+Require Import HitTactics.
 
 Module Export FinSet.
+Section FSet.
+Variable A : Type.
 
-Private Inductive FinSets (A : Type) : Type :=
-  | empty : FinSets A
-  | L : A -> FinSets A
-  | U : FinSets A -> FinSets A -> FinSets A.
+Private Inductive FSet : Type :=
+  | E : FSet
+  | L : A -> FSet
+  | U : FSet -> FSet -> FSet.
 
-Axiom assoc : forall (A : Type) (x y z : FinSets A),
-  U A x (U A y z) = U A (U A x y) z.
+Notation "{| x |}" :=  (L x).
+Infix "∪" := U (at level 8, right associativity).
+Notation "∅" := E.
 
-Axiom comm : forall (A : Type) (x y : FinSets A),
-  U A x y = U A y x.
+Axiom assoc : forall (x y z : FSet ),
+  x ∪ (y ∪ z) = (x ∪ y) ∪ z.
 
-Axiom nl : forall (A : Type) (x : FinSets A),
-  U A (empty A) x = x.
+Axiom comm : forall (x y : FSet),
+  x ∪ y = y ∪ x.
 
-Axiom nr : forall (A : Type) (x : FinSets A),
-  U A x (empty A) = x.
+Axiom nl : forall (x : FSet),
+  ∅ ∪ x = x.
 
-Axiom idem : forall (A : Type) (x : A),
-  U A (L A x) (L A x) = L A x.
+Axiom nr : forall (x : FSet),
+  x ∪ ∅ = x.
 
-Fixpoint FinSets_rec
-  (A : Type)
+Axiom idem : forall (x : A),
+  {| x |} ∪ {|x|} = {|x|}.
+
+Axiom trunc : IsHSet FSet.
+
+Fixpoint FSet_rec
   (P : Type)
+  (H: IsHSet P)
   (e : P)
   (l : A -> P)
   (u : P -> P -> P)
@@ -34,20 +42,20 @@ Fixpoint FinSets_rec
   (nlP : forall (x : P), u e x = x)
   (nrP : forall (x : P), u x e = x)
   (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x : FinSets A)
+  (x : FSet)
   {struct x}
   : P
-  := (match x return _ -> _ -> _ -> _ -> _ -> P with
-        | empty => fun _ => fun _ => fun _ => fun _ => fun _ => e
-        | L a => fun _ => fun _ => fun _ => fun _ => fun _ => l a
-        | U y z => fun _ => fun _ => fun _ => fun _ => fun _ => u 
-           (FinSets_rec A P e l u assocP commP nlP nrP idemP y)
-           (FinSets_rec A P e l u assocP commP nlP nrP idemP z)
-      end) assocP commP nlP nrP idemP.
+  := (match x return _ -> _ -> _ -> _ -> _ -> _ -> P with
+        | E => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => e
+        | L a => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => l a
+        | U y z => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => u 
+           (FSet_rec P H e l u assocP commP nlP nrP idemP y)
+           (FSet_rec P H e l u assocP commP nlP nrP idemP z)
+      end) assocP commP nlP nrP idemP H.
 
-Axiom FinSets_beta_assoc : forall
-  (A : Type)
+Axiom FSet_rec_beta_assoc : forall
   (P : Type)
+  (H: IsHSet P)
   (e : P)
   (l : A -> P)
   (u : P -> P -> P)
@@ -56,17 +64,17 @@ Axiom FinSets_beta_assoc : forall
   (nlP : forall (x : P), u e x = x)
   (nrP : forall (x : P), u x e = x)
   (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x y z : FinSets A),
-  ap (FinSets_rec A P e l u assocP commP nlP nrP idemP) (assoc A x y z)
+  (x y z : FSet),
+  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (assoc x y z) 
   =
-  (assocP (FinSets_rec A P e l u assocP commP nlP nrP idemP x)
-          (FinSets_rec A P e l u assocP commP nlP nrP idemP y)
-          (FinSets_rec A P e l u assocP commP nlP nrP idemP z)
+  (assocP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
+          (FSet_rec P H e l u assocP commP nlP nrP idemP y)
+          (FSet_rec P H e l u assocP commP nlP nrP idemP z)
   ).
 
-Axiom FinSets_beta_comm : forall
-  (A : Type)
+Axiom FSet_rec_beta_comm : forall
   (P : Type)
+  (H: IsHSet P)
   (e : P)
   (l : A -> P)
   (u : P -> P -> P)
@@ -75,16 +83,16 @@ Axiom FinSets_beta_comm : forall
   (nlP : forall (x : P), u e x = x)
   (nrP : forall (x : P), u x e = x)
   (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x y : FinSets A),
-  ap (FinSets_rec A P e l u assocP commP nlP nrP idemP) (comm A x y)
+  (x y : FSet),
+  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (comm x y)
   =
-  (commP (FinSets_rec A P e l u assocP commP nlP nrP idemP x)
-         (FinSets_rec A P e l u assocP commP nlP nrP idemP y)
+  (commP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
+         (FSet_rec P H e l u assocP commP nlP nrP idemP y)
   ).
 
-Axiom FinSets_beta_nl : forall
-  (A : Type)
+Axiom FSet_rec_beta_nl : forall
   (P : Type)
+  (H: IsHSet P)
   (e : P)
   (l : A -> P)
   (u : P -> P -> P)
@@ -93,15 +101,15 @@ Axiom FinSets_beta_nl : forall
   (nlP : forall (x : P), u e x = x)
   (nrP : forall (x : P), u x e = x)
   (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x : FinSets A),
-  ap (FinSets_rec A P e l u assocP commP nlP nrP idemP) (nl A x)
+  (x : FSet),
+  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (nl x)
   =
-  (nlP (FinSets_rec A P e l u assocP commP nlP nrP idemP x)
+  (nlP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
   ).
 
-Axiom FinSets_beta_nr : forall
-  (A : Type)
+Axiom FSet_rec_beta_nr : forall
   (P : Type)
+  (H: IsHSet P)
   (e : P)
   (l : A -> P)
   (u : P -> P -> P)
@@ -110,15 +118,15 @@ Axiom FinSets_beta_nr : forall
   (nlP : forall (x : P), u e x = x)
   (nrP : forall (x : P), u x e = x)
   (idemP : forall (x : A), u (l x) (l x) = l x)
-  (x : FinSets A),
-  ap (FinSets_rec A P e l u assocP commP nlP nrP idemP) (nr A x)
+  (x : FSet),
+  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (nr x)
   =
-  (nrP (FinSets_rec A P e l u assocP commP nlP nrP idemP x)
+  (nrP (FSet_rec P H e l u assocP commP nlP nrP idemP x)
   ).
 
-Axiom FinSets_beta_idem : forall
-  (A : Type)
+Axiom FSet_rec_beta_idem : forall
   (P : Type)
+  (H: IsHSet P)
   (e : P)
   (l : A -> P)
   (u : P -> P -> P)
@@ -128,200 +136,397 @@ Axiom FinSets_beta_idem : forall
   (nrP : forall (x : P), u x e = x)
   (idemP : forall (x : A), u (l x) (l x) = l x)
   (x : A),
-  ap (FinSets_rec A P e l u assocP commP nlP nrP idemP) (idem A x)
+  ap (FSet_rec P H e l u assocP commP nlP nrP idemP) (idem x)
   =
   idemP x.
+
+
+(* Induction principle *)
+Fixpoint FSet_ind
+  (P : FSet -> Type)
+  (H :  forall a : FSet, IsHSet (P a))
+  (eP : P E)
+  (lP : forall a: A, P (L a))
+  (uP : forall (x y: FSet), P x -> P y -> P (U x y))
+  (assocP : forall (x y z : FSet) 
+                   (px: P x) (py: P y) (pz: P z),
+  assoc x y z #
+   (uP      x    (U y z)          px        (uP y z py pz)) 
+  = 
+   (uP   (U x y)    z       (uP x y px py)          pz))
+  (commP : forall (x y: FSet) (px: P x) (py: P y),
+  comm x y #
+  uP x y px py = uP y x py px) 
+  (nlP : forall (x : FSet) (px: P x), 
+  nl x # uP E x eP px = px)
+  (nrP : forall (x : FSet) (px: P x), 
+  nr x # uP x E px eP = px)
+  (idemP : forall (x : A), 
+  idem x # uP (L x) (L x) (lP x) (lP x) = lP x)
+  (x : FSet)
+  {struct x}
+  : P x
+  := (match x return _ -> _ -> _ -> _ -> _ -> _ -> P x with
+        | E => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => eP
+        | L a => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => lP a
+        | U y z => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => uP y z
+           (FSet_ind P H eP lP uP assocP commP nlP nrP idemP y)
+           (FSet_ind P H eP lP uP assocP commP nlP nrP idemP z)
+      end) H assocP commP nlP nrP idemP.
+
+
+Axiom FSet_ind_beta_assoc : forall
+  (P : FSet -> Type)
+  (H :  forall a : FSet, IsHSet (P a))
+  (eP : P E)
+  (lP : forall a: A, P (L a))
+  (uP : forall (x y: FSet), P x -> P y -> P (U x y))
+  (assocP : forall (x y z : FSet) 
+                   (px: P x) (py: P y) (pz: P z),
+  assoc x y z #
+   (uP      x    (U y z)          px        (uP y z py pz)) 
+  = 
+   (uP   (U x y)    z       (uP x y px py)          pz))
+  (commP : forall (x y: FSet) (px: P x) (py: P y),
+  comm x y #
+  uP x y px py = uP y x py px) 
+  (nlP : forall (x : FSet) (px: P x), 
+  nl x # uP E x eP px = px)
+  (nrP : forall (x : FSet) (px: P x), 
+  nr x # uP x E px eP = px)
+  (idemP : forall (x : A), 
+  idem x # uP (L x) (L x) (lP x) (lP x) = lP x)
+  (x y z : FSet),
+  apD (FSet_ind P H eP lP uP assocP commP nlP nrP idemP) 
+      (assoc x y z)
+  =
+  (assocP x y z 
+          (FSet_ind P H eP lP uP assocP commP nlP nrP idemP x)
+          (FSet_ind P H eP lP uP assocP commP nlP nrP idemP y)
+          (FSet_ind P H eP lP uP assocP commP nlP nrP idemP z)
+  ).
+
+
+
+Axiom FSet_ind_beta_comm : forall  
+  (P : FSet -> Type)
+  (H :  forall a : FSet, IsHSet (P a))
+  (eP : P E)
+  (lP : forall a: A, P (L a))
+  (uP : forall (x y: FSet), P x -> P y -> P (U x y))
+  (assocP : forall (x y z : FSet) 
+                   (px: P x) (py: P y) (pz: P z),
+  assoc x y z #
+   (uP      x    (U y z)          px        (uP y z py pz)) 
+  = 
+   (uP   (U x y)    z       (uP x y px py)          pz))
+  (commP : forall (x y : FSet) (px: P x) (py: P y),
+  comm x y #
+  uP x y px py = uP y x py px) 
+  (nlP : forall (x : FSet) (px: P x), 
+  nl x # uP E x eP px = px)
+  (nrP : forall (x : FSet) (px: P x), 
+  nr x # uP x E px eP = px)
+  (idemP : forall (x : A), 
+  idem x # uP (L x) (L x) (lP x) (lP x) = lP x)
+  (x y : FSet),
+  apD (FSet_ind P H eP lP uP assocP commP nlP nrP idemP) (comm x y)
+  =
+  (commP x y 
+         (FSet_ind P H eP lP uP assocP commP nlP nrP idemP x)
+         (FSet_ind P H eP lP uP assocP commP nlP nrP idemP y)
+  ).
+
+Axiom FSet_ind_beta_nl : forall
+  (P : FSet -> Type)
+  (H :  forall a : FSet, IsHSet (P a))
+  (eP : P E)
+  (lP : forall a: A, P (L a))
+  (uP : forall (x y: FSet), P x -> P y -> P (U x y))
+  (assocP : forall (x y z : FSet) 
+                   (px: P x) (py: P y) (pz: P z),
+  assoc x y z #
+   (uP      x    (U y z)          px        (uP y z py pz)) 
+  = 
+   (uP   (U x y)    z       (uP x y px py)          pz))
+  (commP : forall (x y : FSet) (px: P x) (py: P y),
+  comm x y #
+  uP x y px py = uP y x py px) 
+  (nlP : forall (x : FSet) (px: P x), 
+  nl x # uP E x eP px = px)
+  (nrP : forall (x : FSet) (px: P x), 
+  nr x # uP x E px eP = px)
+  (idemP : forall (x : A), 
+  idem x # uP (L x) (L x) (lP x) (lP x) = lP x)
+  (x : FSet),
+  apD (FSet_ind P H eP lP uP assocP commP nlP nrP idemP) (nl x)
+  =
+  (nlP x (FSet_ind P H eP lP uP assocP commP nlP nrP idemP x)
+  ).
+
+Axiom FSet_ind_beta_nr : forall
+  (P : FSet -> Type)
+  (H :  forall a : FSet, IsHSet (P a))
+  (eP : P E)
+  (lP : forall a: A, P (L a))
+  (uP : forall (x y: FSet), P x -> P y -> P (U x y))
+  (assocP : forall (x y z : FSet) 
+                   (px: P x) (py: P y) (pz: P z),
+  assoc x y z #
+   (uP      x    (U y z)          px        (uP y z py pz)) 
+  = 
+   (uP   (U x y)    z       (uP x y px py)          pz))
+  (commP : forall (x y : FSet) (px: P x) (py: P y),
+  comm x y #
+  uP x y px py = uP y x py px) 
+  (nlP : forall (x : FSet) (px: P x), 
+  nl x # uP E x eP px = px)
+  (nrP : forall (x : FSet) (px: P x), 
+  nr x # uP x E px eP = px)
+  (idemP : forall (x : A), 
+  idem x # uP (L x) (L x) (lP x) (lP x) = lP x)
+  (x : FSet),
+  apD (FSet_ind P H eP lP uP assocP commP nlP nrP idemP) (nr x)
+  =
+  (nrP x (FSet_ind P H eP lP uP assocP commP nlP nrP idemP x)
+  ).
+
+Axiom FSet_ind_beta_idem : forall
+  (P : FSet -> Type)
+  (H :  forall a : FSet, IsHSet (P a))
+  (eP : P E)
+  (lP : forall a: A, P (L a))
+  (uP : forall (x y: FSet), P x -> P y -> P (U x y))
+  (assocP : forall (x y z : FSet) 
+                   (px: P x) (py: P y) (pz: P z),
+  assoc x y z #
+   (uP      x    (U y z)          px        (uP y z py pz)) 
+  = 
+   (uP   (U x y)    z       (uP x y px py)          pz))
+  (commP : forall (x y : FSet) (px: P x) (py: P y),
+  comm x y #
+  uP x y px py = uP y x py px) 
+  (nlP : forall (x : FSet) (px: P x), 
+  nl x # uP E x eP px = px)
+  (nrP : forall (x : FSet) (px: P x), 
+  nr x # uP x E px eP = px)
+  (idemP : forall (x : A), 
+  idem x # uP (L x) (L x) (lP x) (lP x) = lP x)
+  (x : A),
+  apD (FSet_ind P H eP lP uP assocP commP nlP nrP idemP) (idem x)
+  =
+  idemP x.
+
+End FSet.
+
+Instance FSet_recursion A : HitRecursion (FSet A) := {
+  indTy := _; recTy := _; 
+  H_inductor := FSet_ind A; H_recursor := FSet_rec A }.
+
+Arguments E {_}.
+Arguments U {_} _ _.
+Arguments L {_} _.
+
 End FinSet.
 
-Definition isIn : forall 
-  (A : Type)
-  (eq : A -> A -> Bool),
-  A -> FinSets A -> Bool.
+Section functions.
+Parameter A : Type.
+Context {A_eqdec: DecidablePaths A}.
+
+Notation "{| x |}" :=  (L x).
+Infix "∪" := U (at level 8, right associativity).
+Notation "∅" := E.
+
+(** Properties of union *)
+Lemma union_idem : forall (X : FSet A), U X X = X.
 Proof.
-intro A.
-intro eq.
-intro a.
-refine (FinSets_rec A _ _ _ _ _ _ _ _ _).
-  Unshelve.
+hinduction; try (intros; apply set_path2).
+- apply nr.
+- intros. apply idem.
+- intros X Y HX HY. etransitivity.
+  rewrite assoc. rewrite (comm _ X Y). rewrite <- (assoc _ Y X X).
+  rewrite comm.  
+  rewrite assoc. rewrite HX. rewrite HY. reflexivity.
+  rewrite comm. reflexivity.
+Defined.
 
-  Focus 6.
-  apply false.
+(** Membership predicate *)
+Definition isIn : A -> FSet A -> Bool.
+Proof.
+intros a.
+hrecursion.
+- exact false.
+- intro a'. destruct (dec (a = a')); [exact true | exact false].
+- apply orb. 
+- intros x y z. compute. destruct x; reflexivity.
+- intros x y. compute. destruct x, y; reflexivity.
+- intros x. compute. reflexivity. 
+- intros x. compute. destruct x; reflexivity.
+- intros a'. compute. destruct (A_eqdec a a'); reflexivity.
+Defined.
 
-  Focus 6.
-  intro a'.
-  apply (eq a a').
+Infix "∈" := isIn (at level 9, right associativity).
 
-  Focus 6.
-  intro b.
-  intro b'.
-  apply (orb b b').
+Lemma isIn_singleton_eq a b : a ∈ {| b |} = true -> a = b.
+Proof. cbv.
+destruct (A_eqdec a b). intro. apply p.
+intro X. 
+contradiction (false_ne_true X).
+Defined.
 
-  Focus 3.
-  intros.
-  compute.
-  reflexivity.
+Lemma isIn_empty_false a : a ∈ ∅ = true -> Empty.
+Proof. 
+cbv. intro X.
+contradiction (false_ne_true X). 
+Defined.
 
-  Focus 1.
-  intros.
-  compute.
-  destruct x.
-  reflexivity.
-  destruct y.
-  reflexivity.
-  reflexivity.
+Lemma isIn_union a X Y : a ∈ (X ∪ Y) = (a ∈ X || a ∈ Y)%Bool.
+Proof. reflexivity. Qed. 
 
-  Focus 1.
-  intros.
-  compute.
-  destruct x.
-  destruct y.
-  reflexivity.
-  reflexivity.
-  destruct y.
-  reflexivity.
-  reflexivity.
+(** Set comprehension *)
+Definition comprehension : 
+  (A -> Bool) -> FSet A -> FSet A.
+Proof.
+intros P.
+hrecursion.
+- apply E.
+- intro a.
+  refine (if (P a) then L a else E).
+- apply U.
+- intros. cbv. apply assoc.
+- intros. cbv. apply comm.
+- intros. cbv. apply nl.
+- intros. cbv. apply nr.
+- intros. cbv. 
+  destruct (P x); simpl.
+  + apply idem.
+  + apply nl.
+Defined.
 
-  Focus 1.
-  intros.
-  compute.
-  destruct x.
-  reflexivity.
-  reflexivity.
-
-  intros.
-  compute.
-  destruct (eq a x).
-  reflexivity.
+Lemma comprehension_false Y : comprehension (fun a => a ∈ ∅) Y = E.
+Proof.
+hrecursion Y; try (intros; apply set_path2).
+- cbn. reflexivity.
+- cbn. reflexivity.
+- intros x y IHa IHb.
+  cbn.
+  rewrite IHa.
+  rewrite IHb.
+  rewrite nl.
   reflexivity.
 Defined.
 
-Definition comprehension : forall
-  (A : Type)
-  (eq : A -> A -> Bool),
-  (A -> Bool) -> FinSets A -> FinSets A.
+Lemma comprehension_union X Y Z : 
+	U (comprehension (fun a => isIn a Y) X)
+	  (comprehension (fun a => isIn a Z) X) =
+	  comprehension (fun a => isIn a (U Y Z)) X.
 Proof.
-intro A.
-intro eq.
-intro phi.
-refine (FinSets_rec A _ _ _ _ _ _ _ _ _).
-  Unshelve.
-
-  Focus 6.
-  apply empty.
-
-  Focus 6.
-  intro a.
-  apply (if (phi a) then L A a else (empty A)).
-
-  Focus 6.
-  intro x.
-  intro y.
-  apply (U A x y).
-
-  Focus 3.
-  intros.
-  compute.
-  apply nl.
-
-  Focus 1.
-  intros.
-  compute.
-  apply assoc.
-
-  Focus 1.
-  intros.
-  compute.
+hrecursion X; try (intros; apply set_path2).
+- cbn. apply nl.
+- cbn. intro a. 
+		destruct (isIn a Y); simpl;
+		destruct (isIn a Z); simpl.
+		apply idem.
+		apply nr.
+		apply nl.
+		apply nl.
+- cbn. intros X1 X2 IH1 IH2.
+	rewrite assoc.
+	rewrite (comm _ (comprehension (fun a : A => isIn a Y) X1) 
+				  (comprehension (fun a : A => isIn a Y) X2)).
+  rewrite <- (assoc _   
+  				  (comprehension (fun a : A => isIn a Y) X2)
+       		 (comprehension (fun a : A => isIn a Y) X1)
+       		 (comprehension (fun a : A => isIn a Z) X1)
+       		 ).
+  rewrite IH1.
+  rewrite comm.
+  rewrite assoc. 
+  rewrite (comm _ (comprehension (fun a : A => isIn a Z) X2) _).
+  rewrite IH2.
   apply comm.
-
-  Focus 1.
-  intros.
-  compute.
-  apply nr.
-
-  intros.
-  compute.
-  destruct (phi x).
-  apply idem.
-  apply nl.
 Defined.
 
-Definition intersection : forall (A : Type) (eq : A -> A -> Bool), 
-  FinSets A -> FinSets A -> FinSets A.
+
+Lemma comprehension_idem' `{Funext}: 
+   forall (X:FSet A), forall Y, comprehension (fun x => x ∈ (U X Y)) X = X.
 Proof.
-intro A.
-intro eq.
-intro x.
-intro y.
-apply (comprehension A eq (fun (a : A) => isIn A eq a x) y).
+hinduction.
+all: try (intros; apply path_forall; intro; apply set_path2).
+- intro Y. cbv. reflexivity.
+- intros a Y. cbn.
+  destruct (dec (a = a)); simpl.
+  + reflexivity.
+  + contradiction n. reflexivity.
+- intros X1 X2 IH1 IH2 Y.
+  cbn -[isIn].
+  f_ap. 
+  + rewrite <- assoc. apply (IH1 (U X2 Y)).
+  + rewrite (comm _ X1 X2).
+    rewrite <- (assoc _ X2 X1 Y).
+    apply (IH2 (U X1 Y)).
 Defined.
 
-Definition subset (A : Type) (eq : A -> A -> Bool) (x : FinSets A) (y : FinSets A) : Bool.
+Lemma comprehension_idem `{Funext}: 
+   forall (X:FSet A), comprehension (fun x => x ∈ X) X = X.
 Proof.
-refine (FinSets_rec A _ _ _ _ _ _ _ _ _ _).
-  Unshelve.
-
-  Focus 6.
-  apply x.
-
-  Focus 6.
-  apply true.
-
-  Focus 6.
-  intro a.
-  apply (isIn A eq a y).
-
-  Focus 6.
-  intro b.
-  intro b'.
-  apply (andb b b').
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x0.
-  destruct y0.
-  reflexivity.
-  reflexivity.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x0.
-  destruct y0.
-  reflexivity.
-  reflexivity.
-  destruct y0.
-  reflexivity.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  reflexivity.
-
-  Focus 1.
-  intros.
-  compute.
-  destruct x0.
-  reflexivity.
-  reflexivity.
-
-  intros.
-  destruct (isIn A eq x0 y).
-  compute.
-  reflexivity.
-  compute.
-  reflexivity.
+intros X.
+enough (comprehension (fun x : A => isIn x (U X X)) X = X).
+rewrite (union_idem) in X0. assumption.
+apply comprehension_idem'.
 Defined.
 
-Definition equal_set (A : Type) (eq : A -> A -> Bool) (x : FinSets A) (y : FinSets A) : Bool
-  := andb (subset A eq x y) (subset A eq y x).
+(** Set intersection *)
+Definition intersection : 
+  FSet A -> FSet A -> FSet A.
+Proof.
+intros X Y.
+apply (comprehension (fun (a : A) => isIn a X) Y).
+Defined.
 
-Fixpoint eq_nat n m : Bool :=
-  match n, m with
-    | O, O => true
-    | O, S _ => false
-    | S _, O => false
-    | S n1, S m1 => eq_nat n1 m1
-  end.
+Lemma intersection_comm X Y: intersection X Y = intersection Y X.
+Proof.
+hrecursion X;  try (intros; apply set_path2).
+- cbn. unfold intersection. apply comprehension_false.
+- cbn. unfold intersection. intros a.
+  hrecursion Y; try (intros; apply set_path2).
+  + cbn. reflexivity.
+  + cbn. intros.
+  		destruct  (dec (a0 = a)). 
+  		rewrite p. destruct (dec (a=a)).
+  		reflexivity.
+  		contradiction n. 
+  		reflexivity. 
+		destruct  (dec (a = a0)).
+		contradiction n. apply p^. reflexivity.
+ 	+ cbn -[isIn]. intros Y1 Y2 IH1 IH2.
+ 	 	rewrite IH1. 
+ 	 	rewrite IH2. 	 	
+ 	 	apply 	(comprehension_union (L a)).
+- intros X1 X2 IH1 IH2.
+  cbn.
+  unfold intersection in *.
+  rewrite <- IH1.
+  rewrite <- IH2. symmetry.
+	apply comprehension_union.
+Defined.
+
+
+(** Subset ordering *)
+Definition subset (x : FSet A) (y : FSet A) : Bool.
+Proof.
+hrecursion x.
+- apply true.
+- intro a. apply (isIn a y).
+- intros a b. apply (andb a b).
+- intros a b c. compute. destruct a; reflexivity.
+- intros a b. compute. destruct a, b; reflexivity.
+- intros x. compute. reflexivity.
+- intros x. compute. destruct x;reflexivity.
+- intros a. simpl. 
+  destruct (isIn a y); reflexivity.
+Defined.
+
+Infix "⊆" := subset (at level 8, right associativity).
+
+End functions.

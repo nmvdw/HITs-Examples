@@ -1,5 +1,5 @@
-Require Import HoTT.
 Require Export HoTT.
+Require Import HitTactics.
 
 Module Export modulo.
 
@@ -51,166 +51,98 @@ Axiom Mod2_rec_beta_mod : forall
   (mod' : a = s (s a))
   , ap (Mod2_rec P a s mod') mod = mod'.
 
+Instance: HitRecursion Mod2 := {
+  indTy := _; recTy := _; 
+  H_inductor := Mod2_ind;
+  H_recursor := Mod2_rec }.
+
 End modulo.
 
-Definition negate : Mod2 -> Mod2.
-Proof.
-refine (Mod2_ind _ _ _ _).
- Unshelve.
- Focus 2.
- apply (succ Z).
-
- Focus 2.
- intros.
- apply (succ H).
-
- simpl.
- rewrite transport_const.
- rewrite <- mod.
- reflexivity.
-Defined.
 
 Theorem modulo2 : forall n : Mod2, n = succ(succ n).
 Proof.
-refine (Mod2_ind _ _ _ _).
- Unshelve.
- Focus 2.
- apply mod.
+intro n.
+hinduction n.
+- apply mod.
+- intros n p.
+  apply (ap succ p).
+- simpl.
+  etransitivity.
+  eapply (@transport_paths_FlFr _ _ idmap (fun n => succ (succ n))).
+  hott_simpl.
+  apply ap_compose.
+Defined.
 
- Focus 2.
- intro n.
- intro p.
- apply (ap succ p).
-
- simpl.
- rewrite @HoTT.Types.Paths.transport_paths_FlFr.
- rewrite ap_idmap.
- rewrite concat_Vp.
- rewrite concat_1p.
- rewrite ap_compose.
- reflexivity.
+Definition negate : Mod2 -> Mod2.
+Proof.
+hrecursion.
+- apply Z. 
+- intros. apply (succ H).
+- simpl. apply mod.
 Defined.
 
 Definition plus : Mod2 -> Mod2 -> Mod2.
 Proof.
-intro n.
-refine (Mod2_ind _ _ _ _).
-  Unshelve.
-
-  Focus 2.
-  apply n.
-
-  Focus 2.
-  intro m.
-  intro k.
-  apply (succ k).
-
-  simpl.
-  rewrite transport_const.
-  apply modulo2.
+intros n m.
+hrecursion m.
+- exact n.
+- apply succ.
+- apply modulo2.
 Defined.
 
 Definition Bool_to_Mod2 : Bool -> Mod2.
 Proof.
 intro b.
 destruct b.
- apply (succ Z).
-
- apply Z.
++ apply (succ Z).
++ apply Z.
 Defined.
 
 Definition Mod2_to_Bool : Mod2 -> Bool.
 Proof.
-refine (Mod2_ind _ _ _ _).
- Unshelve.
- Focus 2.
- apply false.
-
- Focus 2.
- intro n.
- apply negb.
-
- Focus 1.
- simpl.
- apply transport_const.
+intro x.
+hrecursion x.
+- exact false.
+- exact negb.
+- simpl. reflexivity.
 Defined.
 
 Theorem eq1 : forall n : Bool, Mod2_to_Bool (Bool_to_Mod2 n) = n.
 Proof.
 intro b.
-destruct b.
- Focus 1.
- compute.
- reflexivity.
-
- compute.
- reflexivity.
+destruct b; compute; reflexivity.
 Qed.
 
 Theorem Bool_to_Mod2_negb : forall x : Bool, 
   succ (Bool_to_Mod2 x) = Bool_to_Mod2 (negb x).
 Proof.
 intros.
-destruct x.
- compute.
- apply mod^.
-
- compute.
- apply reflexivity.
+destruct x; compute.
++ apply mod^.
++ apply reflexivity.
 Defined.
 
 Theorem eq2 : forall n : Mod2, Bool_to_Mod2 (Mod2_to_Bool n) = n.
 Proof.
-refine (Mod2_ind _ _ _ _).
-  Unshelve.
-  Focus 2.
-  compute.
-  reflexivity.
-
-  Focus 2.
-  intro n.
-  intro IHn.
-  symmetry.
-  transitivity (succ (Bool_to_Mod2 (Mod2_to_Bool n))).
-
-    Focus 1.
-    symmetry.
-    apply (ap succ IHn).
-
-    transitivity (Bool_to_Mod2 (negb (Mod2_to_Bool n))).
-    apply Bool_to_Mod2_negb.
-    enough (negb (Mod2_to_Bool n) = Mod2_to_Bool (succ n)).
-    apply (ap Bool_to_Mod2 X).
-
-    compute.
-    reflexivity.
-    simpl.
-    rewrite concat_p1.
-    rewrite concat_1p.
-    rewrite @HoTT.Types.Paths.transport_paths_FlFr.
-    rewrite concat_p1.
-    rewrite ap_idmap.
-    rewrite ap_compose.
-
-    enough (ap Mod2_to_Bool mod = reflexivity false).
-    rewrite X.
-    simpl.
-    rewrite concat_1p.
-    rewrite inv_V.
-    reflexivity.
-
-    enough (IsHSet Bool).
-    apply axiomK_hset.
-    apply X.
-    apply hset_bool.
+intro n.
+hinduction n.
+- reflexivity.
+- intros n IHn.
+  symmetry. etransitivity. apply (ap succ IHn^). 
+  etransitivity. apply Bool_to_Mod2_negb.
+  hott_simpl.
+- rewrite @HoTT.Types.Paths.transport_paths_FlFr.
+  hott_simpl.
+  rewrite ap_compose. 
+  enough (ap Mod2_to_Bool mod = idpath).
+  + rewrite X. hott_simpl.
+  + apply (Mod2_rec_beta_mod Bool false negb 1).
 Defined.
 
 Theorem adj : 
   forall x : Mod2, eq1 (Mod2_to_Bool x) = ap Mod2_to_Bool (eq2 x).
 Proof.
 intro x.
-enough (IsHSet Bool).
-apply set_path2.
 apply hset_bool.
 Defined.
 
