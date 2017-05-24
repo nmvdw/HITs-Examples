@@ -1,35 +1,23 @@
-Require Import HoTT.
-Require Export HoTT.
+Require Import HoTT HitTactics.
 Require Import definition.
-(*Set Implicit Arguments.*)
-Arguments E {_}.
-Arguments U {_} _ _.
-Arguments L {_} _.
-Arguments assoc {_} _ _ _.
-Arguments comm {_} _ _.
-Arguments nl {_} _.
-Arguments nr {_} _.
-Arguments idem {_} _.
 
 Section operations.
 
-Variable A : Type.
-Parameter A_eqdec : forall (x y : A), Decidable (x = y).
-Definition deceq (x y : A) :=
-  if dec (x = y) then true else false.
+Context {A : Type}.
+Context {A_deceq : DecidablePaths A}.
 
 Definition isIn : A -> FSet A -> Bool.
 Proof.
 intros a.
-simple refine (FSet_rec A _ _ _ _ _ _ _ _ _ _).
+hrecursion.
 - exact false.
-- intro a'. apply (deceq a a').
+- intro a'. destruct (dec (a = a')); [exact true | exact false].
 - apply orb. 
-- intros x y z. destruct x; reflexivity.
-- intros x y. destruct x, y; reflexivity.
-- intros x. reflexivity. 
-- intros x. destruct x; reflexivity.
-- intros a'. destruct (deceq a a'); reflexivity.
+- intros x y z. compute. destruct x; reflexivity.
+- intros x y. compute. destruct x, y; reflexivity.
+- intros x. compute. reflexivity. 
+- intros x. compute. destruct x; reflexivity.
+- intros a'. compute. destruct (A_deceq a a'); reflexivity.
 Defined.
 
 Infix "∈" := isIn (at level 9, right associativity).
@@ -38,7 +26,7 @@ Definition comprehension :
   (A -> Bool) -> FSet A -> FSet A.
 Proof.
 intros P.
-simple refine (FSet_rec A _ _ _ _ _ _ _ _ _ _).
+hrecursion.
 - apply E.
 - intro a.
   refine (if (P a) then L a else E).

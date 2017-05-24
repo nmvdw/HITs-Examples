@@ -1,5 +1,5 @@
 -R . "" COQC = hoqc COQDEP = hoqdep
-
+-R ../prelude ""
 definition.v
 operations.v
 properties.v

@@ -1,7 +1,7 @@
 Require Import HoTT.
-Require Export HoTT.
+Require Import HitTactics.
 
-Module Export definition.
+Module Export FSet.
  
 Section FSet.
 Variable A : Type.
@@ -34,7 +34,6 @@ Axiom trunc : IsHSet FSet.
 
 End FSet.
 
-Section FSet_induction.
 Arguments E {_}.
 Arguments U {_} _ _.
 Arguments L {_} _.
@@ -43,6 +42,8 @@ Arguments comm {_} _ _.
 Arguments nl {_} _.
 Arguments nr {_} _.
 Arguments idem {_} _.
+
+Section FSet_induction.
 Variable A: Type.
 Variable  (P : FSet A -> Type).
 Variable  (H :  forall a : FSet A, IsHSet (P a)).
@@ -123,65 +124,69 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; simple refine ((t
 Defined.
 
 Definition FSet_rec_beta_assoc : forall (x y z : FSet A),
-  ap FSet_rec (assoc A x y z) 
+  ap FSet_rec (assoc x y z) 
   =
   assocP (FSet_rec x) (FSet_rec y) (FSet_rec z).
 Proof.
 intros.
 unfold FSet_rec.
-eapply (cancelL (transport_const (assoc A x y z) _)).
+eapply (cancelL (transport_const (assoc x y z) _)).
 simple refine ((apD_const _ _)^ @ _).
 apply FSet_ind_beta_assoc.
 Defined.
 
 Definition FSet_rec_beta_comm : forall (x y : FSet A),
-  ap FSet_rec (comm A x y) 
+  ap FSet_rec (comm x y) 
   =
   commP (FSet_rec x) (FSet_rec y).
 Proof.
 intros.
 unfold FSet_rec.
-eapply (cancelL (transport_const (comm A x y) _)).
+eapply (cancelL (transport_const (comm x y) _)).
 simple refine ((apD_const _ _)^ @ _).
 apply FSet_ind_beta_comm.
 Defined.
 
 Definition FSet_rec_beta_nl : forall (x : FSet A),
-  ap FSet_rec (nl A x) 
+  ap FSet_rec (nl x) 
   =
   nlP (FSet_rec x).
 Proof.
 intros.
 unfold FSet_rec.
-eapply (cancelL (transport_const (nl A x) _)).
+eapply (cancelL (transport_const (nl x) _)).
 simple refine ((apD_const _ _)^ @ _).
 apply FSet_ind_beta_nl.
 Defined.
 
 Definition FSet_rec_beta_nr : forall (x : FSet A),
-  ap FSet_rec (nr A x) 
+  ap FSet_rec (nr x) 
   =
   nrP (FSet_rec x).
 Proof.
 intros.
 unfold FSet_rec.
-eapply (cancelL (transport_const (nr A x) _)).
+eapply (cancelL (transport_const (nr x) _)).
 simple refine ((apD_const _ _)^ @ _).
 apply FSet_ind_beta_nr.
 Defined.
 
 Definition FSet_rec_beta_idem : forall (a : A),
-  ap FSet_rec (idem A a) 
+  ap FSet_rec (idem a) 
   =
   idemP a.
 Proof.
 intros.
 unfold FSet_rec.
-eapply (cancelL (transport_const (idem A a) _)).
+eapply (cancelL (transport_const (idem a) _)).
 simple refine ((apD_const _ _)^ @ _).
 apply FSet_ind_beta_idem.
 Defined.
   
 End FSet_recursion.
 
-End definition.
+Instance FSet_recursion A : HitRecursion (FSet A) := {
+  indTy := _; recTy := _; 
+  H_inductor := FSet_ind A; H_recursor := FSet_rec A }.
+
+End FSet.
