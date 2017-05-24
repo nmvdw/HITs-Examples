@@ -187,7 +187,7 @@ simple refine (FSet_ind A
   reflexivity.
 - intro a.
   rewrite intersection_La.
-  rewrite absorb_La.
+  rewrite distributive_La.
   rewrite intersection_La.
   reflexivity.
 - intros Z1 Z2 P Q.
@@ -225,7 +225,7 @@ simple refine (FSet_ind A (fun z => isIn a (intersection z y) = andb (isIn a z) 
       { reflexivity. }
     + reflexivity.
 - intros X1 X2 P Q.
-  rewrite absorbtion_1.
+  rewrite distributive_intersection_U.
   cbn.
   rewrite P.
   rewrite Q.
@@ -444,7 +444,7 @@ simple refine (FSet_ind A
                   (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) = (comprehension (fun a : A => (isIn a Z1 || isIn a Z2 || isIn a Y)%Bool) Y)).
   rewrite D.
   reflexivity.
-  * rewrite comprehension_or.
+  * repeat (rewrite comprehension_or).
     rewrite comprehension_or.
     rewrite comprehension_or.
     rewrite comprehension_or.
@@ -466,4 +466,51 @@ simple refine (FSet_ind A
     reflexivity.
 Admitted.
 
+Theorem absorb_0 (X Y : FSet A) : U X (intersection X Y) = X.
+Proof.
+simple refine (FSet_ind A
+  (fun z => U z (intersection z Y) = z)
+  _ _ _ _ _ _ _ _ _ X) ; try (intros ; apply set_path2) ; cbn.
+- rewrite nl.
+  apply intersection_0l.
+- intro a.
+  rewrite intersection_La.
+  destruct (isIn a Y).
+  * apply union_idem.
+  * apply nr.
+- intros X1 X2 P Q.
+  rewrite distributive_intersection_U.
+  rewrite <- assoc.
+  rewrite (comm X2).
+  rewrite assoc.
+  rewrite assoc.
+  rewrite P.
+  rewrite <- assoc.
+  rewrite (comm _ X2).
+  rewrite Q.
+  reflexivity.
+Defined.
+
+Theorem absorb_1 (X Y : FSet A) : intersection X (U X Y) = X.
+Proof.
+simple refine (FSet_ind A
+  (fun z => intersection z (U z Y) = z)
+  _ _ _ _ _ _ _ _ _ X) ; try (intros ; apply set_path2).
+- cbn.
+  rewrite nl.
+  apply comprehension_false.
+- intro a.
+  simpl.
+  unfold operations.deceq.
+  rewrite intersection_La.
+  destruct (dec (a = a)).
+  * destruct (isIn a Y).
+    + apply union_idem.
+    + apply nr.
+  * contradiction (n idpath).
+- intros X1 X2 P Q.
+  cbn in *.
+  symmetry.
+  rewrite <- P.
+  rewrite <- Q.
 End properties. 
