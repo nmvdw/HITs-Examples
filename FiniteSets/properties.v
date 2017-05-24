@@ -428,5 +428,11 @@ hrecursion X; try (intros ; apply set_path2).
   rewrite <- P.
   rewrite <- Q.
 Admitted.
+
+Theorem union_isIn (X Y : FSet A) (a : A) : isIn a (U X Y) = orb (isIn a X) (isIn a Y).
+Proof.
+reflexivity.  
+Defined.
+                                                                
   
 End properties. 
