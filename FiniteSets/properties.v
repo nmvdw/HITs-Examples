@@ -196,7 +196,8 @@ hinduction; try (intros; apply set_path2).
 Defined.
 
 (** assorted lattice laws *)
-Lemma distributive_La (z : FSet A) (a : A) : forall Y : FSet A, intersection (U (L a) z) Y = U (intersection (L a) Y) (intersection z Y).
+Lemma distributive_La (z : FSet A) (a : A) : forall Y : FSet A, 
+       intersection (U (L a) z) Y = U (intersection (L a) Y) (intersection z Y).
 Proof.
 hinduction; try (intros ; apply set_path2) ; cbn.
 - symmetry ; apply nl.
@@ -265,7 +266,8 @@ hinduction x; try (intros ; apply set_path2) ; cbn.
   cbn.
   rewrite P.
   rewrite Q.
-  destruct (isIn a X1) ; destruct (isIn a X2) ; destruct (isIn a y) ; reflexivity.
+  destruct (isIn a X1) ; destruct (isIn a X2) ; destruct (isIn a y) ; 
+  reflexivity.
 Defined.
 
 
@@ -345,8 +347,10 @@ hinduction X1; try (intros ; apply set_path2) ; cbn.
   cbn.
   intros Z1 Z2 P Q.
   rewrite comprehension_or.
-  assert (U (U (comprehension (fun a : A => isIn a Z1) X2) (comprehension (fun a : A => isIn a Z2) X2))
-    Y = U (U (comprehension (fun a : A => isIn a Z1) X2) (comprehension (fun a : A => isIn a Z2) X2))
+  assert (U (U (comprehension (fun a : A => isIn a Z1) X2) 
+  	(comprehension (fun a : A => isIn a Z2) X2))
+    Y = U (U (comprehension (fun a : A => isIn a Z1) X2) 
+  (comprehension (fun a : A => isIn a Z2) X2))
     (U Y Y)).
     rewrite (union_idem Y).
     reflexivity.
@@ -354,8 +358,9 @@ hinduction X1; try (intros ; apply set_path2) ; cbn.
   rewrite <- assoc.
   rewrite (assoc (comprehension (fun a : A => isIn a Z2) X2)).
   rewrite Q.
-  rewrite (comm (U (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) X2)
-                   (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) Y).
+  rewrite 
+  (comm (U (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) X2)
+           (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) Y).
   rewrite assoc.
   rewrite P.
   rewrite <- assoc.
@@ -364,10 +369,12 @@ hinduction X1; try (intros ; apply set_path2) ; cbn.
   rewrite <- assoc.
   rewrite assoc.
   enough (C : (U (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) X2)
-             (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) X2)) = (comprehension (fun a : A => (isIn a Z1 || isIn a Z2 || isIn a Y)%Bool) X2)).
+             (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) X2)) 
+ = (comprehension (fun a : A => (isIn a Z1 || isIn a Z2 || isIn a Y)%Bool) X2)).
   rewrite C. 
   enough (D :  (U (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) Y)
-                  (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) = (comprehension (fun a : A => (isIn a Z1 || isIn a Z2 || isIn a Y)%Bool) Y)).
+                  (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) 
+ = (comprehension (fun a : A => (isIn a Z1 || isIn a Z2 || isIn a Y)%Bool) Y)).
   rewrite D.
   reflexivity.
   * repeat (rewrite comprehension_or).
@@ -428,5 +435,48 @@ hrecursion X; try (intros ; apply set_path2).
   rewrite <- P.
   rewrite <- Q.
 Admitted.
-  
+
+
+(* Properties about subset relation. *)
+Lemma subsect_intersection `{Funext} (X Y : FSet A) : 
+			subset X Y = true -> U X Y = Y.
+Proof.
+hinduction X; try (intros; apply path_forall; intro; apply set_path2).
+- intros. apply nl.
+- intros a. hinduction Y; 
+	try (intros; apply path_forall; intro; apply set_path2).
+	(*intros. apply equiv_hprop_allpath.*)
+	+ intro. cbn.  contradiction (false_ne_true).
+	+ intros. destruct (dec (a = a0)).
+		rewrite p; apply idem.
+		contradiction (false_ne_true).
+	+ intros X1 X2 IH1 IH2.
+	intro Ho.
+	destruct (isIn a X1);
+	destruct (isIn a X2).
+	specialize (IH1 idpath).
+	specialize (IH2 idpath).
+	rewrite assoc. rewrite IH1. reflexivity.
+	specialize (IH1 idpath).
+	rewrite assoc. rewrite IH1. reflexivity.
+	specialize (IH2 idpath).
+	rewrite assoc. rewrite (comm (L a)). rewrite <- assoc. rewrite IH2. 
+	reflexivity.
+	cbn in Ho. contradiction (false_ne_true). 
+- intros X1 X2 IH1 IH2 G. 
+	destruct (subset X1 Y);
+	destruct (subset X2 Y).
+	specialize (IH1 idpath).
+	specialize (IH2 idpath).
+	rewrite <- assoc. rewrite IH2. rewrite IH1. reflexivity.
+	specialize (IH1 idpath).
+	apply IH2 in G.
+	rewrite <- assoc. rewrite G. rewrite IH1. reflexivity.
+	specialize (IH2 idpath).
+	apply IH1 in G.
+	rewrite <- assoc. rewrite IH2. rewrite G. reflexivity.
+	specialize (IH1 G). specialize (IH2 G).
+	rewrite <- assoc. rewrite IH2. rewrite IH1. reflexivity.
+Defined.
+
 End properties. 
