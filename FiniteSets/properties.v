@@ -151,7 +151,7 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2).
   * apply nl.
 Defined.
 
-Lemma absorb_La (z : FSet A) (a : A) : forall Y : FSet A, intersection (U (L a) z) Y = U (intersection (L a) Y) (intersection z Y).
+Lemma distributive_La (z : FSet A) (a : A) : forall Y : FSet A, intersection (U (L a) z) Y = U (intersection (L a) Y) (intersection z Y).
 Proof.
 simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2) ; cbn.
 - symmetry ; apply nl.
@@ -175,7 +175,7 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2) 
   reflexivity.
 Defined.
 
-Theorem absorbtion_1 (X1 X2 Y : FSet A) :
+Theorem distributive_intersection_U (X1 X2 Y : FSet A) :
     intersection (U X1 X2) Y = U (intersection X1 Y) (intersection X2 Y).
 Proof.
 simple refine (FSet_ind A
@@ -197,7 +197,7 @@ simple refine (FSet_ind A
   rewrite comprehension_or.
   reflexivity.
 Defined.
-  
+    
 Theorem intersection_isIn : forall a (x y: FSet A),
     isIn a (intersection x y) = andb (isIn a x) (isIn a y).
 Proof.
@@ -372,6 +372,98 @@ simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2) 
   rewrite comprehension_subset.
   reflexivity.
 Defined.
+
+Theorem comprehension_all : forall (X : FSet A),
+    comprehension (fun a => isIn a X) X = X.
+Proof.
+simple refine (FSet_ind A _ _ _ _ _ _ _ _ _ _) ; try (intros ; apply set_path2) ; cbn.
+- reflexivity.
+- intro a.
+  unfold operations.deceq.
+  destruct (dec (a = a)).
+  * reflexivity.
+  * contradiction (n idpath).
+- intros X1 X2 P Q.
+  rewrite comprehension_or.
+  rewrite comprehension_or.
+  rewrite P.
+  rewrite Q.
+  rewrite comprehension_subset.
+  rewrite (comm X1).
+  rewrite comprehension_subset.
+  reflexivity.
+Defined.
+
   
+Theorem distributive_U_int (X1 X2 Y : FSet A) :
+    U (intersection X1 X2) Y = intersection (U X1 Y) (U X2 Y).
+Proof.
+simple refine (FSet_ind A
+  (fun z => U (intersection z X2) Y = intersection (U z Y) (U X2 Y))
+  _ _ _ _ _ _ _ _ _ X1) ; try (intros ; apply set_path2) ; cbn.
+- rewrite intersection_0l.
+  rewrite nl.
+  rewrite comprehension_all.
+  pose (intersection_comm Y X2).
+  unfold intersection in p.
+  rewrite p.
+  rewrite comprehension_subset.
+  reflexivity.
+- intros.
+  rewrite comprehension_or.
+  rewrite comprehension_or.
+  rewrite intersection_La.
+  unfold operations.deceq.
+  admit.
+- unfold intersection.
+  cbn.
+  intros Z1 Z2 P Q.
+  rewrite comprehension_or.
+  assert (U (U (comprehension (fun a : A => isIn a Z1) X2) (comprehension (fun a : A => isIn a Z2) X2))
+    Y = U (U (comprehension (fun a : A => isIn a Z1) X2) (comprehension (fun a : A => isIn a Z2) X2))
+    (U Y Y)).
+    rewrite (union_idem Y).
+    reflexivity.
+  rewrite X.
+  rewrite <- assoc.
+  rewrite (assoc (comprehension (fun a : A => isIn a Z2) X2)).
+  rewrite Q.
+  rewrite (comm (U (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) X2)
+                   (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) Y).
+  rewrite assoc.
+  rewrite P.
+  rewrite <- assoc.
+  rewrite (assoc (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) Y)).
+  rewrite (comm (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) Y)).
+  rewrite <- assoc.
+  rewrite assoc.
+  enough (C : (U (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) X2)
+             (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) X2)) = (comprehension (fun a : A => (isIn a Z1 || isIn a Z2 || isIn a Y)%Bool) X2)).
+  rewrite C. 
+  enough (D :  (U (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) Y)
+                  (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) = (comprehension (fun a : A => (isIn a Z1 || isIn a Z2 || isIn a Y)%Bool) Y)).
+  rewrite D.
+  reflexivity.
+  * rewrite comprehension_or.
+    rewrite comprehension_or.
+    rewrite comprehension_or.
+    rewrite comprehension_or.
+    rewrite <- assoc.
+    rewrite (comm (comprehension (fun a : A => isIn a Y) Y)).
+    rewrite <- (assoc (comprehension (fun a : A => isIn a Z2) Y)).
+    rewrite union_idem.
+    rewrite assoc.
+    reflexivity.
+  * rewrite comprehension_or.
+    rewrite comprehension_or.
+    rewrite comprehension_or.
+    rewrite comprehension_or.
+    rewrite <- assoc.
+    rewrite (comm (comprehension (fun a : A => isIn a Y) X2)).
+    rewrite <- (assoc (comprehension (fun a : A => isIn a Z2) X2)).
+    rewrite union_idem.
+    rewrite assoc.
+    reflexivity.
+Admitted.
 
 End properties. 
