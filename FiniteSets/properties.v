@@ -618,15 +618,23 @@ Proof.
     exact _.
     exact _.
     split ; apply subset_isIn.
-  - eapply equiv_functor_prod'.
-    apply HPropEquiv.
+  - apply HPropEquiv.
     exact _.
     exact _.
-    split ; apply subset_isIn.
-    apply HPropEquiv.
-    exact _.
-    exact _.
-    split ; apply subset_isIn.'. 
-Admitted.
+    split.
+    * intros [H1 H2 a].
+      specialize (H1 a) ; specialize (H2 a).
+      destruct (isIn a X).
+      + symmetry ; apply (H2 idpath).
+      + destruct (isIn a Y).
+        { apply (H1 idpath). }
+        { reflexivity. }
+    * intros H1.
+      split ; intro a ; intro H2.
+      + rewrite (H1 a).
+        apply H2.
+      + rewrite <- (H1 a).
+        apply H2.
+Defined.
 
 End properties. 
