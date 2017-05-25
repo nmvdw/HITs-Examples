@@ -524,10 +524,61 @@ Proof.
   eapply equiv_functor_prod'; apply subset_union_equiv.
 Defined.
 
-Lemma subset_isIn (X Y : FSet A) :
+Lemma subset_isIn `{FE : Funext} (X Y : FSet A) :
   (forall (a : A), isIn a X = true -> isIn a Y = true)
   <-> (subset X Y = true).
-Admitted.
+Proof.
+  split.
+  - hinduction X ; try (intros ; apply path_forall ; intro ; apply set_path2).
+    * intros ; reflexivity.
+    * intros a H. 
+      apply H.
+      destruct (dec (a = a)).
+      + reflexivity.
+      + contradiction (n idpath).
+    * intros X1 X2 H1 H2 H.
+      enough (subset X1 Y = true).
+      rewrite X.
+      enough (subset X2 Y = true).
+      rewrite X0.
+      reflexivity.
+      + apply H2.
+        intros a Ha.
+        apply H.
+        rewrite Ha.
+        destruct (isIn a X1) ; reflexivity.
+      + apply H1.
+        intros a Ha.
+        apply H.
+        rewrite Ha.
+        reflexivity.        
+  - hinduction X .
+    * intros. contradiction (false_ne_true X0).
+    * intros b H a.
+      destruct (dec (a = b)).
+      + intros ; rewrite p ; apply H.
+      + intros X ; contradiction (false_ne_true X).
+        * intros X1 X2.
+          intros IH1 IH2 H1 a H2.
+          destruct (subset X1 Y) ; destruct (subset X2 Y);
+            cbv in H1; try by contradiction false_ne_true.
+          specialize (IH1 idpath a). specialize (IH2 idpath a).
+          destruct (isIn a X1); destruct (isIn a X2);
+            cbv in H2; try by contradiction false_ne_true.
+          by apply IH1.
+          by apply IH1.
+          by apply IH2.
+        * repeat (intro; intros; apply path_forall).
+          intros; intro; intros; apply set_path2.
+        * repeat (intro; intros; apply path_forall).
+          intros; intro; intros; apply set_path2.
+        * repeat (intro; intros; apply path_forall).
+          intros; intro; intros; apply set_path2.
+        * repeat (intro; intros; apply path_forall).
+          intros; intro; intros; apply set_path2.
+        * repeat (intro; intros; apply path_forall);
+          intros; intro; intros; apply set_path2.
+Defined.
 
 Theorem fset_ext `{Funext} (X Y : FSet A) :
   X = Y <~> (forall (a : A), isIn a X = isIn a Y).
@@ -536,8 +587,8 @@ Proof.
   transitivity
     ((forall a, isIn a Y = true -> isIn a X = true)
      *(forall a, isIn a X = true -> isIn a Y = true)).
-  - admit.
-  - admit.
+  - eapply equiv_functor_prod'. admit. admit.
+  - eapply equiv_functor_prod'. 
 Admitted.
 
 End properties. 
