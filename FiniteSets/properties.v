@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Import definition operations.
+Require Export definition operations.
 
 Section properties.
 
@@ -439,8 +439,8 @@ Admitted.
 
 
 (* Properties about subset relation. *)
-Lemma subsect_intersection `{Funext} (X Y : FSet A) : 
-			subset X Y = true -> U X Y = Y.
+Lemma subset_union `{Funext} (X Y : FSet A) : 
+  subset X Y = true -> U X Y = Y.
 Proof.
 hinduction X; try (intros; apply path_forall; intro; apply set_path2).
 - intros. apply nl.
@@ -472,5 +472,72 @@ hinduction X; try (intros; apply path_forall; intro; apply set_path2).
   * contradiction (false_ne_true).
   * contradiction (false_ne_true).
 Defined.
+
+Lemma eq1 (X Y : FSet A) : X = Y <~> (U Y X = X) * (U X Y = Y).
+Proof.
+  unshelve eapply BuildEquiv.
+  { intro H. rewrite H. split; apply union_idem. }
+  unshelve esplit.
+  { intros [H1 H2]. etransitivity. apply H1^.
+    rewrite comm. apply H2. }
+  intro; apply path_prod; apply set_path2. 
+  all: intro; apply set_path2.  
+Defined.
+
+
+Lemma subset_union_l `{Funext} X :
+  forall Y, subset X (U X Y) = true.
+hinduction X;
+  try (intros; apply path_forall; intro; apply set_path2).
+- reflexivity.
+- intros a Y. destruct (dec (a = a)).
+  * reflexivity.
+  * by contradiction n.
+- intros X1 X2 HX1 HX2 Y.
+  enough (subset X1 (U (U X1 X2) Y) = true).
+  enough (subset X2 (U (U X1 X2) Y) = true).
+  rewrite X. rewrite X0. reflexivity.
+  { rewrite (comm X1 X2).
+    rewrite <- (assoc X2 X1 Y).
+    apply (HX2 (U X1 Y)). }
+  { rewrite <- (assoc X1 X2 Y). apply (HX1 (U X2 Y)). }
+Defined.
+
+Lemma subset_union_equiv `{Funext}
+  : forall X Y : FSet A, subset X Y = true <~> U X Y = Y.
+Proof.
+  intros X Y.
+  unshelve eapply BuildEquiv.
+  apply subset_union.
+  unshelve esplit.
+  { intros HXY. rewrite <- HXY. clear HXY.
+    apply subset_union_l. }
+  all: intro; apply set_path2.
+Defined.
+
+Lemma eq_subset `{Funext} (X Y : FSet A) :
+  X = Y <~> ((subset Y X = true) * (subset X Y = true)).
+Proof.
+  transitivity ((U Y X = X) * (U X Y = Y)).
+  apply eq1.
+  symmetry.
+  eapply equiv_functor_prod'; apply subset_union_equiv.
+Defined.
+
+Lemma subset_isIn (X Y : FSet A) :
+  (forall (a : A), isIn a X = true -> isIn a Y = true)
+  <-> (subset X Y = true).
+Admitted.
+
+Theorem fset_ext `{Funext} (X Y : FSet A) :
+  X = Y <~> (forall (a : A), isIn a X = isIn a Y).
+Proof.
+  etransitivity. apply eq_subset.
+  transitivity
+    ((forall a, isIn a Y = true -> isIn a X = true)
+     *(forall a, isIn a X = true -> isIn a Y = true)).
+  - admit.
+  - admit.
+Admitted.
 
 End properties. 
