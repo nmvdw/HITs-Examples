@@ -437,14 +437,10 @@ hrecursion X; try (intros ; apply set_path2).
   rewrite <- Q.
 Admitted.
 
-<<<<<<< HEAD
 Theorem union_isIn (X Y : FSet A) (a : A) : isIn a (U X Y) = orb (isIn a X) (isIn a Y).
 Proof.
 reflexivity.  
 Defined.
-                                                                
-  
-=======
 
 (* Properties about subset relation. *)
 Lemma subset_union `{Funext} (X Y : FSet A) : 
@@ -588,6 +584,24 @@ Proof.
           intros; intro; intros; apply set_path2.
 Defined.
 
+Lemma HPropEquiv (X Y : Type) (P : IsHProp X) (Q : IsHProp Y) :
+  (X <-> Y) -> (X <~> Y).
+Proof.
+intros [f g].
+simple refine (BuildEquiv _ _ _ _).  
+apply f.
+simple refine (BuildIsEquiv _ _ _ _ _ _ _).
+- apply g.
+- unfold Sect.
+  intro x.  
+  apply Q.
+- unfold Sect.
+  intro x.
+  apply P.
+- intros.
+  apply set_path2.
+Defined.
+
 Theorem fset_ext `{Funext} (X Y : FSet A) :
   X = Y <~> (forall (a : A), isIn a X = isIn a Y).
 Proof.
@@ -595,8 +609,24 @@ Proof.
   transitivity
     ((forall a, isIn a Y = true -> isIn a X = true)
      *(forall a, isIn a X = true -> isIn a Y = true)).
-  - eapply equiv_functor_prod'. admit. admit.
-  - eapply equiv_functor_prod'. 
+  - eapply equiv_functor_prod'.
+    apply HPropEquiv.
+    exact _.
+    exact _.
+    split ; apply subset_isIn.
+    apply HPropEquiv.
+    exact _.
+    exact _.
+    split ; apply subset_isIn.
+  - eapply equiv_functor_prod'.
+    apply HPropEquiv.
+    exact _.
+    exact _.
+    split ; apply subset_isIn.
+    apply HPropEquiv.
+    exact _.
+    exact _.
+    split ; apply subset_isIn.'. 
 Admitted.
 
 End properties. 
