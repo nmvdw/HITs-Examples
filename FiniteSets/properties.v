@@ -20,8 +20,7 @@ try (intros ; apply set_path2) ; cbn.
   rewrite P.
   rewrite (comm y x).
   rewrite <- (assoc x y y).
-  rewrite Q.
-  reflexivity.
+  f_ap. 
 Defined.
 
   
@@ -177,22 +176,24 @@ Defined.
 
 Theorem intersection_idem : forall (X : FSet A), intersection X X = X.
 Proof.
-hinduction; try (intros; apply set_path2).
+hinduction; try (intros ; apply set_path2).
 - reflexivity.
 - intro a.
   destruct (dec (a = a)).
   * reflexivity.
   * contradiction (n idpath).
 - intros X Y IHX IHY.
+  f_ap;
   unfold intersection in *.
-  rewrite comprehension_or.
-  rewrite comprehension_or.
-  rewrite IHX.
-  rewrite IHY.
-  rewrite comprehension_subset.
-  rewrite (comm X).
-  rewrite comprehension_subset.
-  reflexivity.
+  + transitivity (U (comprehension (fun a => isIn a X) X) (comprehension (fun a => isIn a Y) X)).
+    apply comprehension_or.
+    rewrite IHX.
+    rewrite (comm X).    
+    apply comprehension_subset.
+  + transitivity (U (comprehension (fun a => isIn a X) Y) (comprehension (fun a => isIn a Y) Y)).
+    apply comprehension_or.
+    rewrite IHY.
+    apply comprehension_subset.
 Defined.
 
 (** assorted lattice laws *)
@@ -270,8 +271,6 @@ hinduction x; try (intros ; apply set_path2) ; cbn.
   reflexivity.
 Defined.
 
-
-
 Theorem intersection_assoc (X Y Z: FSet A) :
     intersection X (intersection Y Z) = intersection (intersection X Y) Z.
 Proof.
@@ -314,14 +313,12 @@ hinduction; try (intros ; apply set_path2).
   * reflexivity.
   * contradiction (n idpath).
 - intros X1 X2 P Q.
-  rewrite comprehension_or.
-  rewrite comprehension_or.
-  rewrite P.
+  f_ap; (etransitivity; [ apply comprehension_or |]).
+  rewrite P. rewrite (comm X1).
+  apply comprehension_subset.
+
   rewrite Q.
-  rewrite comprehension_subset.
-  rewrite (comm X1).
-  rewrite comprehension_subset.
-  reflexivity.
+  apply comprehension_subset.
 Defined.
 
   
@@ -338,13 +335,16 @@ hinduction X1; try (intros ; apply set_path2) ; cbn.
   rewrite p.
   rewrite comprehension_subset.
   reflexivity.
-- intros. unfold intersection. (* TODO isIn is simplified too much *)
-  rewrite comprehension_or.
-  rewrite comprehension_or.
-  (* rewrite intersection_La. *)
+- intros.
+  assert (Y = intersection (U (L a) Y) Y) as HY.
+  { unfold intersection. symmetry.
+    transitivity (U (comprehension (fun x => isIn x (L a)) Y) (comprehension (fun x => isIn x Y) Y)).
+    apply comprehension_or.
+    rewrite comprehension_all.
+    apply comprehension_subset. }
+  rewrite <- HY.
   admit.
 - unfold intersection.
-  cbn.
   intros Z1 Z2 P Q.
   rewrite comprehension_or.
   assert (U (U (comprehension (fun a : A => isIn a Z1) X2) 
@@ -358,12 +358,13 @@ hinduction X1; try (intros ; apply set_path2) ; cbn.
   rewrite <- assoc.
   rewrite (assoc (comprehension (fun a : A => isIn a Z2) X2)).
   rewrite Q.
+  cbn.
   rewrite 
   (comm (U (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) X2)
            (comprehension (fun a : A => (isIn a Z2 || isIn a Y)%Bool) Y)) Y).
   rewrite assoc.
   rewrite P.
-  rewrite <- assoc.
+  rewrite <- assoc. cbn.
   rewrite (assoc (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) Y)).
   rewrite (comm (comprehension (fun a : A => (isIn a Z1 || isIn a Y)%Bool) Y)).
   rewrite <- assoc.
@@ -443,40 +444,33 @@ Lemma subsect_intersection `{Funext} (X Y : FSet A) :
 Proof.
 hinduction X; try (intros; apply path_forall; intro; apply set_path2).
 - intros. apply nl.
-- intros a. hinduction Y; 
-	try (intros; apply path_forall; intro; apply set_path2).
-	(*intros. apply equiv_hprop_allpath.*)
-	+ intro. cbn.  contradiction (false_ne_true).
-	+ intros. destruct (dec (a = a0)).
-		rewrite p; apply idem.
-		contradiction (false_ne_true).
-	+ intros X1 X2 IH1 IH2.
-	intro Ho.
-	destruct (isIn a X1);
-	destruct (isIn a X2).
-	specialize (IH1 idpath).
-	specialize (IH2 idpath).
-	rewrite assoc. rewrite IH1. reflexivity.
-	specialize (IH1 idpath).
-	rewrite assoc. rewrite IH1. reflexivity.
-	specialize (IH2 idpath).
-	rewrite assoc. rewrite (comm (L a)). rewrite <- assoc. rewrite IH2. 
-	reflexivity.
-	cbn in Ho. contradiction (false_ne_true). 
+- intros a. hinduction Y;
+  try (intros; apply path_forall; intro; apply set_path2).
+  + intro. contradiction (false_ne_true).
+  + intros. destruct (dec (a = a0)).
+    rewrite p; apply idem.
+    contradiction (false_ne_true).
+  + intros X1 X2 IH1 IH2.
+    intro Ho.
+    destruct (isIn a X1);
+      destruct (isIn a X2).
+    * specialize (IH1 idpath).
+      rewrite assoc. f_ap. 
+    * specialize (IH1 idpath).
+      rewrite assoc. f_ap. 
+    * specialize (IH2 idpath).
+      rewrite (comm X1 X2).
+      rewrite assoc. f_ap. 
+    * contradiction (false_ne_true). 
 - intros X1 X2 IH1 IH2 G. 
-	destruct (subset X1 Y);
-	destruct (subset X2 Y).
-	specialize (IH1 idpath).
-	specialize (IH2 idpath).
-	rewrite <- assoc. rewrite IH2. rewrite IH1. reflexivity.
-	specialize (IH1 idpath).
-	apply IH2 in G.
-	rewrite <- assoc. rewrite G. rewrite IH1. reflexivity.
-	specialize (IH2 idpath).
-	apply IH1 in G.
-	rewrite <- assoc. rewrite IH2. rewrite G. reflexivity.
-	specialize (IH1 G). specialize (IH2 G).
-	rewrite <- assoc. rewrite IH2. rewrite IH1. reflexivity.
+  destruct (subset X1 Y);
+    destruct (subset X2 Y).
+  * specialize (IH1 idpath).    
+    specialize (IH2 idpath).
+    rewrite <- assoc. rewrite IH2. apply IH1. 
+  * contradiction (false_ne_true).
+  * contradiction (false_ne_true).
+  * contradiction (false_ne_true).
 Defined.
 
 End properties. 
