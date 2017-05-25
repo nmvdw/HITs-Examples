@@ -1,6 +1,5 @@
 Require Import HoTT HitTactics.
 Require Import definition.
-
 Section operations.
 
 Context {A : Type}.
@@ -47,5 +46,23 @@ Proof.
 intros X Y.
 apply (comprehension (fun (a : A) => isIn a X) Y).
 Defined.
+
+
+Definition subset :
+	FSet A -> FSet A -> Bool.
+Proof.
+intros X Y.
+hrecursion X. 
+- exact true.
+- exact (fun a => (a ∈ Y)).
+- exact andb.
+- intros. compute. destruct x; reflexivity.
+- intros x y; compute; destruct x, y; reflexivity. 
+- intros x; compute; destruct x; reflexivity.
+- intros x; compute; destruct x; reflexivity.
+- intros x; cbn; destruct (x ∈ Y); reflexivity.
+Defined.
+
+Notation "⊆" := subset.
 
 End operations.
