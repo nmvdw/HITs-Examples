@@ -479,18 +479,18 @@ Defined.
 
 Lemma eq1 (X Y : FSet A) : X = Y <~> (U Y X = X) * (U X Y = Y).
 Proof.
-  unshelve eapply BuildEquiv.
-  { intro H. rewrite H. split; apply union_idem. }
-  unshelve esplit.
-  { intros [H1 H2]. etransitivity. apply H1^.
-    rewrite comm. apply H2. }
-  intro; apply path_prod; apply set_path2. 
-  all: intro; apply set_path2.  
-Defined.
-
+  eapply equiv_iff_hprop_uncurried.
+  split.
+  - intro H. split.
+    apply (comm Y X @ ap (U X) H^ @ union_idem X).
+    apply (ap (U X) H^ @ union_idem X @ H).
+  - intros [H1 H2]. etransitivity. apply H1^.
+    apply (comm Y X @ H2).
+Defined.    
 
 Lemma subset_union_l `{Funext} X :
   forall Y, subset X (U X Y) = true.
+Proof.
 hinduction X;
   try (intros; apply path_forall; intro; apply set_path2).
 - reflexivity.
@@ -511,12 +511,12 @@ Lemma subset_union_equiv `{Funext}
   : forall X Y : FSet A, subset X Y = true <~> U X Y = Y.
 Proof.
   intros X Y.
-  unshelve eapply BuildEquiv.
-  apply subset_union.
-  unshelve esplit.
-  { intros HXY. rewrite <- HXY. clear HXY.
-    apply subset_union_l. }
-  all: intro; apply set_path2.
+  eapply equiv_iff_hprop_uncurried.
+  split.
+  - apply subset_union.
+  - intros HXY. etransitivity.
+    apply (ap _ HXY^).
+    apply subset_union_l.
 Defined.
 
 Lemma eq_subset `{Funext} (X Y : FSet A) :
@@ -528,7 +528,7 @@ Proof.
   eapply equiv_functor_prod'; apply subset_union_equiv.
 Defined.
 
-Lemma subset_isIn `{FE : Funext} (X Y : FSet A) :
+Lemma subset_isIn `{FE :Funext} (X Y : FSet A) :
   (forall (a : A), isIn a X = true -> isIn a Y = true)
   <-> (subset X Y = true).
 Proof.
@@ -584,24 +584,6 @@ Proof.
           intros; intro; intros; apply set_path2.
 Defined.
 
-Lemma HPropEquiv (X Y : Type) (P : IsHProp X) (Q : IsHProp Y) :
-  (X <-> Y) -> (X <~> Y).
-Proof.
-intros [f g].
-simple refine (BuildEquiv _ _ _ _).  
-apply f.
-simple refine (BuildIsEquiv _ _ _ _ _ _ _).
-- apply g.
-- unfold Sect.
-  intro x.  
-  apply Q.
-- unfold Sect.
-  intro x.
-  apply P.
-- intros.
-  apply set_path2.
-Defined.
-
 Theorem fset_ext `{Funext} (X Y : FSet A) :
   X = Y <~> (forall (a : A), isIn a X = isIn a Y).
 Proof.
@@ -609,18 +591,10 @@ Proof.
   transitivity
     ((forall a, isIn a Y = true -> isIn a X = true)
      *(forall a, isIn a X = true -> isIn a Y = true)).
-  - eapply equiv_functor_prod'.
-    apply HPropEquiv.
-    exact _.
-    exact _.
+  - eapply equiv_functor_prod';
+    apply equiv_iff_hprop_uncurried;
     split ; apply subset_isIn.
-    apply HPropEquiv.
-    exact _.
-    exact _.
-    split ; apply subset_isIn.
-  - apply HPropEquiv.
-    exact _.
-    exact _.
+  - apply equiv_iff_hprop_uncurried.
     split.
     * intros [H1 H2 a].
       specialize (H1 a) ; specialize (H2 a).
