@@ -190,3 +190,7 @@ Instance FSet_recursion A : HitRecursion (FSet A) := {
   H_inductor := FSet_ind A; H_recursor := FSet_rec A }.
 
 End FSet.
+
+Notation "{| x |}" :=  (L x).
+Infix "∪" := U (at level 8, right associativity).
+Notation "∅" := E.
