@@ -637,4 +637,4 @@ Proof.
         apply H2.
 Defined.
 
-End properties. 
+End properties.
