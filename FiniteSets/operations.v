@@ -19,7 +19,6 @@ hrecursion.
 - intros a'. compute. destruct (A_deceq a a'); reflexivity.
 Defined.
 
-Infix "∈" := isIn (at level 9, right associativity).
 
 Definition comprehension : 
   (A -> Bool) -> FSet A -> FSet A.
@@ -54,15 +53,16 @@ Proof.
 intros X Y.
 hrecursion X. 
 - exact true.
-- exact (fun a => (a ∈ Y)).
+- exact (fun a => (isIn a Y)).
 - exact andb.
 - intros. compute. destruct x; reflexivity.
 - intros x y; compute; destruct x, y; reflexivity. 
 - intros x; compute; destruct x; reflexivity.
 - intros x; compute; destruct x; reflexivity.
-- intros x; cbn; destruct (x ∈ Y); reflexivity.
+- intros x; cbn; destruct (isIn x Y); reflexivity.
 Defined.
 
-Notation "⊆" := subset.
-
 End operations.
+
+Infix "∈" := isIn (at level 9, right associativity).
+Infix  "⊆" := subset (at level 10, right associativity).
