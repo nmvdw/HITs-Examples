@@ -54,257 +54,257 @@ induction P.
 hott_simpl.
 Defined.
 			
-Lemma min {HFun: Funext} (x: FSet A): x <> ∅  -> A.
-Proof.
-hrecursion x. 
-- intro H. destruct H. reflexivity.
-- intros. exact a.
-- intros x y rx ry H.
-	apply union_non_empty' in H.
-	destruct H. 
-	+ destruct p. specialize (rx fst). exact rx.
-	+ destruct s. 
-		* destruct p. specialize (ry snd). exact ry.
-		* destruct p.  specialize (rx fst). specialize (ry snd).
-			destruct (TotalOrder_Total rx ry) as [Heq | [ Hx | Hy ]].
-			** exact rx.
-			** exact rx.
-			** exact ry.
-- intros. rewrite transport_dom_eq_gen.
-	apply path_forall. intro y0. 
-	destruct (  union_non_empty' x y ∪ z 
-	(transport (fun X : FSet A => X <> ∅) (assoc x y z)^ y0))
-	as [[ G1 G2] | [[ G3 G4] | [G5 G6]]].
-	+ pose (G2' := G2). apply  eset_union_lr in G2'; destruct G2'. cbn.
-		destruct (union_non_empty' x ∪ y z y0) as 
-	 [[H'x H'y] | [ [H'a H'b] | [H'c H'd]]]; try eq_neq_tac.
-	 destruct (union_non_empty' x y H'x). 
-	 	** destruct p. assert (G1 = fst0).  apply path_forall. intro.
-		 apply path_ishprop. rewrite X. reflexivity. 
-	 	** destruct s; destruct p; eq_neq_tac. 
-	+ destruct (union_non_empty' y z G4)  as 
-	[[H'x H'y] | [ [H'a H'b] | [H'c H'd]]]; try eq_neq_tac.
-	destruct (union_non_empty' x ∪ y z y0).
-		** destruct p. cbn. destruct (union_non_empty' x y fst).
-			*** destruct p; eq_neq_tac.
-			*** destruct s. destruct p.
-				**** assert (H'x = snd0).  apply path_forall. intro.
-		 apply path_ishprop. rewrite X. reflexivity.
-		 	  **** destruct p. eq_neq_tac.
-		** destruct s; destruct p; try eq_neq_tac.
-		** destruct (union_non_empty' x ∪ y z y0).
-			*** destruct p. eq_neq_tac.
-			*** destruct s. destruct p.
-				**** assert (H'b = snd).  apply path_forall. intro.
-		 			apply path_ishprop. rewrite X. reflexivity.
-		 		**** destruct p. assert (x ∪ y = E).
-		 		rewrite H'a, G3. apply union_idem.  eq_neq_tac. 
-		** cbn. destruct (TotalOrder_Total (py H'c) (pz H'd)).
-			*** destruct (union_non_empty' x ∪ y z y0).
-				**** destruct p0. eq_neq_tac.
-				**** destruct s.
-					*****  destruct p0. rewrite G3, nl in fst. eq_neq_tac.
-					*****  destruct p0. destruct (union_non_empty' x y fst).
-						****** destruct p0. eq_neq_tac.
-						****** destruct s. 
-						 ******* destruct p0. 
-						 				destruct (TotalOrder_Total (py snd0) (pz snd)).
-						 				f_ap. apply path_forall. intro.
-		 								apply path_ishprop. 
-		 								destruct s. f_ap. apply path_forall. intro.
-		 								apply path_ishprop.
-		 								rewrite p. f_ap. apply path_forall. intro.
-		 								apply path_ishprop. 
-		 				******* destruct p0. eq_neq_tac.
-		 	*** destruct (union_non_empty' x ∪ y z y0).
-		 		**** destruct p. eq_neq_tac.
-		 		**** destruct s0. destruct p. rewrite comm in fst.
-		 				 apply eset_union_l in fst. eq_neq_tac.
-		 				 destruct p. 
-		 				 destruct (union_non_empty' x y fst).
-		 				 ***** destruct p; eq_neq_tac.
-		 				 ***** destruct s0. destruct p. 
-		 				 		destruct (TotalOrder_Total (py snd0) (pz snd));
-		 				 		destruct s; try (f_ap;  apply path_forall; intro;
-		 														 apply path_ishprop).
-		 						rewrite p. f_ap;  apply path_forall; intro;
-		 														 apply path_ishprop.
-		 						destruct s0. 		f_ap;  apply path_forall; intro;
-		 														 apply path_ishprop.
-		 						assert (snd0 = H'c).   apply path_forall; intro;
-		 														 apply path_ishprop.
-		 						assert (snd = H'd).   apply path_forall; intro;
-		 														 apply path_ishprop.
-		 						rewrite <- X0 in r. rewrite X in r0.
-		 						apply TotalOrder_Antisymmetric; assumption.
-		 						destruct s0.				
-		 						assert (snd0 = H'c).   apply path_forall; intro;
-		 														 apply path_ishprop.
-		 						assert (snd = H'd).   apply path_forall; intro;
-		 														 apply path_ishprop.
-		 						rewrite <- X in r. rewrite X0 in r0.
-		 						apply TotalOrder_Antisymmetric; assumption.
-		 						f_ap;  apply path_forall; intro;
-		 														 apply path_ishprop.
-		 						destruct p; eq_neq_tac.
-	+ cbn. destruct (union_non_empty' y z G6).
-		** destruct p. destruct ( union_non_empty' x ∪ y z y0).
-			*** destruct p. destruct (union_non_empty' x y fst0).
-				**** destruct p; eq_neq_tac.
-				**** destruct s; destruct p. eq_neq_tac.		
-						assert (fst1 = G5).   apply path_forall; intro;
-		 														 apply path_ishprop.
-		 				assert (fst = snd1).   apply path_forall; intro;
-		 														 apply path_ishprop.
-		 				rewrite X, X0.			
-		 			  destruct (TotalOrder_Total (px G5) (py snd1)).
-		 			  reflexivity.
-		 			  destruct s; reflexivity.
-		 	*** destruct s; destruct p; eq_neq_tac. 
-		** destruct (union_non_empty' x ∪ y z y0). 
-			*** destruct p. destruct s; destruct p; eq_neq_tac.
-			*** destruct s. destruct p. destruct s0. destruct p.
-					apply eset_union_l in fst0. eq_neq_tac.
-				**** destruct p. 		
-		 					assert (snd = snd0).   apply path_forall; intro;
-		 														 apply path_ishprop.		 
+(* Lemma min {HFun: Funext} (x: FSet A): x <> ∅  -> A. *)
+(* Proof. *)
+(* hrecursion x.  *)
+(* - intro H. destruct H. reflexivity. *)
+(* - intros. exact a. *)
+(* - intros x y rx ry H. *)
+(* 	apply union_non_empty' in H. *)
+(* 	destruct H.  *)
+(* 	+ destruct p. specialize (rx fst). exact rx. *)
+(* 	+ destruct s.  *)
+(* 		* destruct p. specialize (ry snd). exact ry. *)
+(* 		* destruct p.  specialize (rx fst). specialize (ry snd). *)
+(* 			destruct (TotalOrder_Total rx ry) as [Heq | [ Hx | Hy ]]. *)
+(* 			** exact rx. *)
+(* 			** exact rx. *)
+(* 			** exact ry. *)
+(* - intros. rewrite transport_dom_eq_gen. *)
+(* 	apply path_forall. intro y0.  *)
+(* 	destruct (  union_non_empty' x y ∪ z  *)
+(* 	(transport (fun X : FSet A => X <> ∅) (assoc x y z)^ y0)) *)
+(* 	as [[ G1 G2] | [[ G3 G4] | [G5 G6]]]. *)
+(* 	+ pose (G2' := G2). apply  eset_union_lr in G2'; destruct G2'. cbn. *)
+(* 		destruct (union_non_empty' x ∪ y z y0) as  *)
+(* 	 [[H'x H'y] | [ [H'a H'b] | [H'c H'd]]]; try eq_neq_tac. *)
+(* 	 destruct (union_non_empty' x y H'x).  *)
+(* 	 	** destruct p. assert (G1 = fst0).  apply path_forall. intro. *)
+(* 		 apply path_ishprop. rewrite X. reflexivity.  *)
+(* 	 	** destruct s; destruct p; eq_neq_tac.  *)
+(* 	+ destruct (union_non_empty' y z G4)  as  *)
+(* 	[[H'x H'y] | [ [H'a H'b] | [H'c H'd]]]; try eq_neq_tac. *)
+(* 	destruct (union_non_empty' x ∪ y z y0). *)
+(* 		** destruct p. cbn. destruct (union_non_empty' x y fst). *)
+(* 			*** destruct p; eq_neq_tac. *)
+(* 			*** destruct s. destruct p. *)
+(* 				**** assert (H'x = snd0).  apply path_forall. intro. *)
+(* 		 apply path_ishprop. rewrite X. reflexivity. *)
+(* 		 	  **** destruct p. eq_neq_tac. *)
+(* 		** destruct s; destruct p; try eq_neq_tac. *)
+(* 		** destruct (union_non_empty' x ∪ y z y0). *)
+(* 			*** destruct p. eq_neq_tac. *)
+(* 			*** destruct s. destruct p. *)
+(* 				**** assert (H'b = snd).  apply path_forall. intro. *)
+(* 		 			apply path_ishprop. rewrite X. reflexivity. *)
+(* 		 		**** destruct p. assert (x ∪ y = E). *)
+(* 		 		rewrite H'a, G3. apply union_idem.  eq_neq_tac.  *)
+(* 		** cbn. destruct (TotalOrder_Total (py H'c) (pz H'd)). *)
+(* 			*** destruct (union_non_empty' x ∪ y z y0). *)
+(* 				**** destruct p0. eq_neq_tac. *)
+(* 				**** destruct s. *)
+(* 					*****  destruct p0. rewrite G3, nl in fst. eq_neq_tac. *)
+(* 					*****  destruct p0. destruct (union_non_empty' x y fst). *)
+(* 						****** destruct p0. eq_neq_tac. *)
+(* 						****** destruct s.  *)
+(* 						 ******* destruct p0.  *)
+(* 						 				destruct (TotalOrder_Total (py snd0) (pz snd)). *)
+(* 						 				f_ap. apply path_forall. intro. *)
+(* 		 								apply path_ishprop.  *)
+(* 		 								destruct s. f_ap. apply path_forall. intro. *)
+(* 		 								apply path_ishprop. *)
+(* 		 								rewrite p. f_ap. apply path_forall. intro. *)
+(* 		 								apply path_ishprop.  *)
+(* 		 				******* destruct p0. eq_neq_tac. *)
+(* 		 	*** destruct (union_non_empty' x ∪ y z y0). *)
+(* 		 		**** destruct p. eq_neq_tac. *)
+(* 		 		**** destruct s0. destruct p. rewrite comm in fst. *)
+(* 		 				 apply eset_union_l in fst. eq_neq_tac. *)
+(* 		 				 destruct p.  *)
+(* 		 				 destruct (union_non_empty' x y fst). *)
+(* 		 				 ***** destruct p; eq_neq_tac. *)
+(* 		 				 ***** destruct s0. destruct p.  *)
+(* 		 				 		destruct (TotalOrder_Total (py snd0) (pz snd)); *)
+(* 		 				 		destruct s; try (f_ap;  apply path_forall; intro; *)
+(* 		 														 apply path_ishprop). *)
+(* 		 						rewrite p. f_ap;  apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 						destruct s0. 		f_ap;  apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 						assert (snd0 = H'c).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 						assert (snd = H'd).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 						rewrite <- X0 in r. rewrite X in r0. *)
+(* 		 						apply TotalOrder_Antisymmetric; assumption. *)
+(* 		 						destruct s0.				 *)
+(* 		 						assert (snd0 = H'c).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 						assert (snd = H'd).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 						rewrite <- X in r. rewrite X0 in r0. *)
+(* 		 						apply TotalOrder_Antisymmetric; assumption. *)
+(* 		 						f_ap;  apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 						destruct p; eq_neq_tac. *)
+(* 	+ cbn. destruct (union_non_empty' y z G6). *)
+(* 		** destruct p. destruct ( union_non_empty' x ∪ y z y0). *)
+(* 			*** destruct p. destruct (union_non_empty' x y fst0). *)
+(* 				**** destruct p; eq_neq_tac. *)
+(* 				**** destruct s; destruct p. eq_neq_tac.		 *)
+(* 						assert (fst1 = G5).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 				assert (fst = snd1).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 				rewrite X, X0.			 *)
+(* 		 			  destruct (TotalOrder_Total (px G5) (py snd1)). *)
+(* 		 			  reflexivity. *)
+(* 		 			  destruct s; reflexivity. *)
+(* 		 	*** destruct s; destruct p; eq_neq_tac.  *)
+(* 		** destruct (union_non_empty' x ∪ y z y0).  *)
+(* 			*** destruct p. destruct s; destruct p; eq_neq_tac. *)
+(* 			*** destruct s. destruct p. destruct s0. destruct p. *)
+(* 					apply eset_union_l in fst0. eq_neq_tac. *)
+(* 				**** destruct p. 		 *)
+(* 		 					assert (snd = snd0).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop.		  *)
 				
-				destruct (union_non_empty' x y fst0). 
-				destruct p.
-				 assert (fst1 = G5).  apply path_forall; intro;
-		 														 apply path_ishprop. 
-		 				assert (fst = snd1).  apply set_path2.
-					***** rewrite X0. rewrite <- X. reflexivity.
-					*****  destruct s; destruct p; eq_neq_tac.
-				**** destruct s0. destruct p0. destruct p. 
-					***** apply eset_union_l in fst. eq_neq_tac.
-					***** destruct p, p0.
-					assert (snd0 = snd).   apply path_forall; intro;
-		 														 apply path_ishprop.
-		 			rewrite X.												
-					 destruct (union_non_empty' x y fst0).
-					 destruct p; eq_neq_tac.
-					 destruct s. destruct p; eq_neq_tac.
-					 destruct p.
-					 assert (fst = snd1).   apply path_forall; intro;
-		 														 apply path_ishprop.
-						assert (fst1 = G5).   apply path_forall; intro;
-		 														 apply path_ishprop.								 
-						rewrite <- X0. rewrite X1. 											
-					  destruct (TotalOrder_Total (py fst) (pz snd)).
-					  ****** rewrite <- p. 
-					   destruct (TotalOrder_Total (px G5) (py fst)).
-					   rewrite <- p0. 
-					 		destruct (TotalOrder_Total (px G5) (px G5)).
-					 		reflexivity.
-					 		destruct s; reflexivity.
-					 		destruct s. destruct (TotalOrder_Total (px G5) (py fst)).
-					 		reflexivity.
-					 		destruct s.
-					 		reflexivity.
-					 		apply TotalOrder_Antisymmetric; assumption.
-					 		destruct (TotalOrder_Total (py fst) (py fst)).
-					 		reflexivity.
-					 		destruct s;
-					 		reflexivity.
-					 ****** destruct s. 
-					 	destruct (TotalOrder_Total (px G5) (py fst)).
-					 	destruct (TotalOrder_Total (px G5) (pz snd)).
-					 	reflexivity.
-					 	destruct s.
-					 	reflexivity. rewrite <- p in r. 
-					 	apply TotalOrder_Antisymmetric; assumption.
-					 	destruct s. 
-					 	destruct ( TotalOrder_Total (px G5) (pz snd)).
-					 	reflexivity.
-					 	destruct s. reflexivity.
-					 	apply (TotalOrder_Transitive (px G5)) in r. 
-					 	apply TotalOrder_Antisymmetric; assumption.
-					 	assumption.
-					 	destruct (TotalOrder_Total (py fst) (pz snd)). reflexivity.
-					 	destruct s. reflexivity.
-					 	apply TotalOrder_Antisymmetric; assumption.
-					 *******
-					 	 	destruct ( TotalOrder_Total (px G5) (py fst)).
-					 	 	reflexivity.
-					 	 	destruct s. destruct (TotalOrder_Total (px G5) (pz snd)).
-					 	 	reflexivity. destruct s; reflexivity.
-					 	 	destruct ( TotalOrder_Total (px G5) (pz snd)).
-					 	 	rewrite <- p.
-					 	 	destruct (TotalOrder_Total (py fst) (px G5)).
-					 	 	apply symmetry; assumption.
-					 	 	destruct s. rewrite <- p in r.
-					 	 	apply TotalOrder_Antisymmetric; assumption.
-					 	 	reflexivity. destruct s. 
-					 	 	assert ((py fst) = (pz snd)). apply TotalOrder_Antisymmetric.
-					 	 	apply (TotalOrder_Transitive (py fst) (px G5)); assumption.
-					 	 	assumption. rewrite X2. assert (px G5 = pz snd).
-					 	 	 apply TotalOrder_Antisymmetric. assumption.
-					 	 	 apply (TotalOrder_Transitive (pz snd) (py fst)); assumption.
-					 	 	 rewrite X3.
-					 	 	destruct ( TotalOrder_Total (pz snd) (pz snd)).
-					 	 	reflexivity. destruct s; reflexivity.
-					 	 	destruct (TotalOrder_Total (py fst) (pz snd)).
-					 	 		 apply TotalOrder_Antisymmetric.  assumption. rewrite p.
-					 	 	 apply (TotalOrder_Reflexive).  destruct s. 
-					 	 		 apply TotalOrder_Antisymmetric;  assumption. reflexivity.
-- intros. rewrite transport_dom_eq_gen.
-  apply path_forall. intro y0. cbn.
-   destruct 
-  		(union_non_empty' x y 
-  		(transport (fun X : FSet A => X <> ∅) (comm x y)^ y0)) as 
-  		[[Hx Hy] | [ [Ha Hb] | [Hc Hd]]];
-  	destruct (union_non_empty' y x y0) as 
-  	   [[H'x H'y] | [ [H'a H'b] | [H'c H'd]]];
-  	   try (eq_neq_tac). 
-     assert (Hx = H'b).  apply path_forall. intro.
-		 apply path_ishprop. rewrite X. reflexivity.
-		 assert (Hb = H'x).  apply path_forall. intro.
-		 apply path_ishprop. rewrite X. reflexivity.
-		  assert (Hd = H'c).  apply path_forall. intro.
-		 apply path_ishprop. rewrite X.
-		  assert (H'd = Hc).  apply path_forall. intro.
-		 apply path_ishprop.
-		 rewrite X0. rewrite <- X.
-	destruct 
-		(TotalOrder_Total (px Hc) (py Hd)) as [G1 | [G2 | G3]];
-	destruct 
-	(TotalOrder_Total (py Hd) (px Hc)) as [T1 | [T2 | T3]];
-	try (assumption);
-	try (reflexivity);
-	try (apply symmetry; assumption);
-	try (apply TotalOrder_Antisymmetric; assumption).
+(* 				destruct (union_non_empty' x y fst0).  *)
+(* 				destruct p. *)
+(* 				 assert (fst1 = G5).  apply path_forall; intro; *)
+(* 		 														 apply path_ishprop.  *)
+(* 		 				assert (fst = snd1).  apply set_path2. *)
+(* 					***** rewrite X0. rewrite <- X. reflexivity. *)
+(* 					*****  destruct s; destruct p; eq_neq_tac. *)
+(* 				**** destruct s0. destruct p0. destruct p.  *)
+(* 					***** apply eset_union_l in fst. eq_neq_tac. *)
+(* 					***** destruct p, p0. *)
+(* 					assert (snd0 = snd).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 		 			rewrite X.												 *)
+(* 					 destruct (union_non_empty' x y fst0). *)
+(* 					 destruct p; eq_neq_tac. *)
+(* 					 destruct s. destruct p; eq_neq_tac. *)
+(* 					 destruct p. *)
+(* 					 assert (fst = snd1).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop. *)
+(* 						assert (fst1 = G5).   apply path_forall; intro; *)
+(* 		 														 apply path_ishprop.								  *)
+(* 						rewrite <- X0. rewrite X1. 											 *)
+(* 					  destruct (TotalOrder_Total (py fst) (pz snd)). *)
+(* 					  ****** rewrite <- p.  *)
+(* 					   destruct (TotalOrder_Total (px G5) (py fst)). *)
+(* 					   rewrite <- p0.  *)
+(* 					 		destruct (TotalOrder_Total (px G5) (px G5)). *)
+(* 					 		reflexivity. *)
+(* 					 		destruct s; reflexivity. *)
+(* 					 		destruct s. destruct (TotalOrder_Total (px G5) (py fst)). *)
+(* 					 		reflexivity. *)
+(* 					 		destruct s. *)
+(* 					 		reflexivity. *)
+(* 					 		apply TotalOrder_Antisymmetric; assumption. *)
+(* 					 		destruct (TotalOrder_Total (py fst) (py fst)). *)
+(* 					 		reflexivity. *)
+(* 					 		destruct s; *)
+(* 					 		reflexivity. *)
+(* 					 ****** destruct s.  *)
+(* 					 	destruct (TotalOrder_Total (px G5) (py fst)). *)
+(* 					 	destruct (TotalOrder_Total (px G5) (pz snd)). *)
+(* 					 	reflexivity. *)
+(* 					 	destruct s. *)
+(* 					 	reflexivity. rewrite <- p in r.  *)
+(* 					 	apply TotalOrder_Antisymmetric; assumption. *)
+(* 					 	destruct s.  *)
+(* 					 	destruct ( TotalOrder_Total (px G5) (pz snd)). *)
+(* 					 	reflexivity. *)
+(* 					 	destruct s. reflexivity. *)
+(* 					 	apply (TotalOrder_Transitive (px G5)) in r.  *)
+(* 					 	apply TotalOrder_Antisymmetric; assumption. *)
+(* 					 	assumption. *)
+(* 					 	destruct (TotalOrder_Total (py fst) (pz snd)). reflexivity. *)
+(* 					 	destruct s. reflexivity. *)
+(* 					 	apply TotalOrder_Antisymmetric; assumption. *)
+(* 					 ******* *)
+(* 					 	 	destruct ( TotalOrder_Total (px G5) (py fst)). *)
+(* 					 	 	reflexivity. *)
+(* 					 	 	destruct s. destruct (TotalOrder_Total (px G5) (pz snd)). *)
+(* 					 	 	reflexivity. destruct s; reflexivity. *)
+(* 					 	 	destruct ( TotalOrder_Total (px G5) (pz snd)). *)
+(* 					 	 	rewrite <- p. *)
+(* 					 	 	destruct (TotalOrder_Total (py fst) (px G5)). *)
+(* 					 	 	apply symmetry; assumption. *)
+(* 					 	 	destruct s. rewrite <- p in r. *)
+(* 					 	 	apply TotalOrder_Antisymmetric; assumption. *)
+(* 					 	 	reflexivity. destruct s.  *)
+(* 					 	 	assert ((py fst) = (pz snd)). apply TotalOrder_Antisymmetric. *)
+(* 					 	 	apply (TotalOrder_Transitive (py fst) (px G5)); assumption. *)
+(* 					 	 	assumption. rewrite X2. assert (px G5 = pz snd). *)
+(* 					 	 	 apply TotalOrder_Antisymmetric. assumption. *)
+(* 					 	 	 apply (TotalOrder_Transitive (pz snd) (py fst)); assumption. *)
+(* 					 	 	 rewrite X3. *)
+(* 					 	 	destruct ( TotalOrder_Total (pz snd) (pz snd)). *)
+(* 					 	 	reflexivity. destruct s; reflexivity. *)
+(* 					 	 	destruct (TotalOrder_Total (py fst) (pz snd)). *)
+(* 					 	 		 apply TotalOrder_Antisymmetric.  assumption. rewrite p. *)
+(* 					 	 	 apply (TotalOrder_Reflexive).  destruct s.  *)
+(* 					 	 		 apply TotalOrder_Antisymmetric;  assumption. reflexivity. *)
+(* - intros. rewrite transport_dom_eq_gen. *)
+(*   apply path_forall. intro y0. cbn. *)
+(*    destruct  *)
+(*   		(union_non_empty' x y  *)
+(*   		(transport (fun X : FSet A => X <> ∅) (comm x y)^ y0)) as  *)
+(*   		[[Hx Hy] | [ [Ha Hb] | [Hc Hd]]]; *)
+(*   	destruct (union_non_empty' y x y0) as  *)
+(*   	   [[H'x H'y] | [ [H'a H'b] | [H'c H'd]]]; *)
+(*   	   try (eq_neq_tac).  *)
+(*      assert (Hx = H'b).  apply path_forall. intro. *)
+(* 		 apply path_ishprop. rewrite X. reflexivity. *)
+(* 		 assert (Hb = H'x).  apply path_forall. intro. *)
+(* 		 apply path_ishprop. rewrite X. reflexivity. *)
+(* 		  assert (Hd = H'c).  apply path_forall. intro. *)
+(* 		 apply path_ishprop. rewrite X. *)
+(* 		  assert (H'd = Hc).  apply path_forall. intro. *)
+(* 		 apply path_ishprop. *)
+(* 		 rewrite X0. rewrite <- X. *)
+(* 	destruct  *)
+(* 		(TotalOrder_Total (px Hc) (py Hd)) as [G1 | [G2 | G3]]; *)
+(* 	destruct  *)
+(* 	(TotalOrder_Total (py Hd) (px Hc)) as [T1 | [T2 | T3]]; *)
+(* 	try (assumption); *)
+(* 	try (reflexivity); *)
+(* 	try (apply symmetry; assumption); *)
+(* 	try (apply TotalOrder_Antisymmetric; assumption). *)
 		 		  
-- intros. rewrite transport_dom_eq_gen.
-  apply path_forall. intro y.
-  destruct (union_non_empty' ∅ x (transport (fun X : FSet A => X <> ∅) (nl x)^ y)).
-  destruct p. eq_neq_tac. 
-  destruct s. 
-  destruct p.
-  assert (y = snd).
-    apply path_forall. intro.
-    apply path_ishprop. rewrite X. reflexivity.
-  destruct p. destruct fst.
-- intros. rewrite transport_dom_eq_gen.
-  apply path_forall. intro y.
-  destruct (union_non_empty' x ∅ (transport (fun X : FSet A => X <> ∅) (nr x)^ y)).
-  destruct p. assert (y = fst).  apply path_forall. intro.
-apply path_ishprop. rewrite X. reflexivity.
-  destruct s. 
-  destruct p. 
-  eq_neq_tac.
-  destruct p.
-  destruct snd.
-- intros. rewrite transport_dom_eq_gen.
-	apply path_forall. intro y. 
-  destruct ( union_non_empty' {|x|} {|x|} (transport (fun X : FSet A => X <> ∅) (idem x)^ y)).
-  reflexivity.
-  destruct s.
-  reflexivity.
-  destruct p.
-  cbn. destruct  (TotalOrder_Total x x). reflexivity.
-  destruct s; reflexivity.
-Defined.
+(* - intros. rewrite transport_dom_eq_gen. *)
+(*   apply path_forall. intro y. *)
+(*   destruct (union_non_empty' ∅ x (transport (fun X : FSet A => X <> ∅) (nl x)^ y)). *)
+(*   destruct p. eq_neq_tac.  *)
+(*   destruct s.  *)
+(*   destruct p. *)
+(*   assert (y = snd). *)
+(*     apply path_forall. intro. *)
+(*     apply path_ishprop. rewrite X. reflexivity. *)
+(*   destruct p. destruct fst. *)
+(* - intros. rewrite transport_dom_eq_gen. *)
+(*   apply path_forall. intro y. *)
+(*   destruct (union_non_empty' x ∅ (transport (fun X : FSet A => X <> ∅) (nr x)^ y)). *)
+(*   destruct p. assert (y = fst).  apply path_forall. intro. *)
+(* apply path_ishprop. rewrite X. reflexivity. *)
+(*   destruct s.  *)
+(*   destruct p.  *)
+(*   eq_neq_tac. *)
+(*   destruct p. *)
+(*   destruct snd. *)
+(* - intros. rewrite transport_dom_eq_gen. *)
+(* 	apply path_forall. intro y.  *)
+(*   destruct ( union_non_empty' {|x|} {|x|} (transport (fun X : FSet A => X <> ∅) (idem x)^ y)). *)
+(*   reflexivity. *)
+(*   destruct s. *)
+(*   reflexivity. *)
+(*   destruct p. *)
+(*   cbn. destruct  (TotalOrder_Total x x). reflexivity. *)
+(*   destruct s; reflexivity. *)
+(* Defined. *)
 	
 
 Definition minfset {HFun: Funext} : 
