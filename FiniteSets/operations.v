@@ -16,7 +16,11 @@ hrecursion.
 - intros x y. compute. destruct x, y; reflexivity.
 - intros x. compute. reflexivity. 
 - intros x. compute. destruct x; reflexivity.
-- intros a'. compute. destruct (A_deceq a a'); reflexivity.
+- intros a'. simpl.
+  destruct (match dec (a = a') with
+  | inl _ => true
+  | inr _ => false
+  end); compute; reflexivity. 
 Defined.
 
 
@@ -46,6 +50,9 @@ intros X Y.
 apply (comprehension (fun (a : A) => isIn a X) Y).
 Defined.
 
+Definition difference :
+  FSet A -> FSet A -> FSet A := fun X Y =>
+  comprehension (fun a => negb (isIn a X)) Y.
 
 Definition subset :
 	FSet A -> FSet A -> Bool.
