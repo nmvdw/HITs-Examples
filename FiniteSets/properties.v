@@ -49,11 +49,9 @@ hrecursion Y; try (intros; apply set_path2).
 - cbn. reflexivity.
 - cbn. reflexivity.
 - intros x y IHa IHb.
-  cbn.
   rewrite IHa.
   rewrite IHb.
-  rewrite nl.
-  reflexivity.
+  apply union_idem.
 Defined.
 
 Theorem comprehension_or : forall ϕ ψ (x: FSet A),
@@ -62,7 +60,7 @@ Theorem comprehension_or : forall ϕ ψ (x: FSet A),
 Proof.
 intros ϕ ψ.
 hinduction; try (intros; apply set_path2). 
-- cbn. symmetry ; apply nl.
+- cbn. apply (union_idem _)^.
 - cbn. intros.
   destruct (ϕ a) ; destruct (ψ a) ; symmetry.
   * apply idem.
@@ -86,7 +84,7 @@ Theorem comprehension_subset : forall ϕ (X : FSet A),
 Proof.
 intros ϕ.
 hrecursion; try (intros ; apply set_path2) ; cbn.
-- apply nl.
+- apply union_idem.
 - intro a.
   destruct (ϕ a).
   * apply union_idem.
@@ -110,9 +108,7 @@ try (intros ; apply set_path2).
 - reflexivity.
 - intro a.
   reflexivity.
-- unfold intersection.
-  intros x y P Q.
-  cbn.
+- intros x y P Q.
   rewrite P.
   rewrite Q.
   apply nl.
@@ -150,27 +146,26 @@ Defined.
 Lemma intersection_comm X Y: intersection X Y = intersection Y X.
 Proof.
 hrecursion X;  try (intros; apply set_path2).
-- cbn. unfold intersection. apply comprehension_false.
-- cbn. unfold intersection. intros a.
+- apply intersection_0l.
+- intro a.
   hrecursion Y; try (intros; apply set_path2).
-  + cbn. reflexivity.
-  + cbn. intros b.
+  + reflexivity.
+  + intros b.
     destruct  (dec (a = b)) as [pa|npa].
     * rewrite pa.
       destruct (dec (b = b)) as [|nb]; [reflexivity|].
       by contradiction nb.
     * destruct (dec (b = a)) as [pb|]; [|reflexivity].
       by contradiction npa.
-  + cbn -[isIn]. intros Y1 Y2 IH1 IH2.
+  + intros Y1 Y2 IH1 IH2.
     rewrite IH1. 
     rewrite IH2.
     symmetry.
     apply (comprehension_or (fun a => isIn a Y1) (fun a => isIn a Y2) (L a)).
 - intros X1 X2 IH1 IH2.
-  cbn.
-  unfold intersection in *.
   rewrite <- IH1.
-  rewrite <- IH2. 
+  rewrite <- IH2.
+  unfold intersection. simpl.
   apply comprehension_or.
 Defined.
 
