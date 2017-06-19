@@ -136,6 +136,11 @@ End BoolLattice.
 Require Import definition.
 Require Import properties.
 
+Hint Resolve
+     min_com max_com min_assoc max_assoc min_idem max_idem min_nl min_nr
+     bool_absorption_min_max bool_absorption_max_min
+ : bool_lattice_hints.
+
 Section SetLattice.
 
   Context {A : Type}.
@@ -155,57 +160,57 @@ Section SetLattice.
   repeat (rewrite ?intersection_isIn ;
           rewrite ?union_isIn).
   
-  Ltac toBool :=
-    intros ; apply ext ; intros ; simplify_isIn.
+  Ltac toBool := try (intro) ;
+    intros ; apply ext ; intros ; simplify_isIn ; eauto with bool_lattice_hints.
 
   Instance union_com : Commutative (@U A).
-  Proof.
-    unfold Commutative ; toBool ; apply min_com.
+  Proof. 
+    toBool.
   Defined.
 
   Instance intersection_com : Commutative intersection.
   Proof.
-    unfold Commutative ; toBool ; apply max_com.
+    toBool.
   Defined.
 
   Instance union_assoc : Associative (@U A).
   Proof.
-    unfold Associative ; toBool ; apply min_assoc.
+    toBool.
   Defined.
 
   Instance intersection_assoc : Associative intersection.
   Proof.
-    unfold Associative ; toBool ; apply max_assoc.
+    toBool.
   Defined.
 
   Instance union_idem : Idempotent (@U A).
   Proof.
-    unfold Idempotent ; toBool ; apply min_idem.
+    toBool.
   Defined.
 
   Instance intersection_idem : Idempotent intersection.
   Proof.
-    unfold Idempotent ; toBool ; apply max_idem.
+    toBool.
   Defined.
 
   Instance union_nl : NeutralL (@U A) (@E A).
   Proof.
-    unfold NeutralL ; toBool ; apply min_nl.
+    toBool.
   Defined.
 
   Instance union_nr : NeutralR (@U A) (@E A).
   Proof.
-    unfold NeutralR ; toBool ; apply min_nr.
+    toBool.
   Defined.
 
   Instance set_absorption_intersection_union : Absorption (@U A) intersection.
   Proof.
-    unfold Absorption ; toBool ; apply bool_absorption_min_max.
+    toBool.
   Defined.
 
   Instance set_absorption_union_intersection : Absorption intersection (@U A).
   Proof.
-    unfold Absorption ; toBool ; apply bool_absorption_max_min.
+    toBool.
   Defined.
   
   Instance lattice_set : Lattice (@U A) intersection (@E A) :=
