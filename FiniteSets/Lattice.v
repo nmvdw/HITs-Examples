@@ -60,7 +60,8 @@ End Lattice.
 
 Arguments Lattice {_} _ _ _.
 
-Ltac solve := 
+Ltac solve :=
+  let x := fresh in
   repeat (intro x ; destruct x) 
   ; compute
   ; auto

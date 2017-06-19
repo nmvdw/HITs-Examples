@@ -2,6 +2,7 @@
 -R ../prelude ""
 definition.v
 operations.v
+Ext.v
 properties.v
 empty_set.v
 ordered.v

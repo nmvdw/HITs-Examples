@@ -1,28 +1,10 @@
 Require Import HoTT HitTactics.
-Require Export definition operations.
+Require Export definition operations Ext.
 
 Section properties.
 
 Context {A : Type}.
 Context {A_deceq : DecidablePaths A}.
-
-(** union properties *)
-Theorem union_idem : forall x: FSet A, U x x = x.
-Proof.
-hinduction; 
-try (intros ; apply set_path2) ; cbn.
-- apply nl.
-- apply idem.
-- intros x y P Q.
-  rewrite assoc.
-  rewrite (comm x y).
-  rewrite <- (assoc y x x).
-  rewrite P.
-  rewrite (comm y x).
-  rewrite <- (assoc x y y).
-  f_ap. 
-Defined.
-
   
 (** isIn properties *)
 Lemma isIn_singleton_eq (a b: A) : isIn a  (L b) = true -> a = b.
@@ -52,8 +34,7 @@ hrecursion Y; try (intros; apply set_path2).
   cbn.
   rewrite IHa.
   rewrite IHb.
-  rewrite nl.
-  reflexivity.
+  apply union_idem.
 Defined.
 
 Theorem comprehension_or : forall ϕ ψ (x: FSet A),
@@ -62,15 +43,14 @@ Theorem comprehension_or : forall ϕ ψ (x: FSet A),
 Proof.
 intros ϕ ψ.
 hinduction; try (intros; apply set_path2). 
-- cbn. symmetry ; apply nl.
+- cbn. apply (union_idem _)^.
 - cbn. intros.
   destruct (ϕ a) ; destruct (ψ a) ; symmetry.
-  * apply idem.
+  * apply union_idem.
   * apply nr. 
   * apply nl.
-  * apply nl.
+  * apply union_idem.
 - simpl. intros x y P Q.
-  cbn. 
   rewrite P.
   rewrite Q.
   rewrite <- assoc.
@@ -86,7 +66,7 @@ Theorem comprehension_subset : forall ϕ (X : FSet A),
 Proof.
 intros ϕ.
 hrecursion; try (intros ; apply set_path2) ; cbn.
-- apply nl.
+- apply union_idem.
 - intro a.
   destruct (ϕ a).
   * apply union_idem.
@@ -110,12 +90,11 @@ try (intros ; apply set_path2).
 - reflexivity.
 - intro a.
   reflexivity.
-- unfold intersection.
-  intros x y P Q.
+- intros x y P Q.
   cbn.
   rewrite P.
   rewrite Q.
-  apply nl.
+  apply union_idem.
 Defined.
 
 Lemma intersection_0r (X: FSet A): intersection X E = E.
@@ -150,27 +129,26 @@ Defined.
 Lemma intersection_comm X Y: intersection X Y = intersection Y X.
 Proof.
 hrecursion X;  try (intros; apply set_path2).
-- cbn. unfold intersection. apply comprehension_false.
-- cbn. unfold intersection. intros a.
+- apply intersection_0l.
+- intro a.
   hrecursion Y; try (intros; apply set_path2).
-  + cbn. reflexivity.
-  + cbn. intros b.
+  + reflexivity.
+  + intros b.
     destruct  (dec (a = b)) as [pa|npa].
     * rewrite pa.
       destruct (dec (b = b)) as [|nb]; [reflexivity|].
       by contradiction nb.
     * destruct (dec (b = a)) as [pb|]; [|reflexivity].
       by contradiction npa.
-  + cbn -[isIn]. intros Y1 Y2 IH1 IH2.
+  + intros Y1 Y2 IH1 IH2.
     rewrite IH1. 
     rewrite IH2.
     symmetry.
     apply (comprehension_or (fun a => isIn a Y1) (fun a => isIn a Y2) (L a)).
 - intros X1 X2 IH1 IH2.
-  cbn.
-  unfold intersection in *.
   rewrite <- IH1.
-  rewrite <- IH2. 
+  rewrite <- IH2.
+  unfold intersection; simpl.
   apply comprehension_or.
 Defined.
 
@@ -442,202 +420,8 @@ Proof.
 reflexivity.  
 Defined.
 
-(* Properties about subset relation. *)
-Lemma subset_union `{Funext} (X Y : FSet A) : 
-  subset X Y = true -> U X Y = Y.
-Proof.
-hinduction X; try (intros; apply path_forall; intro; apply set_path2).
-- intros. apply nl.
-- intros a. hinduction Y;
-  try (intros; apply path_forall; intro; apply set_path2).
-  + intro. contradiction (false_ne_true).
-  + intros. destruct (dec (a = a0)).
-    rewrite p; apply idem.
-    contradiction (false_ne_true).
-  + intros X1 X2 IH1 IH2.
-    intro Ho.
-    destruct (isIn a X1);
-      destruct (isIn a X2).
-    * specialize (IH1 idpath).
-      rewrite assoc. f_ap. 
-    * specialize (IH1 idpath).
-      rewrite assoc. f_ap. 
-    * specialize (IH2 idpath).
-      rewrite (comm X1 X2).
-      rewrite assoc. f_ap. 
-    * contradiction (false_ne_true). 
-- intros X1 X2 IH1 IH2 G. 
-  destruct (subset X1 Y);
-    destruct (subset X2 Y).
-  * specialize (IH1 idpath).    
-    specialize (IH2 idpath).
-    rewrite <- assoc. rewrite IH2. apply IH1. 
-  * contradiction (false_ne_true).
-  * contradiction (false_ne_true).
-  * contradiction (false_ne_true).
-Defined.
-
-Lemma eq1 (X Y : FSet A) : X = Y <~> (U Y X = X) * (U X Y = Y).
-Proof.
-  unshelve eapply BuildEquiv.
-  { intro H. rewrite H. split; apply union_idem. }
-  unshelve esplit.
-  { intros [H1 H2]. etransitivity. apply H1^.
-    rewrite comm. apply H2. }
-  intro; apply path_prod; apply set_path2. 
-  all: intro; apply set_path2.  
-Defined.
-
-
-Lemma subset_union_l `{Funext} X :
-  forall Y, subset X (U X Y) = true.
-hinduction X;
-  try (intros; apply path_forall; intro; apply set_path2).
-- reflexivity.
-- intros a Y. destruct (dec (a = a)).
-  * reflexivity.
-  * by contradiction n.
-- intros X1 X2 HX1 HX2 Y.
-  enough (subset X1 (U (U X1 X2) Y) = true).
-  enough (subset X2 (U (U X1 X2) Y) = true).
-  rewrite X. rewrite X0. reflexivity.
-  { rewrite (comm X1 X2).
-    rewrite <- (assoc X2 X1 Y).
-    apply (HX2 (U X1 Y)). }
-  { rewrite <- (assoc X1 X2 Y). apply (HX1 (U X2 Y)). }
-Defined.
-
-Lemma subset_union_equiv `{Funext}
-  : forall X Y : FSet A, subset X Y = true <~> U X Y = Y.
-Proof.
-  intros X Y.
-  unshelve eapply BuildEquiv.
-  apply subset_union.
-  unshelve esplit.
-  { intros HXY. rewrite <- HXY. clear HXY.
-    apply subset_union_l. }
-  all: intro; apply set_path2.
-Defined.
-
-Lemma eq_subset `{Funext} (X Y : FSet A) :
-  X = Y <~> ((subset Y X = true) * (subset X Y = true)).
-Proof.
-  transitivity ((U Y X = X) * (U X Y = Y)).
-  apply eq1.
-  symmetry.
-  eapply equiv_functor_prod'; apply subset_union_equiv.
-Defined.
-
-Lemma subset_isIn `{FE : Funext} (X Y : FSet A) :
-  (forall (a : A), isIn a X = true -> isIn a Y = true)
-  <-> (subset X Y = true).
-Proof.
-  split.
-  - hinduction X ; try (intros ; apply path_forall ; intro ; apply set_path2).
-    * intros ; reflexivity.
-    * intros a H. 
-      apply H.
-      destruct (dec (a = a)).
-      + reflexivity.
-      + contradiction (n idpath).
-    * intros X1 X2 H1 H2 H.
-      enough (subset X1 Y = true).
-      rewrite X.
-      enough (subset X2 Y = true).
-      rewrite X0.
-      reflexivity.
-      + apply H2.
-        intros a Ha.
-        apply H.
-        rewrite Ha.
-        destruct (isIn a X1) ; reflexivity.
-      + apply H1.
-        intros a Ha.
-        apply H.
-        rewrite Ha.
-        reflexivity.        
-  - hinduction X .
-    * intros. contradiction (false_ne_true X0).
-    * intros b H a.
-      destruct (dec (a = b)).
-      + intros ; rewrite p ; apply H.
-      + intros X ; contradiction (false_ne_true X).
-        * intros X1 X2.
-          intros IH1 IH2 H1 a H2.
-          destruct (subset X1 Y) ; destruct (subset X2 Y);
-            cbv in H1; try by contradiction false_ne_true.
-          specialize (IH1 idpath a). specialize (IH2 idpath a).
-          destruct (isIn a X1); destruct (isIn a X2);
-            cbv in H2; try by contradiction false_ne_true.
-          by apply IH1.
-          by apply IH1.
-          by apply IH2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall);
-          intros; intro; intros; apply set_path2.
-Defined.
-
-Lemma HPropEquiv (X Y : Type) (P : IsHProp X) (Q : IsHProp Y) :
-  (X <-> Y) -> (X <~> Y).
-Proof.
-intros [f g].
-simple refine (BuildEquiv _ _ _ _).  
-apply f.
-simple refine (BuildIsEquiv _ _ _ _ _ _ _).
-- apply g.
-- unfold Sect.
-  intro x.  
-  apply Q.
-- unfold Sect.
-  intro x.
-  apply P.
-- intros.
-  apply set_path2.
-Defined.
-
-Theorem fset_ext `{Funext} (X Y : FSet A) :
-  X = Y <~> (forall (a : A), isIn a X = isIn a Y).
-Proof.
-  etransitivity. apply eq_subset.
-  transitivity
-    ((forall a, isIn a Y = true -> isIn a X = true)
-     *(forall a, isIn a X = true -> isIn a Y = true)).
-  - eapply equiv_functor_prod'.
-    apply HPropEquiv.
-    exact _.
-    exact _.
-    split ; apply subset_isIn.
-    apply HPropEquiv.
-    exact _.
-    exact _.
-    split ; apply subset_isIn.
-  - apply HPropEquiv.
-    exact _.
-    exact _.
-    split.
-    * intros [H1 H2 a].
-      specialize (H1 a) ; specialize (H2 a).
-      destruct (isIn a X).
-      + symmetry ; apply (H2 idpath).
-      + destruct (isIn a Y).
-        { apply (H1 idpath). }
-        { reflexivity. }
-    * intros H1.
-      split ; intro a ; intro H2.
-      + rewrite (H1 a).
-        apply H2.
-      + rewrite <- (H1 a).
-        apply H2.
-Defined.
-
 Ltac solve := 
+  let x := fresh in
   repeat (intro x ; destruct x) 
   ; compute
   ; auto
@@ -666,8 +450,7 @@ Defined.
 
 Lemma intersectioncomm `{Funext} : forall x y, intersection x y = intersection y x.
 Proof.
-  toBool.
-  destruct_all bool. apply andb_comm.
+  toBool. apply andb_comm.
 Defined.  
 
 End properties.
