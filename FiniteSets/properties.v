@@ -437,6 +437,7 @@ Proof.
 reflexivity.  
 Defined.
 
+(* Proof of the extensionality axiom  *)
 (* Properties about subset relation. *)
 Lemma subset_union `{Funext} (X Y : FSet A) : 
   subset X Y = true -> U X Y = Y.
@@ -472,17 +473,6 @@ hinduction X; try (intros; apply path_forall; intro; apply set_path2).
   * contradiction (false_ne_true).
 Defined.
 
-Lemma eq1 (X Y : FSet A) : X = Y <~> (U Y X = X) * (U X Y = Y).
-Proof.
-  eapply equiv_iff_hprop_uncurried.
-  split.
-  - intro H. split.
-    apply (comm Y X @ ap (U X) H^ @ union_idem X).
-    apply (ap (U X) H^ @ union_idem X @ H).
-  - intros [H1 H2]. etransitivity. apply H1^.
-    apply (comm Y X @ H2).
-Defined.    
-
 Lemma subset_union_l `{Funext} X :
   forall Y, subset X (U X Y) = true.
 Proof.
@@ -493,13 +483,10 @@ hinduction X;
   * reflexivity.
   * by contradiction n.
 - intros X1 X2 HX1 HX2 Y.
-  enough (subset X1 (U (U X1 X2) Y) = true).
-  enough (subset X2 (U (U X1 X2) Y) = true).
-  rewrite X. rewrite X0. reflexivity.
-  { rewrite (comm X1 X2).
-    rewrite <- (assoc X2 X1 Y).
-    apply (HX2 (U X1 Y)). }
-  { rewrite <- (assoc X1 X2 Y). apply (HX1 (U X2 Y)). }
+  refine (ap (fun z => (X1 ⊆ z && X2 ⊆ (X1 ∪ X2) ∪ Y))%Bool (assoc X1 X2 Y)^ @ _).
+  refine (ap (fun z => (X1 ⊆ _ && X2 ⊆ z ∪ Y))%Bool (comm _ _) @ _).
+  refine (ap (fun z => (X1 ⊆ _ && X2 ⊆ z))%Bool (assoc _ _ _)^ @ _).
+  rewrite HX1. simpl. apply HX2.  
 Defined.
 
 Lemma subset_union_equiv `{Funext}
@@ -514,11 +501,22 @@ Proof.
     apply subset_union_l.
 Defined.
 
+Lemma eq_subset' (X Y : FSet A) : X = Y <~> (U Y X = X) * (U X Y = Y).
+Proof.
+  eapply equiv_iff_hprop_uncurried.
+  split.
+  - intro H. split.
+    apply (comm Y X @ ap (U X) H^ @ union_idem X).
+    apply (ap (U X) H^ @ union_idem X @ H).
+  - intros [H1 H2]. etransitivity. apply H1^.
+    apply (comm Y X @ H2).
+Defined.
+
 Lemma eq_subset `{Funext} (X Y : FSet A) :
   X = Y <~> ((subset Y X = true) * (subset X Y = true)).
 Proof.
   transitivity ((U Y X = X) * (U X Y = Y)).
-  apply eq1.
+  apply eq_subset'.
   symmetry.
   eapply equiv_functor_prod'; apply subset_union_equiv.
 Defined.
@@ -557,26 +555,26 @@ Proof.
       destruct (dec (a = b)).
       + intros ; rewrite p ; apply H.
       + intros X ; contradiction (false_ne_true X).
-        * intros X1 X2.
-          intros IH1 IH2 H1 a H2.
-          destruct (subset X1 Y) ; destruct (subset X2 Y);
-            cbv in H1; try by contradiction false_ne_true.
-          specialize (IH1 idpath a). specialize (IH2 idpath a).
-          destruct (isIn a X1); destruct (isIn a X2);
-            cbv in H2; try by contradiction false_ne_true.
-          by apply IH1.
-          by apply IH1.
-          by apply IH2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall).
-          intros; intro; intros; apply set_path2.
-        * repeat (intro; intros; apply path_forall);
-          intros; intro; intros; apply set_path2.
+    * intros X1 X2.
+      intros IH1 IH2 H1 a H2.
+      destruct (subset X1 Y) ; destruct (subset X2 Y);
+        cbv in H1; try by contradiction false_ne_true.
+      specialize (IH1 idpath a). specialize (IH2 idpath a).
+      destruct (isIn a X1); destruct (isIn a X2);
+        cbv in H2; try by contradiction false_ne_true.
+      by apply IH1.
+      by apply IH1.
+      by apply IH2.
+    * repeat (intro; intros; apply path_forall).
+      intros; intro; intros; apply set_path2.
+    * repeat (intro; intros; apply path_forall).
+      intros; intro; intros; apply set_path2.
+    * repeat (intro; intros; apply path_forall).
+      intros; intro; intros; apply set_path2.
+    * repeat (intro; intros; apply path_forall).
+      intros; intro; intros; apply set_path2.
+    * repeat (intro; intros; apply path_forall);
+      intros; intro; intros; apply set_path2.
 Defined.
 
 Theorem fset_ext `{Funext} (X Y : FSet A) :
