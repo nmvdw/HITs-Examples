@@ -60,14 +60,15 @@ End Lattice.
 
 Arguments Lattice {_} _ _ _.
 
-Ltac solve :=
-  let x := fresh in
-  repeat (intro x ; destruct x) 
-  ; compute
-  ; auto
-  ; try contradiction.
 
 Section BoolLattice.
+
+  Local Ltac solve :=
+    let x := fresh in
+    repeat (intro x ; destruct x) 
+    ; compute
+    ; auto
+    ; try contradiction.
 
   Instance min_com : Commutative orb.
   Proof.
@@ -134,98 +135,7 @@ Section BoolLattice.
 
 End BoolLattice.
 
-Require Import definition.
-Require Import properties.
-
 Hint Resolve
      min_com max_com min_assoc max_assoc min_idem max_idem min_nl min_nr
      bool_absorption_min_max bool_absorption_max_min
  : bool_lattice_hints.
-
-Section SetLattice.
-
-  Context {A : Type}.
-  Context {A_deceq : DecidablePaths A}.
-  Context `{Funext}.
-
-  Lemma ext `{Funext} : forall S T, (forall a, isIn a S = isIn a T) -> S = T.
-  Proof.
-    intros.
-    destruct (fset_ext S T).
-    destruct equiv_isequiv.
-    apply equiv_inv.
-    apply X.
-  Defined.
-
-  Ltac simplify_isIn :=
-  repeat (rewrite ?intersection_isIn ;
-          rewrite ?union_isIn).
-  
-  Ltac toBool := try (intro) ;
-    intros ; apply ext ; intros ; simplify_isIn ; eauto with bool_lattice_hints.
-
-  Instance union_com : Commutative (@U A).
-  Proof. 
-    toBool.
-  Defined.
-
-  Instance intersection_com : Commutative intersection.
-  Proof.
-    toBool.
-  Defined.
-
-  Instance union_assoc : Associative (@U A).
-  Proof.
-    toBool.
-  Defined.
-
-  Instance intersection_assoc : Associative intersection.
-  Proof.
-    toBool.
-  Defined.
-
-  Instance union_idem : Idempotent (@U A).
-  Proof.
-    toBool.
-  Defined.
-
-  Instance intersection_idem : Idempotent intersection.
-  Proof.
-    toBool.
-  Defined.
-
-  Instance union_nl : NeutralL (@U A) (@E A).
-  Proof.
-    toBool.
-  Defined.
-
-  Instance union_nr : NeutralR (@U A) (@E A).
-  Proof.
-    toBool.
-  Defined.
-
-  Instance set_absorption_intersection_union : Absorption (@U A) intersection.
-  Proof.
-    toBool.
-  Defined.
-
-  Instance set_absorption_union_intersection : Absorption intersection (@U A).
-  Proof.
-    toBool.
-  Defined.
-  
-  Instance lattice_set : Lattice (@U A) intersection (@E A) :=
-    {
-      commutative_min := _ ;
-      commutative_max := _ ;
-      associative_min := _ ;
-      associative_max := _ ;
-      idempotent_min := _ ;
-      idempotent_max := _ ;
-      neutralL_min := _ ;
-      neutralR_min := _ ;
-      absorption_min_max := _ ;
-      absorption_max_min := _
-    }.
-
-End SetLattice.
