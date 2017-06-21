@@ -191,4 +191,16 @@ Proof.
         apply H2.
 Defined.
 
+(* With extensionality we can prove decidable equality *)
+Instance fsets_dec_eq `{Funext} : DecidablePaths (FSet A).
+Proof.
+  intros X Y.
+  apply (decidable_equiv ((subset Y X = true) * (subset X Y = true)) (eq_subset X Y)^-1). (* TODO: this is so slow?*)
+  destruct (Y ⊆ X), (X ⊆ Y).
+  - left. refine (idpath, idpath).
+  - right. refine (false_ne_true o snd).
+  - right. refine (false_ne_true o fst).
+  - right. refine (false_ne_true o fst).
+Defined.
+
 End ext.
