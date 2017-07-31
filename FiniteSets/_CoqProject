@@ -12,3 +12,4 @@ Lattice.v
 monad.v
 Lists.v
 bad.v
+Enumerated.v
