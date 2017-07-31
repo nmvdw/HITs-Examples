@@ -67,3 +67,5 @@ Section lor_props.
       intros [x | x] ; apply x.
     - apply (fun x => tr (inl x)).
   Defined.
+
+End lor_props.
