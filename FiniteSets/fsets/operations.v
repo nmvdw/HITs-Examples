@@ -17,9 +17,9 @@ hrecursion.
   exact _.
 - apply lor.
 - intros ; symmetry ; apply lor_assoc.
-- intros ; apply lor_comm.
-- intros ; apply lor_nl.
-- intros ; apply lor_nr.
+- apply lor_commutative.
+- apply lor_nl.
+- apply lor_nr.
 - intros ; apply lor_idem.
 Defined.
 

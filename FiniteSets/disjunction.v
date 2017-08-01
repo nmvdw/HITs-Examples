@@ -84,7 +84,7 @@ Open Scope logic_scope.
 Section hPropLattice.
   Context `{Univalence}.
 
-  Instance lor_commutative : Commutative lor.
+  Global Instance lor_commutative : Commutative lor.
   Proof.
     unfold Commutative.
     intros.
@@ -183,10 +183,3 @@ Section hPropLattice.
   }.
   
 End hPropLattice.
-
-Hint Resolve
-     commutative_min commutative_max associative_min associative_max
-     idempotent_min idempotent_max
-     neutralL_min neutralR_min
-     absorption_min_max absorption_max_min
- : lattice_hints.
