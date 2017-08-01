@@ -1,5 +1,6 @@
 Require Import HoTT HitTactics.
-Require Import definition operations_decidable properties_decidable.
+Require Import representations.definition.
+From fsets Require Import operations_decidable properties_decidable.
 
 Module Export FSetC.
  

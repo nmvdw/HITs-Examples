@@ -1,6 +1,7 @@
 (* Properties of [FSet A] where [A] has decidable equality *)
 Require Import HoTT HitTactics.
-Require Export properties extensionality lattice operations_decidable.
+From fsets Require Export properties extensionality operations_decidable.
+Require Export lattice.
 
 (* Lemmas relating operations to the membership predicate *)
 Section operations_isIn.

@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Import cons_repr operations_decidable properties_decidable definition.
+Require Import representations.cons_repr FSets.
 
 Section Operations.
   Variable A : Type.

@@ -1,6 +1,6 @@
 (* Operations on the [FSet A] for an arbitrary [A] *)
 Require Import HoTT HitTactics.
-Require Import definition disjunction lattice.
+Require Import representations.definition disjunction lattice.
 
 Section operations.
 Context {A : Type}.

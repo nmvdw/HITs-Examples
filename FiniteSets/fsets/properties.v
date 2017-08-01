@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Export definition operations disjunction.
+Require Export representations.definition disjunction fsets.operations.
 
 (* Lemmas relating operations to the membership predicate *)
 Section operations_isIn.

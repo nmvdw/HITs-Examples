@@ -1,6 +1,6 @@
 (* Operations on [FSet A] when [A] has decidable equality *)
 Require Import HoTT HitTactics.
-Require Export definition operations.
+Require Export representations.definition fsets.operations.
 
 Section decidable_A.
   Context {A : Type}.

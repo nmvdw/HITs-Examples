@@ -1,6 +1,6 @@
 (* [FSet] is a (strong and stable) finite powerset monad *)
 Require Import HoTT HitTactics.
-Require Export definition properties.
+Require Export representations.definition fsets.properties.
 
 Definition ffmap {A B : Type} : (A -> B) -> FSet A -> FSet B.
 Proof.

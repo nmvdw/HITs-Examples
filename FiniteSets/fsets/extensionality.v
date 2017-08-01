@@ -1,6 +1,7 @@
 (** Extensionality of the FSets *)
 Require Import HoTT HitTactics.
-Require Import definition operations properties.
+From representations Require Import definition.
+From fsets Require Import operations properties.
 
 Section ext.
 Context {A : Type}.
