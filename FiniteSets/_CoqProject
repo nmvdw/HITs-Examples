@@ -12,6 +12,6 @@ properties_decidable.v
 monad.v
 cons_repr.v
 lists.v
-Enumerated.v
+enumerated.v
 #empty_set.v
 #ordered.v
