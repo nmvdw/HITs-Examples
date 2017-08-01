@@ -1,14 +1,18 @@
+(* Logical disjunction in HoTT (see ch. 3 of the book) *)
 Require Import HoTT.
 
 Definition lor (X Y : hProp) : hProp := BuildhProp (Trunc (-1) (sum X Y)).
 
-Infix "\/" := lor.
+Delimit Scope logic_scope with L.
+Notation "A ∨ B" := (lor A B) (at level 20, right associativity) : logic_scope.
+Arguments lor _%L _%L.
+Open Scope logic_scope.
 
-Section lor_props.
+Section lor_props. 
   Variable X Y Z : hProp.
   Context `{Univalence}.
-
-  Theorem lor_assoc : (X \/ (Y \/ Z)) = ((X \/ Y) \/ Z).
+  
+  Theorem lor_assoc : X ∨ Y ∨ Z = (X ∨ Y) ∨ Z.
   Proof.
     apply path_iff_hprop ; cbn.
     * simple refine (Trunc_ind _ _).
@@ -27,7 +31,7 @@ Section lor_props.
       + apply (tr (inr (tr (inr z)))).
   Defined.
 
-  Theorem lor_comm : (X \/ Y) = (Y \/ X).
+  Theorem lor_comm : X ∨ Y = Y ∨ X.
   Proof.
     apply path_iff_hprop ; cbn.
     * simple refine (Trunc_ind _ _).
@@ -40,7 +44,7 @@ Section lor_props.
       + apply (tr (inl x)).
   Defined.
 
-  Theorem lor_nl : (False_hp \/ X) = X.
+  Theorem lor_nl : False_hp ∨ X = X.
   Proof.
     apply path_iff_hprop ; cbn.
     * simple refine (Trunc_ind _ _).
@@ -50,7 +54,7 @@ Section lor_props.
     * apply (fun x => tr (inr x)).
   Defined.
 
-  Theorem lor_nr : (X \/ False_hp) = X.
+  Theorem lor_nr : X ∨ False_hp = X.
   Proof.
     apply path_iff_hprop ; cbn.
     * simple refine (Trunc_ind _ _).
@@ -60,7 +64,7 @@ Section lor_props.
     * apply (fun x => tr (inl x)).
   Defined.
 
-  Theorem lor_idem : (X \/ X) = X.
+  Theorem lor_idem : X ∨ X = X.
   Proof.
     apply path_iff_hprop ; cbn.
     - simple refine (Trunc_ind _ _).

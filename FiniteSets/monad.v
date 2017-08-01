@@ -1,6 +1,6 @@
 (* [FSet] is a (strong and stable) finite powerset monad *)
-Require Export definition properties.
 Require Import HoTT HitTactics.
+Require Export definition properties.
 
 Definition ffmap {A B : Type} : (A -> B) -> FSet A -> FSet B.
 Proof.
@@ -19,7 +19,7 @@ Defined.
 Lemma ffmap_1 `{Funext} {A : Type} : @ffmap A A idmap = idmap.
 Proof.
   apply path_forall.
-  intro x. hinduction x; try (cbn; intros; f_ap);
+  intro x. hinduction x; try (intros; f_ap);
              try (intros; apply set_path2).
 Defined.
 
@@ -30,7 +30,7 @@ Lemma ffmap_compose {A B C : Type} `{Funext} (f : A -> B) (g : B -> C) :
   fmap FSet (g o f) = fmap _ g o fmap _ f.
 Proof.
   apply path_forall. intro x.
-  hrecursion x; try (cbn; intros; f_ap);
+  hrecursion x; try (intros; f_ap);
     try (intros; apply set_path2).
 Defined.
 
@@ -50,7 +50,7 @@ Defined.
 Lemma join_assoc {A : Type} (X : FSet (FSet (FSet A))) :
   join (ffmap join X) = join (join X).
 Proof.
-  hrecursion X; try (cbn; intros; f_ap);
+  hrecursion X; try (intros; f_ap);
     try (intros; apply set_path2).
 Defined.
 
@@ -61,7 +61,7 @@ Proof. reflexivity. Defined.
 Lemma join_return_fmap {A : Type} (X : FSet A) :
   join ({| X |}) = join (ffmap (fun x => {|x|}) X).
 Proof.
-  hrecursion X; try (cbn; intros; f_ap);
+  hrecursion X; try (intros; f_ap);
     try (intros; apply set_path2).
 Defined.
 

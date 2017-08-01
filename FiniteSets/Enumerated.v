@@ -7,7 +7,7 @@ Definition Sub A := A -> hProp.
 Fixpoint listExt {A} (ls : list A) : Sub A := fun x =>
   match ls with
   | nil => False_hp
-  | cons a ls' => BuildhProp (Trunc (-1) (x = a)) \/ listExt ls' x
+  | cons a ls' => BuildhProp (Trunc (-1) (x = a)) ∨ listExt ls' x
   end.
 
 Fixpoint map {A B} (f : A -> B) (ls : list A) : list B :=
@@ -20,7 +20,7 @@ Fixpoint filterD {A} (P : A -> Bool) (ls : list A) : list { x : A | P x = true }
 Proof.
 destruct ls as [|x xs].
 - exact nil.
-- enough (P x = true \/ P x = false) as HP.
+- enough ((P x = true) + (P x = false)) as HP.
   { destruct HP as [HP | HP].
     + refine (cons (exist _ x HP) (filterD _ P xs)).
     + refine (filterD _ P xs).
@@ -55,7 +55,7 @@ Lemma filterD_lookup {A} (P : A -> Bool) (x : A) (ls : list A) (Px : P x = true)
 Proof.
 induction ls as [| a ls].
 - simpl. exact idmap.
-- assert (P a = true \/ P a = false) as HPA.
+- assert ((P a = true) + (P a = false)) as HPA.
   { destruct (P a); [left | right]; reflexivity. }
   destruct HPA as [Pa | Pa].
   + rewrite (filterD_cons P a ls Pa). simpl.

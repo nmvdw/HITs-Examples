@@ -1,15 +1,17 @@
 -R . "" COQC = hoqc COQDEP = hoqdep
 -R ../prelude ""
-definition.v
+lattice.v
 disjunction.v
-operations.v
-Ext.v
-properties.v
-empty_set.v
-ordered.v
-cons_repr.v
-Lattice.v
-monad.v
-Lists.v
 bad.v
+definition.v
+operations.v
+properties.v
+operations_decidable.v
+extensionality.v
+properties_decidable.v
+monad.v
+cons_repr.v
+lists.v
 Enumerated.v
+#empty_set.v
+#ordered.v

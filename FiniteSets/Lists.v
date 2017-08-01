@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Import cons_repr operations definition.
+Require Import cons_repr operations_decidable properties_decidable definition.
 
 Section Operations.
   Variable A : Type.
@@ -43,11 +43,10 @@ Arguments append {_} _ _.
 Arguments empty {_}.
 Arguments filter {_} _ _.
 Arguments cardinality {_} {_} _.
-Arguments intersection {_} {_} _ _.
 
 Section ListToSet.
   Variable A : Type.
-  Context {A_deceq : DecidablePaths A} `{Funext}.
+  Context {A_deceq : DecidablePaths A} `{Univalence}.
   
   Fixpoint list_to_setC (l : list A) : FSetC A :=
     match l with
@@ -71,13 +70,13 @@ Section ListToSet.
   Defined.
 
   Lemma member_isIn (l : list A) (a : A) :
-    member l a = isIn a (FSetC_to_FSet (list_to_setC l)).
+    member l a = isIn_b a (FSetC_to_FSet (list_to_setC l)).
   Proof.
     induction l ; cbn in *.
     - reflexivity.
     - destruct (dec (a = a0)) ; cbn.
-      * reflexivity.
-      * apply IHl.
+      * rewrite ?p. simplify_isIn. reflexivity.
+      * rewrite IHl. simplify_isIn. rewrite L_isIn_b_false ; auto.
   Defined.
 
   Lemma append_FSetCappend (l1 l2 : list A) :

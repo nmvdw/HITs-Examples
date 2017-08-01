@@ -1,28 +1,53 @@
+(* Operations on the [FSet A] for an arbitrary [A] *)
 Require Import HoTT HitTactics.
-Require Import definition.
+Require Import definition disjunction lattice.
+
 Section operations.
-
 Context {A : Type}.
-Context {A_deceq : DecidablePaths A}.
+Context `{Univalence}.
 
-Definition isIn : A -> FSet A -> Bool.
+Definition isIn : A -> FSet A -> hProp.
 Proof.
 intros a.
 hrecursion.
-- exact false.
-- intro a'. destruct (dec (a = a')); [exact true | exact false].
-- apply orb. 
-- intros x y z. compute. destruct x; reflexivity.
-- intros x y. compute. destruct x, y; reflexivity.
-- intros x. compute. reflexivity. 
-- intros x. compute. destruct x; reflexivity.
-- intros a'. simpl.
-  destruct (match dec (a = a') with
-  | inl _ => true
-  | inr _ => false
-  end); compute; reflexivity. 
+- exists Empty.
+  exact _.
+- intro a'.
+  exists (Trunc (-1) (a = a')).
+  exact _.
+- apply lor. 
+- intros ; apply lor_assoc. exact _.
+- intros ; apply lor_comm. exact _.
+- intros ; apply lor_nl. exact _.
+- intros ; apply lor_nr. exact _.
+- intros ; apply lor_idem. exact _.
 Defined.
 
+Definition subset : FSet A -> FSet A -> hProp.
+Proof.
+intros X Y.
+hrecursion X.
+- exists Unit.
+  exact _.
+- intros a.
+  apply (isIn a Y).
+- intros X1 X2.
+  exists (prod X1 X2).
+  exact _.
+- intros.
+  apply path_trunctype ; apply equiv_prod_assoc.
+- intros.
+  apply path_trunctype ; apply equiv_prod_symm.
+- intros.
+  apply path_trunctype ; apply prod_unit_l.
+- intros.
+  apply path_trunctype ; apply prod_unit_r.
+- intros a'.
+  apply path_iff_hprop ; cbn.
+  * intros [p1 p2]. apply p1.
+  * intros p.
+    split ; apply p.
+Defined.
 
 Definition comprehension : 
   (A -> Bool) -> FSet A -> FSet A.
@@ -33,42 +58,30 @@ hrecursion.
 - intro a.
   refine (if (P a) then L a else E).
 - apply U.
-- intros. cbv. apply assoc.
-- intros. cbv. apply comm.
-- intros. cbv. apply nl.
-- intros. cbv. apply nr.
-- intros. cbv. 
-  destruct (P x); simpl.
+- apply assoc.
+- apply comm.
+- apply nl.
+- apply nr.
+- intros; simpl. 
+  destruct (P x).
   + apply idem.
   + apply nl.
 Defined.
 
-Definition intersection : 
-  FSet A -> FSet A -> FSet A.
+Definition isEmpty :
+  FSet A -> Bool.
 Proof.
-intros X Y.
-apply (comprehension (fun (a : A) => isIn a X) Y).
-Defined.
-
-Definition difference :
-  FSet A -> FSet A -> FSet A := fun X Y =>
-  comprehension (fun a => negb (isIn a X)) Y.
-
-Definition subset :
-	FSet A -> FSet A -> Bool.
-Proof.
-intros X Y.
-hrecursion X. 
-- exact true.
-- exact (fun a => (isIn a Y)).
-- exact andb.
-- intros. compute. destruct x; reflexivity.
-- intros x y; compute; destruct x, y; reflexivity. 
-- intros x; compute; destruct x; reflexivity.
-- intros x; compute; destruct x; reflexivity.
-- intros x; cbn; destruct (isIn x Y); reflexivity.
-Defined.
-
+  hrecursion.
+  - apply true.
+  - apply (fun _ => false).
+  - apply andb.
+  - intros. symmetry. eauto with bool_lattice_hints.
+  - eauto with bool_lattice_hints.
+  - eauto with bool_lattice_hints.
+  - eauto with bool_lattice_hints.
+  - eauto with bool_lattice_hints.
+Defined.    
+  
 End operations.
 
 Infix "∈" := isIn (at level 9, right associativity).

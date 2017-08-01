@@ -1,10 +1,5 @@
-Require Import HoTT.
-Require Import HitTactics.
-Require Import definition.
-Require Import operations.
-Require Import properties.
-Require Import empty_set.
-
+Require Import HoTT HitTactics.
+Require Import definition operations_decidable properties_decidable.
 
 Module Export FSetC.
  
@@ -295,25 +290,25 @@ Section Length.
 
 Context {A : Type}.
 Context {A_deceq : DecidablePaths A}.
-Context {H : Funext}.
+Context `{Univalence}.
 
+Opaque isIn_b.
 Definition length (x: FSetC A) : nat.
 Proof.
 simple refine (FSetC_ind A _ _ _ _ _ _ x ); simpl.
 - exact 0.
 - intros a y n. 
   pose (y' := FSetC_to_FSet y).
-  exact (if isIn a y' then n else (S n)).
-- intros. rewrite transport_const. cbn. 
-  destruct (dec (a = a)); cbn. reflexivity.
-  destruct n; reflexivity.
+  exact (if isIn_b a y' then n else (S n)).
 - intros. rewrite transport_const. cbn.
-  destruct (dec (a = b)), (dec (b = a)); cbn. 
-  + rewrite p. reflexivity.
-  + contradiction (n p^).
-  + contradiction (n p^).
-  + intros. 
-  destruct (a ∈ (FSetC_to_FSet x0)), (b ∈ (FSetC_to_FSet x0)); reflexivity.
+  simplify_isIn. simpl. reflexivity.
+- intros. rewrite transport_const. cbn.
+  simplify_isIn.
+  destruct (dec (a = b)) as [Hab | Hab].
+  + rewrite Hab. simplify_isIn. simpl. reflexivity.
+  + rewrite ?L_isIn_b_false; auto. simpl. 
+    destruct (isIn_b a (FSetC_to_FSet x0)), (isIn_b b (FSetC_to_FSet x0)) ; reflexivity.
+    intro p. contradiction (Hab p^).
 Defined.
 
 Definition length_FSet (x: FSet A) := length (FSet_to_FSetC x).
@@ -325,8 +320,3 @@ cbn. reflexivity.
 Defined.
 
 End Length.
-
-
-
-
-

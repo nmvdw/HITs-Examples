@@ -1,3 +1,4 @@
+(* Typeclass for lattices *)
 Require Import HoTT.
 
 Definition operation (A : Type) := A -> A -> A.
@@ -50,8 +51,8 @@ Section Lattice.
       associative_max :> Associative max ;
       idempotent_min :> Idempotent min ;
       idempotent_max :> Idempotent max ;
-      neutralL_min :> NeutralL min empty ;
-      neutralR_min :> NeutralR min empty ;
+      neutralL_min :> NeutralL max empty ;
+      neutralR_min :> NeutralR max empty ;
       absorption_min_max :> Absorption min max ;
       absorption_max_min :> Absorption max min
     }.
@@ -63,65 +64,65 @@ Arguments Lattice {_} _ _ _.
 
 Section BoolLattice.
 
-  Local Ltac solve :=
+  Ltac solve :=
     let x := fresh in
     repeat (intro x ; destruct x) 
     ; compute
     ; auto
     ; try contradiction.
 
-  Instance min_com : Commutative orb.
+  Instance orb_com : Commutative orb.
   Proof.
     solve.
   Defined.
 
-  Instance max_com : Commutative andb.
+  Instance andb_com : Commutative andb.
   Proof.
     solve.
   Defined.
 
-  Instance min_assoc : Associative orb.
+  Instance orb_assoc : Associative orb.
   Proof.
     solve.
   Defined.
 
-  Instance max_assoc : Associative andb.
+  Instance andb_assoc : Associative andb.
   Proof.
     solve.
   Defined.
 
-  Instance min_idem : Idempotent orb.
+  Instance orb_idem : Idempotent orb.
   Proof.
     solve.
   Defined.
 
-  Instance max_idem : Idempotent andb.
+  Instance andb_idem : Idempotent andb.
   Proof.
     solve.
   Defined.
 
-  Instance min_nl : NeutralL orb false.
+  Instance orb_nl : NeutralL orb false.
   Proof.
     solve.
   Defined.
 
-  Instance min_nr : NeutralR orb false.
+  Instance orb_nr : NeutralR orb false.
   Proof.
     solve.
   Defined.
 
-  Instance bool_absorption_min_max : Absorption orb andb.
+  Instance bool_absorption_orb_andb : Absorption orb andb.
   Proof.
     solve.
   Defined.
 
-  Instance bool_absorption_max_min : Absorption andb orb.
+  Instance bool_absorption_andb_orb : Absorption andb orb.
   Proof.
     solve.
   Defined.
   
-  Global Instance lattice_bool : Lattice orb andb false :=
-  { commutative_min := _ ;
+  Global Instance lattice_bool : Lattice andb orb false :=
+    { commutative_min := _ ;
       commutative_max := _ ;
       associative_min := _ ;
       associative_max := _ ;
@@ -133,9 +134,38 @@ Section BoolLattice.
       absorption_max_min := _
   }.
 
+  Definition and_true : forall b, andb b true = b.
+  Proof.
+    solve.
+  Defined.
+
+  Definition and_false : forall b, andb b false = false.
+  Proof.
+    solve.
+  Defined.
+
+  Definition dist₁ : forall b₁ b₂ b₃,
+      andb b₁ (orb b₂ b₃) = orb (andb b₁ b₂) (andb b₁ b₃).
+  Proof.
+    solve.
+  Defined.
+
+  Definition dist₂ : forall b₁ b₂ b₃,
+      orb b₁ (andb b₂ b₃) = andb (orb b₁ b₂) (orb b₁ b₃).
+  Proof.
+    solve.
+  Defined.
+
+  Definition max_min : forall b₁ b₂,
+      orb (andb b₁ b₂) b₁ = b₁.
+  Proof.
+    solve.
+  Defined.
+  
 End BoolLattice.
 
 Hint Resolve
-     min_com max_com min_assoc max_assoc min_idem max_idem min_nl min_nr
-     bool_absorption_min_max bool_absorption_max_min
+     orb_com andb_com orb_assoc andb_assoc orb_idem andb_idem orb_nl orb_nr
+     bool_absorption_orb_andb bool_absorption_andb_orb and_true and_false
+     dist₁ dist₂ max_min
  : bool_lattice_hints.

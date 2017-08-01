@@ -1,3 +1,4 @@
+(* Definitions of the Kuratowski-finite sets via a HIT *)
 Require Import HoTT.
 Require Import HitTactics.
 
@@ -72,11 +73,9 @@ Fixpoint FSet_ind
   {struct x}
   : P x
   := (match x return _ -> _ -> _ -> _ -> _ -> _ -> P x with
-        | E => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => eP
-        | L a => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => lP a
-        | U y z => fun _ => fun _ => fun _ => fun _ => fun _ => fun _ => uP y z
-           (FSet_ind y)
-           (FSet_ind z)
+      | E => fun _ _ _ _ _ _ => eP
+      | L a => fun _ _ _ _ _ _ => lP a
+      | U y z => fun _ _ _ _ _ _ => uP y z (FSet_ind y) (FSet_ind z)
       end) H assocP commP nlP nrP idemP.
 
 
