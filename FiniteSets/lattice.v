@@ -24,10 +24,10 @@ Section Defs.
   Variable n : A.
 
   Class NeutralL :=
-    neutralityL : forall x, f x n = x.
+    neutralityL : forall x, f n x = x.
 
   Class NeutralR :=
-    neutralityR : forall x, f n x = x.
+    neutralityR : forall x, f x n = x.
 
 End Defs.
 

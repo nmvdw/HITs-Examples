@@ -9,9 +9,9 @@ Notation "A ∨ B" := (lor A B) (at level 20, right associativity) : logic_scope
 Arguments lor _%L _%L.
 Open Scope logic_scope.
 
-Section lor_props. 
-  Variable X Y Z : hProp.
+Section lor_props.
   Context `{Univalence}.
+  Variable X Y Z : hProp.
   
   Lemma lor_assoc : (X ∨ Y) ∨ Z = X ∨ Y ∨ Z.
   Proof.
@@ -45,7 +45,7 @@ Section lor_props.
       + apply (tr (inl x)).
   Defined.
 
-  Lemma lor_nr : False_hp ∨ X = X.
+  Lemma lor_nl : False_hp ∨ X = X.
   Proof.
     apply path_iff_hprop ; cbn.
     * simple refine (Trunc_ind _ _).
@@ -55,7 +55,7 @@ Section lor_props.
     * apply (fun x => tr (inr x)).
   Defined.
 
-  Lemma lor_nl : X ∨ False_hp = X.
+  Lemma lor_nr : X ∨ False_hp = X.
   Proof.
     apply path_iff_hprop ; cbn.
     * simple refine (Trunc_ind _ _).
@@ -89,7 +89,6 @@ Section hPropLattice.
     unfold Commutative.
     intros.
     apply lor_comm.
-    apply _.
   Defined.
 
   Instance land_commutative : Commutative land.
@@ -105,7 +104,6 @@ Section hPropLattice.
     unfold Associative.
     intros.
     apply lor_assoc.
-    apply _.
   Defined.
 
   Instance land_associative : Associative land.
@@ -122,7 +120,6 @@ Section hPropLattice.
     unfold Idempotent.
     intros.
     apply lor_idem.
-    apply _.
   Defined.
 
   Instance land_idempotent : Idempotent land.
@@ -139,7 +136,6 @@ Section hPropLattice.
     unfold NeutralL.
     intros.
     apply lor_nl.
-    apply _.
   Defined.
 
   Instance lor_neutralr : NeutralR lor False_hp.
@@ -147,7 +143,6 @@ Section hPropLattice.
     unfold NeutralR.
     intros.
     apply lor_nr.
-    apply _.
   Defined.
 
   Instance bool_absorption_orb_andb : Absorption lor land.
@@ -174,7 +169,7 @@ Section hPropLattice.
       * apply (tr (inl X)).
   Defined.
   
-  Global Instance lattice_bool : Lattice andb orb false :=
+  Global Instance lattice_hprop : Lattice land lor False_hp :=
     { commutative_min := _ ;
       commutative_max := _ ;
       associative_min := _ ;
@@ -188,3 +183,10 @@ Section hPropLattice.
   }.
   
 End hPropLattice.
+
+Hint Resolve
+     commutative_min commutative_max associative_min associative_max
+     idempotent_min idempotent_max
+     neutralL_min neutralR_min
+     absorption_min_max absorption_max_min
+ : lattice_hints.

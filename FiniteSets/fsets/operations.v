@@ -15,12 +15,12 @@ hrecursion.
 - intro a'.
   exists (Trunc (-1) (a = a')).
   exact _.
-- apply lor. 
-- intros ; apply lor_assoc. exact _.
-- intros ; apply lor_comm. exact _.
-- intros ; apply lor_nl. exact _.
-- intros ; apply lor_nr. exact _.
-- intros ; apply lor_idem. exact _.
+- apply lor.
+- intros ; symmetry ; apply lor_assoc.
+- intros ; apply lor_comm.
+- intros ; apply lor_nl.
+- intros ; apply lor_nr.
+- intros ; apply lor_idem.
 Defined.
 
 Definition subset : FSet A -> FSet A -> hProp.
