@@ -1,0 +1,5 @@
+-R . "" COQC = hoqc COQDEP = hoqdep
+-R ../prelude ""
+-R ../../HoTTClasses/theories HoTTClasses
+Mod2.v
+Mod2_ring.v
