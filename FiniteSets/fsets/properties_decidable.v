@@ -208,8 +208,8 @@ Section SetLattice.
       associative_max := _ ;
       idempotent_min := _ ;
       idempotent_max := _ ;
-      neutralL_min := _ ;
-      neutralR_min := _ ;
+      neutralL_max := _ ;
+      neutralR_max := _ ;
       absorption_min_max := _ ;
       absorption_max_min := _
     }.
