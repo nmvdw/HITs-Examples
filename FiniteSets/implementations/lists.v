@@ -1,5 +1,7 @@
+(* Implementation of [FSet A] using lists *)
 Require Import HoTT HitTactics.
 Require Import representations.cons_repr FSets.
+From fsets Require Import operations_cons_repr isomorphism length.
 
 Section Operations.
   Variable A : Type.
@@ -80,7 +82,7 @@ Section ListToSet.
   Defined.
 
   Lemma append_FSetCappend (l1 l2 : list A) :
-    list_to_setC (append l1 l2) = FSetC.append (list_to_setC l1) (list_to_setC l2).
+    list_to_setC (append l1 l2) = operations_cons_repr.append (list_to_setC l1) (list_to_setC l2).
   Proof.
     induction l1 ; simpl in *.
     - reflexivity.
@@ -117,7 +119,7 @@ Section ListToSet.
   Defined.
   
   Lemma length_sizeC (l : list A) :
-    cardinality l = cons_repr.length (list_to_setC l).
+    cardinality l = length (list_to_setC l).
   Proof.
     induction l.
     - cbn.

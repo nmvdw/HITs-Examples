@@ -1,0 +1,69 @@
+(* The representations [FSet A] and [FSetC A] are isomorphic for every A *)
+Require Import HoTT HitTactics.
+From representations Require Import cons_repr definition.
+From fsets Require Import operations_cons_repr properties_cons_repr.
+
+Section Iso.
+
+  Context {A : Type}.
+  Context `{Univalence}.
+
+  Definition FSetC_to_FSet: FSetC A -> FSet A.
+  Proof.
+    hrecursion.
+    - apply E.
+    - intros a x. apply (U (L a) x).
+    - intros. cbn.  
+      etransitivity. apply assoc.
+      apply (ap (fun y => U y x)).
+      apply idem.
+    - intros. cbn.
+      etransitivity. apply assoc.
+      etransitivity. refine (ap (fun y => U y x) _ ).
+      apply FSet.comm.
+      symmetry. 
+      apply assoc.
+  Defined.
+
+  Definition FSet_to_FSetC: FSet A -> FSetC A :=
+    FSet_rec A (FSetC A) (FSetC.trunc A) Nil singleton append append_assoc 
+             append_comm append_nl append_nr singleton_idem.
+
+  Lemma append_union: forall (x y: FSetC A), 
+      FSetC_to_FSet (append x y) = U (FSetC_to_FSet x) (FSetC_to_FSet y).
+  Proof.
+    intros x. 
+    hrecursion x; try (intros; apply path_forall; intro; apply set_path2).
+    - intros. symmetry. apply nl.
+    - intros a x HR y. rewrite HR. apply assoc.
+  Defined.
+
+  Lemma repr_iso_id_l: forall (x: FSet A), FSetC_to_FSet (FSet_to_FSetC x) = x.
+  Proof.
+    hinduction; try (intros; apply set_path2).
+    - reflexivity.
+    - intro. apply nr.
+    - intros x y p q. rewrite append_union, p, q. reflexivity.
+  Defined.
+
+
+  Lemma repr_iso_id_r: forall (x: FSetC A), FSet_to_FSetC (FSetC_to_FSet x) = x.
+  Proof.
+    hinduction; try (intros; apply set_path2).
+    - reflexivity.
+    - intros a x HR. rewrite HR. reflexivity.
+  Defined.
+
+
+  Theorem repr_iso: FSet A <~> FSetC A.
+  Proof.
+    simple refine (@BuildEquiv (FSet A) (FSetC A) FSet_to_FSetC _ ).
+    apply isequiv_biinv.
+    unfold BiInv. split.
+    exists FSetC_to_FSet.
+    unfold Sect. apply repr_iso_id_l.
+    exists FSetC_to_FSet.
+    unfold Sect. apply repr_iso_id_r.
+  Defined.
+
+End Iso.
