@@ -75,11 +75,11 @@ Proof.
   - apply true.
   - apply (fun _ => false).
   - apply andb.
-  - intros. symmetry. eauto with bool_lattice_hints.
-  - eauto with bool_lattice_hints.
-  - eauto with bool_lattice_hints.
-  - eauto with bool_lattice_hints.
-  - eauto with bool_lattice_hints.
+  - intros. symmetry. eauto with lattice_hints typeclass_instances.
+  - eauto with bool_lattice_hints typeclass_instances.
+  - eauto with bool_lattice_hints typeclass_instances.
+  - eauto with bool_lattice_hints typeclass_instances.
+  - eauto with bool_lattice_hints typeclass_instances.
 Defined.    
   
 End operations.

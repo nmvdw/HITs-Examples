@@ -12,7 +12,14 @@ Section decidable_A.
     intros a.
     hinduction ; try (intros ; apply path_ishprop).
     - apply _.
-    - intros. apply _.
+    - intros.
+      unfold Decidable.
+      destruct (dec (a = a0)) as [p | np].
+      * apply (inl (tr p)).
+      * right.
+        intro p.
+        strip_truncations.
+        contradiction.
     - intros. apply _. 
   Defined.
 

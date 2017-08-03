@@ -2,7 +2,7 @@
 Require Import HoTT.
 Require Import lattice.
 
-Definition lor (X Y : hProp) : hProp := BuildhProp (Trunc (-1) (sum X Y)).
+Instance lor : maximum hProp := fun X Y => BuildhProp (Trunc (-1) (sum X Y)).
 
 Delimit Scope logic_scope with L.
 Notation "A ∨ B" := (lor A B) (at level 20, right associativity) : logic_scope.
@@ -75,7 +75,8 @@ Section lor_props.
 
 End lor_props.
 
-Definition land (X Y : hProp) : hProp := BuildhProp (prod X Y).
+Instance land : minimum hProp := fun X Y => BuildhProp (prod X Y).
+Instance lfalse : bottom hProp := False_hp.
 
 Notation "A ∧ B" := (land A B) (at level 20, right associativity) : logic_scope.
 Arguments land _%L _%L.
@@ -84,7 +85,7 @@ Open Scope logic_scope.
 Section hPropLattice.
   Context `{Univalence}.
 
-  Global Instance lor_commutative : Commutative lor.
+  Instance lor_commutative : Commutative lor.
   Proof.
     unfold Commutative.
     intros.
@@ -131,21 +132,21 @@ Section hPropLattice.
     - intros a ; apply (pair a a).
   Defined.
   
-  Instance lor_neutrall : NeutralL lor False_hp.
+  Instance lor_neutrall : NeutralL lor lfalse.
   Proof.
     unfold NeutralL.
     intros.
     apply lor_nl.
   Defined.
 
-  Instance lor_neutralr : NeutralR lor False_hp.
+  Instance lor_neutralr : NeutralR lor lfalse.
   Proof.
     unfold NeutralR.
     intros.
     apply lor_nr.
   Defined.
 
-  Instance bool_absorption_orb_andb : Absorption lor land.
+  Instance absorption_orb_andb : Absorption lor land.
   Proof.
     unfold Absorption.
     intros.
@@ -156,7 +157,7 @@ Section hPropLattice.
       apply (tr (inl X)).
   Defined.
 
-  Instance bool_absorption_andb_orb : Absorption land lor.
+  Instance absorption_andb_orb : Absorption land lor.
   Proof.
     unfold Absorption.
     intros.
@@ -169,15 +170,15 @@ Section hPropLattice.
       * apply (tr (inl X)).
   Defined.
   
-  Global Instance lattice_hprop : Lattice land lor False_hp :=
+  Global Instance lattice_hprop : Lattice hProp :=
     { commutative_min := _ ;
       commutative_max := _ ;
       associative_min := _ ;
       associative_max := _ ;
       idempotent_min := _ ;
       idempotent_max := _ ;
-      neutralL_min := _ ;
-      neutralR_min := _ ;
+      neutralL_max := _ ;
+      neutralR_max := _ ;
       absorption_min_max := _ ;
       absorption_max_min := _
   }.
