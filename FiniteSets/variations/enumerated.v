@@ -1,10 +1,9 @@
 (* Enumerated finite sets *)
-Require Import HoTT.
-Require Import disjunction.
-Require Import representations.cons_repr representations.definition variations.k_finite.
-From fsets Require Import operations isomorphism.
-
-Definition Sub A := A -> hProp.
+Require Import HoTT HitTactics.
+Require Import disjunction Sub.
+Require Import representations.cons_repr representations.definition.
+Require Import variations.k_finite.
+From fsets Require Import operations isomorphism properties_decidable operations_decidable.
 
 Fixpoint listExt {A} (ls : list A) : Sub A := fun x =>
   match ls with
@@ -76,14 +75,15 @@ induction ls as [| a ls].
 Defined.
 
 (** Definition of finite sets in an enumerated sense *)
-Definition enumerated (A : Type) : Type :=
-  exists ls, forall (a : A), listExt ls a.
+Definition enumerated (A : Type) : hProp :=
+  hexists (fun ls => forall (a : A), listExt ls a).
 
 (** Properties of enumerated sets: closed under decidable subsets *)
 Lemma enumerated_comprehension (A : Type) (P : A -> Bool) :
   enumerated A -> enumerated { x : A | P x = true }.
 Proof.
-  intros [eA HeA].
+  intros HeA. strip_truncations. destruct HeA as [eA HeA].
+  apply tr.
   exists (filterD P eA).
   intros [x Px].
   apply filterD_lookup.
@@ -104,7 +104,8 @@ Defined.
 Lemma enumerated_surj (A B : Type) (f : A -> B) :
   IsSurjection f -> enumerated A -> enumerated B.
 Proof.
-  intros Hsurj [eA HeA].
+  intros Hsurj HeA. strip_truncations; apply tr. 
+  destruct HeA as [eA HeA].
   exists (map f eA).
   intros x. specialize (Hsurj x).
   pose (t := center (merely (hfiber f x))).
@@ -138,11 +139,13 @@ Defined.
 Lemma enumerated_sum (A B : Type) :
   enumerated A -> enumerated B -> enumerated (A + B).
 Proof.
-intros [eA HeA] [eB HeB].
-exists (app (map inl eA) (map inr eB)).
-intros [x | x].
-- apply listExt_app_r. apply map_listExt. apply HeA.
-- apply listExt_app_l. apply map_listExt. apply HeB.
+  intros HeA HeB.
+  strip_truncations; apply tr.
+  destruct HeA as [eA HeA], HeB as [eB HeB].
+  exists (app (map inl eA) (map inr eB)).
+  intros [x | x].
+  - apply listExt_app_r. apply map_listExt. apply HeA.
+  - apply listExt_app_l. apply map_listExt. apply HeB.
 Defined.
 
 Fixpoint listProd_sing {A B} (x : A) (ys : list B) : list (A * B).
@@ -200,7 +203,9 @@ Defined.
 Lemma enumerated_prod (A B : Type) `{Funext} :
   enumerated A -> enumerated B -> enumerated (A * B).
 Proof.
-  intros [eA HeA] [eB HeB].
+  intros HeA HeB.
+  strip_truncations; apply tr.
+  destruct HeA as [eA HeA], HeB as [eB HeB].
   exists (listProd eA eB).
   intros [x y].
   apply listExt_prod; [ apply HeA | apply HeB ].
@@ -231,7 +236,9 @@ Section enumerated_fset.
 
   Lemma enumerated_Kf : enumerated A -> Kf A.
   Proof.
-    intros [ls Hls].
+    intros Hls.
+    strip_truncations.
+    destruct Hls as [ls Hls].
     exists (list_to_fset ls). 
     apply path_forall. intro a.
     symmetry. apply path_hprop.
@@ -239,3 +246,43 @@ Section enumerated_fset.
     by apply list_to_fset_ext.
   Defined.
 End enumerated_fset.
+
+Section fset_dec_enumerated.
+  Variable A : Type.
+  Context `{Univalence}.
+ 
+  Definition Kf_fsetc : 
+    Kf A -> exists (X : FSetC A), forall (a : A), k_finite.map (FSetC_to_FSet X) a.
+  Proof.
+    intros [X HX].
+    exists (FSet_to_FSetC X).
+    rewrite repr_iso_id_l.
+    by rewrite <- HX.
+  Defined.
+
+  Definition merely_enumeration_FSetC : 
+    forall (X : FSetC A),
+    hexists (fun (ls : list A) => forall a, a ∈ (FSetC_to_FSet X) = listExt ls a).
+  Proof.
+    hinduction.
+    - apply tr. exists nil. simpl. done.
+    - intros a X Hls.
+      strip_truncations. apply tr.
+      destruct Hls as [ls Hls].
+      exists (cons a ls). intros b. simpl.
+      f_ap.
+    - intros. apply path_ishprop.
+    - intros. apply path_ishprop.
+  Defined.
+  
+  Definition Kf_enumerated : Kf A -> enumerated A.
+  Proof.
+    intros HKf. apply Kf_fsetc in HKf.
+    destruct HKf as [X HX].
+    pose (ls' := (merely_enumeration_FSetC X)).    
+    simple refine (@Trunc_rec _ _ _ _ _ ls'). clear ls'.    
+    intros [ls Hls].
+    apply tr. exists ls.
+    intros a. rewrite <- Hls. apply (HX a).
+  Defined.
+End fset_dec_enumerated.
