@@ -1,17 +1,10 @@
 Require Import HoTT HitTactics.
-Require Import lattice representations.definition fsets.operations extensionality.
-
-Definition Sub A := A -> hProp.
+Require Import lattice representations.definition fsets.operations extensionality Sub fsets.properties.
 
 Section k_finite.
 
   Context {A : Type}.
   Context `{Univalence}.
-
-  Instance subA_set : IsHSet (Sub A).
-  Proof.
-    apply _.
-  Defined.
 
   Definition map (X : FSet A) : Sub A := fun a => isIn a X.
 
@@ -52,3 +45,58 @@ Section k_finite.
   Defined.
 
 End k_finite.
+
+Section structure_k_finite.
+  Context {A : Type}.
+  Context `{Univalence}.
+
+  Lemma map_union : forall X Y : FSet A, map (U X Y) = max_fun (map X) (map Y).
+  Proof.
+    intros.
+    unfold map, max_fun.
+    reflexivity.
+  Defined.
+      
+  Lemma k_finite_union : @hasUnion A Kf_sub.
+  Proof.
+    unfold hasUnion, Kf_sub, Kf_sub_intern.
+    intros.
+    destruct X0 as [SX XP].
+    destruct X1 as [SY YP].
+    exists (U SX SY).
+    rewrite map_union.
+    rewrite XP, YP.
+    reflexivity.
+  Defined.
+
+  Lemma k_finite_empty : @hasEmpty A Kf_sub.
+  Proof.
+    unfold hasEmpty, Kf_sub, Kf_sub_intern, map, empty_sub.
+    exists E.
+    reflexivity.
+  Defined.
+
+  Lemma k_finite_singleton : @hasSingleton A Kf_sub.
+  Proof.
+    unfold hasSingleton, Kf_sub, Kf_sub_intern, map, singleton.
+    intro.
+    exists (L a).
+    cbn.
+    apply path_forall.
+    intro z. 
+    reflexivity.
+  Defined.
+
+  Lemma k_finite_hasDecidableEmpty : @hasDecidableEmpty A Kf_sub.
+  Proof.
+    unfold hasDecidableEmpty, hasEmpty, Kf_sub, Kf_sub_intern, map.
+    intros.
+    destruct X0 as [SX EX].
+    rewrite EX.
+    simple refine (Trunc_ind _ _ (merely_choice SX)).
+    intros [SXE | H1].
+    - rewrite SXE.
+      apply (tr (inl idpath)).
+    - apply (tr (inr H1)).
+  Defined.
+End structure_k_finite.

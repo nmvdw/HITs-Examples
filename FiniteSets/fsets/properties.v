@@ -150,5 +150,35 @@ Section properties.
       rewrite Q.
       reflexivity.
   Defined.
+  
+  Lemma merely_choice : forall X : FSet A, hor (X = E) (hexists (fun a => isIn a X)).
+  Proof.
+    hinduction; try (intros; apply equiv_hprop_allpath ; apply _).
+    - apply (tr (inl idpath)).
+    - intro a.
+      refine (tr (inr (tr (a ; tr idpath)))).
+    - intros X Y TX TY.
+      strip_truncations.
+      destruct TX as [XE | HX] ; destruct TY as [YE | HY] ; try(strip_truncations ; apply tr).
+      * apply tr ; left.
+        rewrite XE, YE.
+        apply (union_idem E).
+      * right.
+        destruct HY as [a Ya].
+        apply tr.
+        exists a.
+        apply (tr (inr Ya)).
+      * right.
+        destruct HX as [a Xa].
+        apply tr.
+        exists a.
+        apply (tr (inl Xa)).
+      * right.
+        destruct HX as [a Xa].
+        destruct HY as [b Yb].
+        apply tr.
+        exists a.
+        apply (tr (inl Xa)).
+  Defined.
 
 End properties.
