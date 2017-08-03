@@ -286,3 +286,116 @@ Section fset_dec_enumerated.
     intros a. rewrite <- Hls. apply (HX a).
   Defined.
 End fset_dec_enumerated.
+
+Section subobjects.
+  Variable A : Type.
+  Context `{Univalence}.
+
+  Definition enumeratedS (P : Sub A) : hProp :=
+    enumerated (sigT P).
+  
+  Lemma enumeratedS_empty : enumeratedS empty_sub.
+  Proof.
+    unfold enumeratedS.
+    apply tr. exists nil. simpl.
+    intros [a Ha]. assumption.
+  Defined.
+
+  Lemma enumeratedS_singleton (x : A) : enumeratedS (singleton x).
+  Proof.
+    apply tr. simpl.
+    exists (cons (x;tr idpath) nil).
+    intros [y Hxy]. simpl.
+    strip_truncations. apply tr.
+    left. apply tr.
+    apply path_sigma with Hxy.
+    simpl. apply path_ishprop.
+  Defined.
+
+  Fixpoint weaken_list_r (P Q : Sub A) (ls : list (sigT Q)) : list (sigT (max_L P Q)).
+  Proof.
+    destruct ls as [|[x Hx] ls].
+    - exact nil.
+    - apply (cons (x; tr (inr Hx))).
+      apply (weaken_list_r _ _ ls).
+  Defined.
+ 
+  Lemma listExt_weaken (P Q : Sub A) (ls : list (sigT Q)) (x : A) (Hx : Q x) :
+    listExt ls (x; Hx) -> listExt (weaken_list_r P Q ls) (x; tr (inr Hx)).
+  Proof.
+    induction ls as [|[y Hy] ls]; simpl.
+    - exact idmap.
+    - intros Hls.
+      strip_truncations; apply tr.
+      destruct Hls as [Hxy | Hls].
+      + left. strip_truncations. apply tr.
+        apply path_sigma_uncurried. simpl.
+        exists (Hxy..1). apply path_ishprop.
+      + right. apply IHls. assumption.
+  Defined.
+  
+  Fixpoint concatD {P Q : Sub A}
+    (ls : list (sigT P)) (ls' : list (sigT Q)) : list (sigT (max_L P Q)).
+  Proof.
+    destruct ls as [|[y Hy] ls].
+    - apply weaken_list_r. exact ls'.
+    - apply (cons (y; tr (inl Hy))).
+      apply (concatD _ _ ls ls').
+  Defined.
+
+  (* TODO: this proof basically duplicates a similar proof for weaken_list_r *)
+  Lemma listExt_concatD_r (P Q : Sub A) (ls : list (sigT P)) (ls' : list (sigT Q)) (x : A) (Hx : P x) :
+    listExt ls (x; Hx) -> listExt (concatD ls ls') (x;tr (inl Hx)).
+  Proof.
+    induction ls as [|[y Hy] ls]; simpl.
+    - exact Empty_rec.
+    - intros Hls.
+      strip_truncations. apply tr.
+      destruct Hls as [Hxy | Hls].
+      + left. strip_truncations. apply tr.
+        apply path_sigma_uncurried. simpl.
+        exists (Hxy..1). apply path_ishprop.
+      + right. apply IHls. assumption.
+  Defined.
+
+  Lemma listExt_concatD_l (P Q : Sub A) (ls : list (sigT P)) (ls' : list (sigT Q)) (x : A) (Hx : Q x) :
+    listExt ls' (x; Hx) -> listExt (concatD ls ls') (x;tr (inr Hx)).
+  Proof.
+    induction ls as [|[y Hy] ls]; simpl.
+    - apply listExt_weaken.
+    - intros Hls'. apply tr.
+      right. apply IHls. assumption.
+  Defined.
+
+  Lemma enumeratedS_union (P Q : Sub A) :
+    enumeratedS P -> enumeratedS Q -> enumeratedS (max_L P Q).
+  Proof.
+    intros HP HQ.
+    strip_truncations; apply tr.
+    destruct HP as [ep HP], HQ as [eq HQ].
+    exists (concatD ep eq).
+    intros [x Hx].
+    strip_truncations.
+    destruct Hx as [Hxp | Hxq].
+    - apply listExt_concatD_r. apply HP.
+    - apply listExt_concatD_l. apply HQ.
+  Defined.
+
+  Opaque enumeratedS.
+  Definition FSet_to_enumeratedS : 
+    forall (X : FSet A), enumeratedS (k_finite.map X).
+  Proof.  
+    hinduction.
+    - apply enumeratedS_empty.
+    - intros a. apply enumeratedS_singleton.
+    - unfold k_finite.map; simpl.
+      intros X Y Xs Ys.
+      apply enumeratedS_union; assumption.
+    - intros. apply path_ishprop.
+    - intros. apply path_ishprop.
+    - intros. apply path_ishprop.
+    - intros. apply path_ishprop.
+    - intros. apply path_ishprop.
+  Defined.
+  Transparent enumeratedS.
+End subobjects.
