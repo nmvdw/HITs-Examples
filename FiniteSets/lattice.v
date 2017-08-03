@@ -16,8 +16,8 @@ Section binary_operation.
     empty : A.
 End binary_operation.
 
-Arguments max_L {_} _ _.
-Arguments min_L {_} _ _.
+Arguments max_L {_} {_} _.
+Arguments min_L {_} {_} _.
 Arguments empty {_}.
 
 Section Defs.
