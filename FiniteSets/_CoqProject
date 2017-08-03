@@ -19,5 +19,6 @@ FSets.v
 Sub.v
 implementations/lists.v
 variations/enumerated.v
+variations/k_finite.v
 #empty_set.v
 #ordered.v
