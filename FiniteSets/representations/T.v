@@ -73,8 +73,6 @@ Module Export T.
 
 End T.
 
-Check T.
-
 Section merely_dec_lem.
   Variable A : hProp.
   Context `{Univalence}.
