@@ -62,7 +62,7 @@ Section intersect.
   Variable C : (Sub A) -> hProp.
   Context `{Univalence}.
 
-  Instance hprop_lem : forall (T : Type) (Ttrunc : IsHProp T), IsHProp (T + ~T).
+  Global Instance hprop_lem : forall (T : Type) (Ttrunc : IsHProp T), IsHProp (T + ~T).
   Proof.
     intros.
     apply (equiv_hprop_allpath _)^-1.
