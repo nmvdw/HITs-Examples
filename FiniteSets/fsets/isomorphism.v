@@ -66,4 +66,9 @@ Section Iso.
     unfold Sect. apply repr_iso_id_r.
   Defined.
 
+  Theorem fset_fsetc : FSet A = FSetC A.
+  Proof.
+    apply (equiv_path _ _)^-1.
+    exact repr_iso.
+  Defined.
 End Iso.
