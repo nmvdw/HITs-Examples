@@ -166,6 +166,23 @@ Section SetLattice.
     split ; toBool.      
   Defined.
   
+<<<<<<< HEAD
+=======
+  Instance lattice_fset : Lattice intersection (@U A)  (@E A) :=
+    {
+      commutative_min := _ ;
+      commutative_max := _ ;
+      associative_min := _ ;
+      associative_max := _ ;
+      idempotent_min := _ ;
+      idempotent_max := _ ;
+      neutralL_max := _ ;
+      neutralR_max := _ ;
+      absorption_min_max := _ ;
+      absorption_max_min := _
+    }.
+
+>>>>>>> 8a65852d1b39137898bddbaf7cf949bceeb4a574
 End SetLattice.
 
 (* Comprehension properties *)
