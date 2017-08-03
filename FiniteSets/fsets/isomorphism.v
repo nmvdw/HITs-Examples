@@ -54,16 +54,25 @@ Section Iso.
     - intros a x HR. rewrite HR. reflexivity.
   Defined.
 
-
-  Theorem repr_iso: FSet A <~> FSetC A.
+  Global Instance: IsEquiv FSet_to_FSetC.
   Proof.
-    simple refine (@BuildEquiv (FSet A) (FSetC A) FSet_to_FSetC _ ).
     apply isequiv_biinv.
     unfold BiInv. split.
     exists FSetC_to_FSet.
     unfold Sect. apply repr_iso_id_l.
     exists FSetC_to_FSet.
     unfold Sect. apply repr_iso_id_r.
+  Defined.
+
+  Global Instance: IsEquiv FSetC_to_FSet.
+  Proof.
+    change (IsEquiv (FSet_to_FSetC)^-1).
+    apply isequiv_inverse.
+  Defined.
+
+  Theorem repr_iso: FSet A <~> FSetC A.
+  Proof.
+    simple refine (@BuildEquiv (FSet A) (FSetC A) FSet_to_FSetC _ ).
   Defined.
 
   Theorem fset_fsetc : FSet A = FSetC A.

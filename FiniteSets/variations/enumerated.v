@@ -239,7 +239,7 @@ Section enumerated_fset.
     intros Hls.
     strip_truncations.
     destruct Hls as [ls Hls].
-    exists (list_to_fset ls). 
+    exists (list_to_fset ls).
     apply path_forall. intro a.
     symmetry. apply path_hprop.
     apply if_hprop_then_equiv_Unit. apply _.
@@ -398,4 +398,65 @@ Section subobjects.
     - intros. apply path_ishprop.
   Defined.
   Transparent enumeratedS.
+
+  Instance hprop_sub_fset (P : Sub A) :
+    IsHProp {X : FSet A & k_finite.map X = P}.
+  Proof.
+    apply hprop_allpath. intros [X HX] [Y HY].
+    assert (X = Y) as HXY.
+    { apply (isinj_embedding k_finite.map). apply _.
+      apply (HX @ HY^). }
+    apply path_sigma with HXY.
+    apply set_path2.
+  Defined.
+
+  Fixpoint list_weaken_to_fset (P : Sub A) (ls : list (sigT P)) : FSet A :=
+    match ls with
+    | nil => ∅
+    | cons x xs => {|x.1|} ∪ (list_weaken_to_fset P xs)
+    end.
+
+  Lemma list_weaken_to_fset_ext (P : Sub A) (ls : list (sigT P)) (a : A) (Ha : P a):
+    listExt ls (a;Ha) -> isIn a (list_weaken_to_fset P ls).
+  Proof.
+    induction ls as [|[x Hx] xs]; simpl.
+    - apply idmap.
+    - intros Hin.
+      strip_truncations. apply tr.
+      destruct Hin as [Hax | Hin].
+      + left.
+        strip_truncations. apply tr.
+        exact (Hax..1).
+      + right. by apply IHxs.
+  Defined.
+
+  Lemma list_weaken_to_fset_in_sub (P : Sub A) (ls : list (sigT P)) (a : A) :
+    a ∈ (list_weaken_to_fset P ls) -> P a.
+  Proof.
+    induction ls as [|[x Hx] xs]; simpl.
+    - apply Empty_rec.
+    - intros Ha.
+      strip_truncations.
+      destruct Ha as [Hax | Hin].
+      + strip_truncations.
+        by rewrite Hax.
+      + by apply IHxs.
+  Defined.
+
+  Definition enumeratedS_to_FSet :
+    forall (P : Sub A), enumeratedS P ->
+    {X : FSet A & k_finite.map X = P}.
+  Proof.
+    intros P HP.
+    strip_truncations.
+    destruct HP as [ls Hls].
+    exists (list_weaken_to_fset _ ls).
+    apply path_forall. intro a.
+    symmetry. apply path_iff_hprop.
+    - intros Ha.
+      apply list_weaken_to_fset_ext with Ha.
+      apply Hls.
+    - unfold k_finite.map.
+      apply list_weaken_to_fset_in_sub.
+  Defined.
 End subobjects.

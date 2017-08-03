@@ -8,7 +8,7 @@ Section k_finite.
 
   Definition map (X : FSet A) : Sub A := fun a => isIn a X.
 
-  Instance map_injective : IsEmbedding map.
+  Global Instance map_injective : IsEmbedding map.
   Proof.
     apply isembedding_isinj_hset. (* We use the fact that both [FSet A] and [Sub A] are hSets *)
     intros X Y HXY.
