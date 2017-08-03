@@ -96,10 +96,12 @@ Section operations_isIn.
       ; reflexivity.
   Defined.
 
+  Global Opaque isIn_b.
+
   Lemma comprehension_isIn (Y : FSet A) (ϕ : A -> Bool) (a : A) :
     isIn_b a (comprehension ϕ Y) = andb (isIn_b a Y) (ϕ a).
   Proof.
-    hinduction Y ; try (intros; apply set_path2). 
+    hinduction Y; try (intros; apply set_path2).
     - apply empty_isIn.
     - intro b.
       destruct (isIn_decidable a {|b|}).
@@ -121,35 +123,25 @@ Section operations_isIn.
            *** eauto with bool_lattice_hints.
            *** intro.
                apply (n (tr X)).
-    - intros.
-      Opaque isIn_b.
-      rewrite ?union_isIn.
-      rewrite X.
-      rewrite X0.
-      assert (forall b1 b2 b3,
-                 (b1 && b2 || b3 && b2)%Bool = ((b1 || b3) && b2)%Bool).
-      { intros ; destruct b1, b2, b3 ; reflexivity. }
-      apply X1.
+    - intros X Y HaX HaY.
+      rewrite !union_isIn.
+      rewrite HaX, HaY.
+      destruct (isIn_b a X), (isIn_b a Y);
+        eauto with bool_lattice_hints typeclass_instances.
   Defined.
 End operations_isIn.
 
 (* Some suporting tactics *)
-(*
 Ltac simplify_isIn :=
   repeat (rewrite union_isIn
-          || rewrite L_isIn_b_aa      
-          || rewrite intersection_isIn
-          || rewrite comprehension_isIn).
- *)
+        || rewrite L_isIn_b_aa
+        || rewrite intersection_isIn
+        || rewrite comprehension_isIn).
 
-Ltac simplify_isIn :=
-  repeat (rewrite union_isIn
-       || rewrite L_isIn_b_aa      
-       || rewrite intersection_isIn
-       || rewrite comprehension_isIn).
-
-Ltac toBool := try (intro) ;
-               intros ; apply ext ; intros ; simplify_isIn ; eauto with bool_lattice_hints typeclass_instances.
+Ltac toBool :=
+  repeat intro;
+  apply ext ; intros ;
+  simplify_isIn ; eauto with bool_lattice_hints typeclass_instances.
 
 Section SetLattice.
 
@@ -163,15 +155,13 @@ Section SetLattice.
 
   Instance lattice_fset : Lattice (FSet A).
   Proof.
-    split ; toBool.      
+    split; toBool.
   Defined.
   
 End SetLattice.
 
 (* Comprehension properties *)
 Section comprehension_properties.
-
-  Opaque isIn_b.
 
   Context {A : Type}.
   Context {A_deceq : DecidablePaths A}.
@@ -208,22 +198,11 @@ End comprehension_properties.
 Section dec_eq.
   Context (A : Type) `{DecidablePaths A} `{Univalence}.
 
-  Instance decidable_prod {X Y : Type} `{Decidable X} `{Decidable Y} :
-    Decidable (X * Y).
-  Proof.
-    unfold Decidable in *.
-    destruct H1 as [x | nx] ; destruct H2 as [y | ny].
-    - left ; split ; assumption.
-    - right. intros [p1 p2]. contradiction.
-    - right. intros [p1 p2]. contradiction.
-    - right. intros [p1 p2]. contradiction.
-  Defined.
-  
   Instance fsets_dec_eq : DecidablePaths (FSet A).
   Proof.
     intros X Y.
     apply (decidable_equiv' ((subset Y X) * (subset X Y)) (eq_subset X Y)^-1).
-    apply _.
+    apply decidable_prod.
   Defined.
 
 End dec_eq.
