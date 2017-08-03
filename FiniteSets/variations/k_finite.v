@@ -3,7 +3,7 @@ Require Import lattice representations.definition fsets.operations extensionalit
 
 Section k_finite.
 
-  Context {A : Type}.
+  Context (A : Type).
   Context `{Univalence}.
 
   Definition map (X : FSet A) : Sub A := fun a => isIn a X.
@@ -33,8 +33,25 @@ Section k_finite.
 
   Definition Kf : hProp := Kf_sub (fun x => True).
 
-  Lemma Kf_unfold : Kf <-> (exists (X : FSet A), forall (a : A), map X a).
+  Instance: IsHProp {X : FSet A & forall a : A, map X a}.
   Proof.
+    apply hprop_allpath.
+    intros [X PX] [Y PY].
+    assert (X = Y) as HXY.
+    { apply fset_ext. intros a.
+      unfold map in *.
+      apply path_hprop.
+      apply equiv_iff_hprop; intros.
+      + apply PY.
+      + apply PX. }
+    apply path_sigma with HXY. simpl.
+    apply path_forall. intro.
+    apply path_ishprop.
+  Defined.
+
+  Lemma Kf_unfold : Kf <~> (exists (X : FSet A), forall (a : A), map X a).
+  Proof.
+    apply equiv_equiv_iff_hprop. apply _. apply _.
     split.
     - intros [X PX]. exists X. intro a.
       rewrite <- PX. done.
@@ -46,8 +63,10 @@ Section k_finite.
 
 End k_finite.
 
+Arguments map {_} {_} _.
+
 Section structure_k_finite.
-  Context {A : Type}.
+  Context (A : Type).
   Context `{Univalence}.
 
   Lemma map_union : forall X Y : FSet A, map (U X Y) = max_fun (map X) (map Y).
@@ -56,8 +75,8 @@ Section structure_k_finite.
     unfold map, max_fun.
     reflexivity.
   Defined.
-      
-  Lemma k_finite_union : @hasUnion A Kf_sub.
+
+  Lemma k_finite_union : hasUnion (Kf_sub A).
   Proof.
     unfold hasUnion, Kf_sub, Kf_sub_intern.
     intros.
@@ -69,14 +88,14 @@ Section structure_k_finite.
     reflexivity.
   Defined.
 
-  Lemma k_finite_empty : @hasEmpty A Kf_sub.
+  Lemma k_finite_empty : hasEmpty (Kf_sub A).
   Proof.
     unfold hasEmpty, Kf_sub, Kf_sub_intern, map, empty_sub.
     exists E.
     reflexivity.
   Defined.
 
-  Lemma k_finite_singleton : @hasSingleton A Kf_sub.
+  Lemma k_finite_singleton : hasSingleton (Kf_sub A).
   Proof.
     unfold hasSingleton, Kf_sub, Kf_sub_intern, map, singleton.
     intro.
@@ -87,7 +106,7 @@ Section structure_k_finite.
     reflexivity.
   Defined.
 
-  Lemma k_finite_hasDecidableEmpty : @hasDecidableEmpty A Kf_sub.
+  Lemma k_finite_hasDecidableEmpty : hasDecidableEmpty (Kf_sub A).
   Proof.
     unfold hasDecidableEmpty, hasEmpty, Kf_sub, Kf_sub_intern, map.
     intros.

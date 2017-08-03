@@ -1,6 +1,8 @@
 (* Enumerated finite sets *)
-Require Import HoTT HoTT.Types.Bool.
+Require Import HoTT.
 Require Import disjunction.
+Require Import representations.cons_repr representations.definition variations.k_finite.
+From fsets Require Import operations isomorphism.
 
 Definition Sub A := A -> hProp.
 
@@ -73,9 +75,11 @@ induction ls as [| a ls].
     * apply IHls. apply HIH.
 Defined.
 
+(** Definition of finite sets in an enumerated sense *)
 Definition enumerated (A : Type) : Type :=
   exists ls, forall (a : A), listExt ls a.
 
+(** Properties of enumerated sets: closed under decidable subsets *)
 Lemma enumerated_comprehension (A : Type) (P : A -> Bool) :
   enumerated A -> enumerated { x : A | P x = true }.
 Proof.
@@ -96,6 +100,7 @@ induction ls.
   + right. apply IHls. apply HIH.
 Defined.
 
+(** Properties of enumerated sets: closed under surjections *)
 Lemma enumerated_surj (A B : Type) (f : A -> B) :
   IsSurjection f -> enumerated A -> enumerated B.
 Proof.
@@ -129,6 +134,7 @@ induction ls'; simpl.
   right. apply IHls'. apply Hls.
 Defined.
 
+(** Properties of enumerated sets: closed under sums *)
 Lemma enumerated_sum (A B : Type) :
   enumerated A -> enumerated B -> enumerated (A + B).
 Proof.
@@ -190,11 +196,46 @@ induction xs as [| x' xs]; intros x y.
       simpl. apply tr. right. assumption.
 Defined.      
 
+(** Properties of enumerated sets: closed under products *)
 Lemma enumerated_prod (A B : Type) `{Funext} :
   enumerated A -> enumerated B -> enumerated (A * B).
 Proof.
-intros [eA HeA] [eB HeB].
-exists (listProd eA eB).
-intros [x y].
-apply listExt_prod; [ apply HeA | apply HeB ].
+  intros [eA HeA] [eB HeB].
+  exists (listProd eA eB).
+  intros [x y].
+  apply listExt_prod; [ apply HeA | apply HeB ].
 Defined.
+
+(** If a set is enumerated is it Kuratowski-finite *)
+Section enumerated_fset.
+  Variable A : Type.
+  Context `{Univalence}.
+
+  Fixpoint list_to_fset (ls : list A) : FSet A :=
+    match ls with
+    | nil => ∅
+    | cons x xs => {|x|} ∪ (list_to_fset xs)
+    end.
+  
+  Lemma list_to_fset_ext (ls : list A) (a : A):
+    listExt ls a -> isIn a (list_to_fset ls).
+  Proof.
+    induction ls as [|x xs]; simpl.
+    - apply idmap.
+    - intros Hin.
+      strip_truncations. apply tr.
+      destruct Hin as [Hax | Hin].
+      + left. exact Hax.
+      + right. by apply IHxs.
+  Defined.
+
+  Lemma enumerated_Kf : enumerated A -> Kf A.
+  Proof.
+    intros [ls Hls].
+    exists (list_to_fset ls). 
+    apply path_forall. intro a.
+    symmetry. apply path_hprop.
+    apply if_hprop_then_equiv_Unit. apply _.
+    by apply list_to_fset_ext.
+  Defined.
+End enumerated_fset.

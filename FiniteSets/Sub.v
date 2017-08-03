@@ -57,21 +57,19 @@ Section isIn.
 
 End isIn.
 
-Context `{Univalence}.
-
-Instance koe : forall (T : Type) (Ttrunc : IsHProp T), IsTrunc (-1) (T + ~T).
-Proof.
-  intros.
-  apply (equiv_hprop_allpath _)^-1.
-  intros [x | nx] [y | ny] ; try f_ap ; try (apply Ttrunc) ; try contradiction.
-  - apply equiv_hprop_allpath. apply _.
-Defined.    
-
 Section intersect.
   Variable A : Type.
   Variable C : (Sub A) -> hProp.
-
   Context `{Univalence}.
+
+  Instance hprop_lem : forall (T : Type) (Ttrunc : IsHProp T), IsHProp (T + ~T).
+  Proof.
+    intros.
+    apply (equiv_hprop_allpath _)^-1.
+    intros [x | nx] [y | ny] ; try f_ap ; try (apply Ttrunc) ; try contradiction.
+    - apply equiv_hprop_allpath. apply _.
+  Defined.
+
   Context
     {HI :hasIntersection C} {HE : hasEmpty C}
     {HS : hasSingleton C} {HDE : hasDecidableEmpty C}.
@@ -82,7 +80,6 @@ Section intersect.
     unfold Decidable, hasEmpty, hasIntersection, hasSingleton, hasDecidableEmpty in *.
     pose (HI (singleton a) (singleton b) (HS a) (HS b)) as IntAB.
     pose (HDE (min_fun (singleton a) (singleton b)) IntAB) as IntE.
-    Print Trunc_rec.
     refine (@Trunc_rec _ _ _  _ _ IntE) ; intros [p | p] ; unfold min_fun, singleton in p.
     - right.
       pose (apD10 p b) as pb ; unfold empty_sub in pb ; cbn in pb.
