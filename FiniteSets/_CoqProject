@@ -1,7 +1,9 @@
 -R . "" COQC = hoqc COQDEP = hoqdep
 -R ../prelude ""
+-R ../../HoTTClasses/theories HoTTClasses
 lattice.v
 disjunction.v
+classes.v
 representations/bad.v
 representations/definition.v
 representations/cons_repr.v
