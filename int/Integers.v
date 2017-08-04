@@ -650,17 +650,16 @@ Section Isomorphic.
       apply concat_1p.      
   Defined.
 
-  Definition biinv_Z'_to_Int : BiInv Z'_to_Int :=
-    ((Int_to_Z' ; Z'_to_Int_to_Z'), (Int_to_Z' ; Int_to_Z'_to_Int)).
+  Definition biinv_Int_to_Z' : BiInv Int_to_Z' :=
+    ((Z'_to_Int ; Int_to_Z'_to_Int), (Z'_to_Int ; Z'_to_Int_to_Z')).
 
-  Definition equiv_Z'_to_Int : IsEquiv Z'_to_Int :=
-    isequiv_biinv _ biinv_Z'_to_Int.
+  Instance equiv_Int_to_Z' : IsEquiv Int_to_Z' :=
+    isequiv_biinv _ biinv_Int_to_Z'.
 
   Instance Z'_set : IsHSet Z'.
   Proof.
-    intros x y p q.
-    
-  Admitted.    
+    apply (trunc_equiv Int Int_to_Z').
+  Defined
 
   Definition Z_to_Z' : Z -> Z'.
   Proof.
