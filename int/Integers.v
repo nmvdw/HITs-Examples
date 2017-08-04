@@ -1,5 +1,5 @@
-Require Import HoTT.
-Require Export HoTT.
+Require Import HoTT HitTactics.
+From HoTTClasses Require Import interfaces.abstract_algebra tactics.ring_tac theory.rings.
 
 Module Export Ints.
 
@@ -26,11 +26,11 @@ Module Export Ints.
              {struct x}
       : P x
       := 
-        (match x return _ -> _ -> P x with
-         | zero_Z => fun _ => fun _ => a
-         | succ n => fun _ => fun _ => s n (Z_ind n)
-         | pred n => fun _ => fun _ => p n (Z_ind n)
-         end) i1 i2.
+        (match x return _ -> _ -> _ -> P x with
+         | zero_Z => fun _ _ _ => a
+         | succ n => fun _ _ _ => s n (Z_ind n)
+         | pred n => fun _ _ _ => p n (Z_ind n)
+         end) i1 i2 H.
 
     Axiom Z_ind_beta_inv1 : forall (n : Z), apD Z_ind (inv1 n) = i1 n (Z_ind n).
 
@@ -48,7 +48,7 @@ Module Export Ints.
 
     Definition Z_rec : Z -> P.
     Proof.
-      simple refine (Z_ind _ _ _ _ _ _) ; simpl.
+      simple refine (Z_ind _ _ _ _ _ _ _) ; simpl.
       - apply a.
       - intro ; apply s.
       - intro ; apply p.
@@ -75,7 +75,11 @@ Module Export Ints.
     Defined.
 
   End Z_recursion.
-  
+
+  Instance FSet_recursion : HitRecursion Z :=
+    {
+      indTy := _; recTy := _; 
+      H_inductor := Z_ind; H_recursor := Z_rec }.
 End Ints.
 
 Section ring_Z.
@@ -85,11 +89,11 @@ Section ring_Z.
     | S m => succ (nat_to_Z m)
     end.
 
-  Definition plus : Z -> Z -> Z := fun x => Z_rec Z x succ pred inv1 inv2.
+  Definition plus : Z -> Z -> Z := fun x => Z_rec Z _ x succ pred inv1 inv2.
 
   Lemma plus_0n : forall x, plus zero_Z x = x.
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros y Hy.
       apply (ap succ Hy).
@@ -101,7 +105,7 @@ Section ring_Z.
 
   Lemma plus_Sn x : forall y, plus (succ x) y = succ(plus x y).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros y Hy.
       apply (ap succ Hy).
@@ -113,7 +117,7 @@ Section ring_Z.
 
   Lemma plus_Pn x : forall y, plus (pred x) y = pred (plus x y).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros y Hy.
       apply (ap succ Hy @ (inv2 (plus x y))^ @ inv1 (plus x y)).
@@ -125,8 +129,7 @@ Section ring_Z.
 
   Lemma plus_comm x : forall y : Z, plus x y = plus y x.
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _)
-    ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - apply (plus_0n x)^.
     - intros n H1.
       apply (ap succ H1 @ (plus_Sn _ _)^).
@@ -136,8 +139,7 @@ Section ring_Z.
 
   Lemma plus_assoc x y : forall z : Z, plus (plus x y) z = plus x (plus y z).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _)
-    ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros Sz HSz.
       refine (ap succ HSz).
@@ -145,11 +147,11 @@ Section ring_Z.
       apply (ap pred HPz).
   Defined.
 
-  Definition negate : Z -> Z := Z_rec Z zero_Z pred succ inv2 inv1.
+  Definition negate : Z -> Z := Z_rec Z _ zero_Z pred succ inv2 inv1.
 
   Lemma negate_negate : forall x, negate(negate x) = x.
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros Sy HSy.
       apply (ap succ HSy).
@@ -161,7 +163,7 @@ Section ring_Z.
 
   Lemma plus_negatex : forall x, plus x (negate x) = zero_Z.
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros Sx HSx.
       refine (ap pred (plus_Sn _ _) @ _).
@@ -176,7 +178,7 @@ Section ring_Z.
 
   Lemma plus_negate x : forall y, plus (negate x) (negate y) = negate (plus x y).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros Sy HSy.
       apply (ap pred HSy).
@@ -186,7 +188,7 @@ Section ring_Z.
   
   Definition times (x : Z) : Z -> Z.
   Proof.
-    simple refine (Z_rec _ _ _ _ _ _).
+    hrecursion.
     - apply zero_Z.
     - apply (plus x).
     - apply (fun z => minus z x).
@@ -206,7 +208,7 @@ Section ring_Z.
 
   Lemma times_0n : forall x, times zero_Z x = zero_Z.
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; try (intros ; apply set_path2) ; simpl.
+     hinduction ; try (intros ; apply set_path2) ; simpl.
     - reflexivity.
     - intros Sx HSx.
       apply (plus_0n _ @ HSx).
@@ -218,7 +220,7 @@ Section ring_Z.
 
   Lemma times_Sn x : forall y, times (succ x) y = plus y (times x y).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; try (intros ; apply set_path2) ; simpl.
+    hinduction ; try (intros ; apply set_path2) ; simpl.
     - reflexivity.
     - intros Sy HSy.
       refine (ap (fun z => plus (succ x) z) HSy @ _).
@@ -237,9 +239,15 @@ Section ring_Z.
 
   Definition times_nS x y : times x (succ y) = plus x (times x y) := idpath.
 
+  Lemma times_1n x : times (succ zero_Z) x = x.
+  Proof.
+    refine (times_Sn _ _ @ _).
+    refine (ap (plus x) (times_0n _) @ (plus_n0 x)).
+  Defined.    
+
   Lemma times_Pn x : forall y, times (pred x) y = minus (times x y) y.
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _) ; try (intros ; apply set_path2) ; simpl.
+    hinduction ; try (intros ; apply set_path2) ; simpl.
     - reflexivity.
     - intros Sy HSy.
       refine (ap (fun z => plus (pred x) z) HSy @ _) ; unfold minus.
@@ -258,8 +266,7 @@ Section ring_Z.
 
   Lemma times_comm x : forall y, times x y = times y x.
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _)
-    ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - apply (times_0n x)^.
     - intros Sx HSx.
       apply (ap (fun z => plus x z) HSx @ (times_Sn _ _)^).
@@ -269,8 +276,7 @@ Section ring_Z.
 
   Lemma times_negatex x : forall y, times x (negate y) = negate (times x y).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _)
-    ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros Sy HSy.
       unfold minus.
@@ -290,8 +296,7 @@ Section ring_Z.
 
   Lemma dist_times_plus x y : forall z, times x (plus y z) = plus (times x y) (times x z).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _)
-    ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros Sz HSz.
       refine (ap (plus x) HSz @ _).
@@ -314,8 +319,7 @@ Section ring_Z.
   
   Lemma times_assoc x y : forall z, times (times x y) z = times x (times y z).
   Proof.
-    simple refine (Z_ind _ _ _ _ _ _)
-    ; simpl ; try (intros ; apply set_path2).
+    hinduction ; simpl ; try (intros ; apply set_path2).
     - reflexivity.
     - intros Sz HSz.
       refine (ap (plus (times x y)) HSz @ _).
@@ -328,62 +332,153 @@ Section ring_Z.
       apply (times_negatex _ _)^.
   Defined.
 
+  Global Instance: Plus Z := plus.
+  Global Instance: Mult Z := times.
+  Global Instance: Zero Z := zero_Z.  
+  Global Instance: One Z := succ zero.
+  Global Instance: Negate Z := negate.
+  Global Instance ring_Z : Ring Z.
+  Proof.
+    repeat split ; try (apply _).
+    - intros x y z. symmetry. apply plus_assoc.
+    - intro x. apply plus_0n.
+    - intro x. apply plus_xnegate.
+    - intro x. apply plus_negatex.
+    - intros x y. apply plus_comm.
+    - intros x y z. symmetry. apply times_assoc.
+    - intros x. apply times_1n.
+    - intros x y. apply times_comm.
+    - intros x y z.
+      apply dist_times_plus.
+  Defined.
+
 End ring_Z.
 
+Section initial_Z.
+  Variable A : Type.
+  Context `{Ring A}.
+
+  Definition ZtoA : Z -> A.
+  Proof.
+    hinduction ; simpl.
+    - apply zero.
+    - apply (Aplus one).
+    - apply (Aplus (Anegate one)).
+    - intros.
+      symmetry.
+      refine (associativity _ _ _ @ _).
+      refine (ap (fun z => z & m) (left_inverse _) @ _).
+      ring_with_nat.
+    - intros.
+      symmetry.
+      refine (associativity _ _ _ @ _).
+      refine (ap (fun z => z & m) (right_inverse _) @ _).
+      ring_with_nat.
+  Defined.
+
+  Lemma ZtoAplus x : forall y, ZtoA (plus x y) = Aplus (ZtoA x) (ZtoA y).
+  Proof.
+    hinduction ; simpl ; try (intros ; apply set_path2).
+    - ring_with_nat.
+    - intros n X.
+      refine (ap (Aplus Aone) X @ _).
+      ring_with_nat.
+    - intros.
+      refine (ap (Aplus (Anegate Aone)) X @ _).
+      ring_with_nat.
+  Defined.
+
+  Lemma ZtoAnegate : forall x, ZtoA (negate x) = Anegate (ZtoA x).
+  Proof.
+    hinduction ; simpl ; try (intros ; apply set_path2).
+    - symmetry.
+      apply negate_0.
+    - intros n X.
+      refine (ap (Aplus (Anegate Aone)) X @ _).
+      symmetry.
+      apply negate_plus_distr.
+    - intros n X.
+      refine (ap (Aplus Aone) X @ _).
+      refine (ap (fun z => Aplus z (Anegate (ZtoA n))) (negate_involutive Aone)^ @ _).
+      symmetry.
+      apply negate_plus_distr.
+  Defined.  
+
+  Instance: SemiRingPreserving ZtoA.
+  Proof.
+    repeat split.
+    - intro x.
+      hinduction ; simpl ; try (intros ; apply set_path2).
+      * ring_with_nat.
+      * intros y X.
+        refine (ap (Aplus Aone) X @ _).
+        ring_with_nat.
+      * intros y X.
+        refine (ap (Aplus (Anegate Aone)) X @ _).
+        ring_with_nat.
+    - intro x.
+      hinduction ; simpl ; try (intros ; apply set_path2).
+      * ring_with_nat.
+      * intros y X ; cbn.
+        refine (ZtoAplus x _ @ _).
+        refine (ap (Aplus (ZtoA x)) X @ _).
+        ring_with_nat.
+      * intros y X.
+        cbn.
+        refine (ZtoAplus _ _ @ _).
+        refine (ap (Aplus _) (ZtoAnegate _) @ _).
+        refine (ap (fun z => Aplus z _) X @ _).
+        refine (_ @ ap (fun z => ZtoA x & z) (commutativity (ZtoA y) (Anegate Aone))).
+        refine (_ @ (distribute_l (ZtoA x) _ _)^).
+        refine (ap (Aplus (ZtoA x & ZtoA y)) _).
+        refine (_ @ commutativity _ (ZtoA x)).
+        apply negate_mult.
+    - unfold UnitPreserving ; compute.
+      apply H.
+  Defined.
+  
+  Theorem uniqueness (f : Z -> A) {H0 : SemiRingPreserving f} : forall x, ZtoA x = f x.
+  Proof.
+    assert (f (succ zero_Z) = Aone) as fone.
+    { apply H0. }
+    assert (forall x y, f(plus x y) = Aplus (f x) (f y)) as fplus.
+    { apply H0. }
+    compute-[times plus ZtoA] in *.
+    hinduction ; simpl ; try (intros ; apply set_path2).
+    - symmetry. apply H0.
+    - intros x Hx.
+      refine (ap (Aplus _) Hx @ _).
+      refine (ap (fun z => Aplus z (f x)) fone^ @ _).
+      refine ((fplus _ _)^ @ _).
+      refine (ap f _).
+      refine (plus_Sn _ _ @ _).
+      refine (ap succ (plus_0n _)).
+    - intros x Hx.
+      refine (ap (Aplus _) Hx @ _).
+      refine (ap (fun z => Aplus (Anegate z) (f x)) fone^ @ _).
+      refine (ap (fun z => Aplus z (f x)) _ @ _).
+      * symmetry. apply preserves_negate.
+      * refine ((fplus _ _)^ @ _).
+        refine (ap f _) ; cbn.
+        refine (plus_Pn _ _ @ _).
+        apply (ap pred (plus_0n x)).
+  Defined.
+
+End initial_Z.
+        
+        
+        
+        
+      
+    
+      
+      
+      
+      
+    
+    
+
 (*
-Definition Z_to_S : Z -> S1.
-Proof.
-  refine (Z_rec _ _ _ _ _ _).
-  Unshelve. 
-
-  Focus 1.
-  apply base.
-
-  Focus 3.
-  intro x.
-  apply x.
-
-  Focus 3.
-  intro x.
-  apply x.
-
-  Focus 1.
-  intro m.
-  compute.
-  reflexivity.
-
-  refine (S1_ind _ _ _).
-  Unshelve.
-
-  Focus 2.
-  apply loop.
-
-  rewrite @HoTT.Types.Paths.transport_paths_FlFr.
-  rewrite ap_idmap.
-  rewrite concat_Vp.
-  rewrite concat_1p.
-  reflexivity.
-Defined.
-
-Lemma eq1 : ap Z_to_S (inv1 (pred (succ (pred nul)))) = reflexivity base.
-Proof.
-  rewrite Z_rec_beta_inv1.
-  reflexivity.
-Qed.
-
-
-Lemma eq2 : ap Z_to_S (ap pred (inv2 (succ (pred nul)))) = loop.
-Proof.
-  rewrite <- ap_compose.
-  enough (forall (n m : Z) (p : n = m), ap Z_to_S p = ap (fun n : Z => Z_to_S(pred n)) p).
-  Focus 2.
-  compute.
-  reflexivity.
-
-  rewrite Z_rec_beta_inv2.
-  compute.
-  reflexivity.
-Qed.
 
 Module Export AltInts.
 
