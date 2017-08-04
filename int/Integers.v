@@ -659,7 +659,7 @@ Section Isomorphic.
   Instance Z'_set : IsHSet Z'.
   Proof.
     apply (trunc_equiv Int Int_to_Z').
-  Defined
+  Defined.
 
   Definition Z_to_Z' : Z -> Z'.
   Proof.
