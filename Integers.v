@@ -3,135 +3,337 @@ Require Export HoTT.
 
 Module Export Ints.
 
-Private Inductive Z : Type0 :=
-| nul : Z
-| succ : Z -> Z
-| pred : Z -> Z.
+  Private Inductive Z : Type :=
+  | zero_Z : Z
+  | succ : Z -> Z
+  | pred : Z -> Z.
 
-Axiom inv1 : forall n : Z, n = pred(succ n).
-Axiom inv2 : forall n : Z, n = succ(pred n).
+  Axiom inv1 : forall n : Z, n = pred(succ n).
+  Axiom inv2 : forall n : Z, n = succ(pred n).
+  Axiom ZisSet : IsHSet Z.
 
-Fixpoint Z_rec
-  (P : Type)
-  (a : P)
-  (s : P -> P)
-  (p : P -> P)
-  (i1 : forall (m : P), m = p(s m))
-  (i2 : forall (m : P), m = s(p m))
-  (x : Z)
-  {struct x}
-  : P
-  := 
-    (match x return _ -> _ -> P with
-      | nul => fun _ => fun _ => a
-      | succ n => fun _ => fun _ => s ((Z_rec P a s p i1 i2) n)
-      | pred n => fun _ => fun _ => p ((Z_rec P a s p i1 i2) n)
-    end) i1 i2.
+  Section Z_induction.
+    Variable (P : Z -> Type)
+             (H : forall n, IsHSet (P n))
+             (a : P zero_Z)
+             (s : forall (n : Z), P n -> P (succ n))
+             (p : forall (n : Z), P n -> P (pred n))
+             (i1 : forall (n : Z) (m : P n), (inv1 n) # m = p (succ n) (s (n) m))
+             (i2 : forall (n : Z) (m : P n), (inv2 n) # m = s (pred n) (p (n) m)).
 
-Axiom Z_rec_beta_inv1 : forall
-  (P : Type)
-  (a : P)
-  (s : P -> P)
-  (p : P -> P)
-  (i1 : forall (m : P), m = p(s m))
-  (i2 : forall (m : P), m = s(p m))
-  (n : Z)
-  , ap (Z_rec P a s p i1 i2) (inv1 n) = i1 (Z_rec P a s p i1 i2 n).
+    Fixpoint Z_ind
+             (x : Z)
+             {struct x}
+      : P x
+      := 
+        (match x return _ -> _ -> P x with
+         | zero_Z => fun _ => fun _ => a
+         | succ n => fun _ => fun _ => s n (Z_ind n)
+         | pred n => fun _ => fun _ => p n (Z_ind n)
+         end) i1 i2.
 
-Axiom Z_rec_beta_inv2 : forall
-  (P : Type)
-  (a : P)
-  (s : P -> P)
-  (p : P -> P)
-  (i1 : forall (m : P), m = p(s m))
-  (i2 : forall (m : P), m = s(p m))
-  (n : Z)
-  , ap (Z_rec P a s p i1 i2) (inv2 n) = i2 (Z_rec P a s p i1 i2 n).
+    Axiom Z_ind_beta_inv1 : forall (n : Z), apD Z_ind (inv1 n) = i1 n (Z_ind n).
 
-Fixpoint Z_ind
-  (P : Z -> Type)
-  (a : P nul)
-  (s : forall (n : Z), P n -> P (succ n))
-  (p : forall (n : Z), P n -> P (pred n))
-  (i1 : forall (n : Z) (m : P n), (inv1 n) # m = p (succ n) (s (n) m))
-  (i2 : forall (n : Z) (m : P n), (inv2 n) # m = s (pred n) (p (n) m))
-  (x : Z)
-  {struct x}
-  : P x
-  := 
-    (match x return _ -> _ -> P x with
-      | nul => fun _ => fun _ => a
-      | succ n => fun _ => fun _ => s n ((Z_ind P a s p i1 i2) n)
-      | pred n => fun _ => fun _ => p n ((Z_ind P a s p i1 i2) n)
-    end) i1 i2.
+    Axiom Z_ind_beta_inv2 : forall (n : Z), apD Z_ind (inv2 n) = i2 n (Z_ind n).
+  End Z_induction.
 
-Axiom Z_ind_beta_inv1 : forall
-  (P : Z -> Type)
-  (a : P nul)
-  (s : forall (n : Z), P n -> P (succ n))
-  (p : forall (n : Z), P n -> P (pred n))
-  (i1 : forall (n : Z) (m : P n), (inv1 n) # m = p (succ n) (s (n) m))
-  (i2 : forall (n : Z) (m : P n), (inv2 n) # m = s (pred n) (p (n) m))
-  (n : Z)
-  , apD (Z_ind P a s p i1 i2) (inv1 n) = i1 n (Z_ind P a s p i1 i2 n).
+  Section Z_recursion.
+    Variable  (P : Type)
+              (H : IsHSet P)
+              (a : P)
+              (s : P -> P)
+              (p : P -> P)
+              (i1 : forall (m : P), m = p(s m))
+              (i2 : forall (m : P), m = s(p m)).
 
-Axiom Z_ind_beta_inv2 : forall
-  (P : Z -> Type)
-  (a : P nul)
-  (s : forall (n : Z), P n -> P (succ n))
-  (p : forall (n : Z), P n -> P (pred n))
-  (i1 : forall (n : Z) (m : P n), (inv1 n) # m = p (succ n) (s (n) m))
-  (i2 : forall (n : Z) (m : P n), (inv2 n) # m = s (pred n) (p (n) m))
-  (n : Z)
-  , apD (Z_ind P a s p i1 i2) (inv2 n) = i2 n (Z_ind P a s p i1 i2 n).
+    Definition Z_rec : Z -> P.
+    Proof.
+      simple refine (Z_ind _ _ _ _ _ _) ; simpl.
+      - apply a.
+      - intro ; apply s.
+      - intro ; apply p.
+      - intros.
+        refine (transport_const _ _ @ (i1 _)).
+      - intros.
+        refine (transport_const _ _ @ (i2 _)).
+    Defined.
+    
+    Definition Z_rec_beta_inv1 (n : Z) : ap Z_rec (inv1 n) = i1 (Z_rec n).
+    Proof.
+      unfold Z_rec.
+      eapply (cancelL (transport_const (inv1 n) _)).
+      simple refine ((apD_const _ _)^ @ _).
+      apply Z_ind_beta_inv1.
+    Defined.
 
+    Definition Z_rec_beta_inv2 (n : Z) : ap Z_rec (inv2 n) = i2 (Z_rec n).
+    Proof.
+      unfold Z_rec.
+      eapply (cancelL (transport_const (inv2 n) _)).
+      simple refine ((apD_const _ _)^ @ _).
+      apply Z_ind_beta_inv2.
+    Defined.
+
+  End Z_recursion.
+  
 End Ints.
 
-Definition negate : Z -> Z.
-Proof.
-intro x.
-refine (Z_rec _ _ _ _ _ _ x).
- Unshelve.
- Focus 1.
- apply nul.
+Section ring_Z.
+  Fixpoint nat_to_Z (n : nat) : Z := 
+    match n with
+    | 0 => zero_Z
+    | S m => succ (nat_to_Z m)
+    end.
 
- Focus 3.
- apply pred.
+  Definition plus : Z -> Z -> Z := fun x => Z_rec Z x succ pred inv1 inv2.
 
- Focus 3.
- apply succ.
+  Lemma plus_0n : forall x, plus zero_Z x = x.
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros y Hy.
+      apply (ap succ Hy).
+    - intros y Hy.
+      apply (ap pred Hy).
+  Defined.
 
- Focus 2.
- apply inv1.
+  Definition plus_n0 x :  plus x zero_Z = x := idpath x.
 
- apply inv2.
-Defined.
+  Lemma plus_Sn x : forall y, plus (succ x) y = succ(plus x y).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros y Hy.
+      apply (ap succ Hy).
+    - intros y Hy.
+      apply (ap pred Hy @ (inv1 (plus x y))^ @ inv2 (plus x y)).
+  Defined.
 
-Definition plus : Z -> Z -> Z.
-Proof.
-intro x.
-refine (Z_rec _ _ _ _ _ _).
- Unshelve.
- Focus 1.
- apply x.
+  Definition plus_nS x y : plus x (succ y) = succ(plus x y) := idpath.
 
- Focus 3.
- apply succ.
+  Lemma plus_Pn x : forall y, plus (pred x) y = pred (plus x y).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros y Hy.
+      apply (ap succ Hy @ (inv2 (plus x y))^ @ inv1 (plus x y)).
+    - intros y Hy.
+      apply (ap pred Hy).
+  Defined.
 
- Focus 3.
- apply pred.
+  Definition plus_nP x y : plus x (pred y) = pred(plus x y) := idpath.      
 
- Focus 1.
- apply inv1.
+  Lemma plus_comm x : forall y : Z, plus x y = plus y x.
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _)
+    ; simpl ; try (intros ; apply set_path2).
+    - apply (plus_0n x)^.
+    - intros n H1.
+      apply (ap succ H1 @ (plus_Sn _ _)^).
+    - intros n H1.
+      apply (ap pred H1 @ (plus_Pn _ _)^).
+  Defined.
 
- apply inv2.
-Defined.
+  Lemma plus_assoc x y : forall z : Z, plus (plus x y) z = plus x (plus y z).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _)
+    ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros Sz HSz.
+      refine (ap succ HSz).
+    - intros Pz HPz.
+      apply (ap pred HPz).
+  Defined.
 
-Definition minus (x : Z) (y : Z) := plus x (negate y).
+  Definition negate : Z -> Z := Z_rec Z zero_Z pred succ inv2 inv1.
 
+  Lemma negate_negate : forall x, negate(negate x) = x.
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros Sy HSy.
+      apply (ap succ HSy).
+    - intros Py HPy.
+      apply (ap pred HPy).
+  Defined.
+
+  Definition minus x y : Z := plus x (negate y).
+
+  Lemma plus_negatex : forall x, plus x (negate x) = zero_Z.
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros Sx HSx.
+      refine (ap pred (plus_Sn _ _) @ _).
+      refine ((inv1 _)^ @ HSx).
+    - intros Px HPx.
+      refine (ap succ (plus_Pn _ _) @ _).
+      refine ((inv2 _)^ @ HPx).
+  Defined.
+
+  Definition plus_xnegate x : plus (negate x) x = zero_Z :=
+    plus_comm (negate x) x @ plus_negatex x.
+
+  Lemma plus_negate x : forall y, plus (negate x) (negate y) = negate (plus x y).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros Sy HSy.
+      apply (ap pred HSy).
+    - intros Py HPy.
+      apply (ap succ HPy).
+  Defined.
+  
+  Definition times (x : Z) : Z -> Z.
+  Proof.
+    simple refine (Z_rec _ _ _ _ _ _).
+    - apply zero_Z.
+    - apply (plus x).
+    - apply (fun z => minus z x).
+    - intros ; unfold minus.
+      symmetry.
+      refine (ap (fun z => plus z (negate x)) (plus_comm x m) @ _).
+      refine (plus_assoc _ _ _ @ _).
+      refine (ap (fun z => plus m z) (plus_negatex _) @ _).
+      apply plus_n0.
+    - intros ; unfold minus.
+      symmetry.
+      refine (ap (fun z => plus x z) (plus_comm _ _) @ _).
+      refine ((plus_assoc _ _ _)^ @ _).
+      refine (ap (fun z => plus z m) (plus_negatex _) @ _).
+      apply plus_0n.    
+  Defined.
+
+  Lemma times_0n : forall x, times zero_Z x = zero_Z.
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; try (intros ; apply set_path2) ; simpl.
+    - reflexivity.
+    - intros Sx HSx.
+      apply (plus_0n _ @ HSx).
+    - intros Px HPx.
+      unfold minus ; simpl ; apply HPx.
+  Defined.
+
+  Definition times_n0 n : times n zero_Z = zero_Z := idpath.
+
+  Lemma times_Sn x : forall y, times (succ x) y = plus y (times x y).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; try (intros ; apply set_path2) ; simpl.
+    - reflexivity.
+    - intros Sy HSy.
+      refine (ap (fun z => plus (succ x) z) HSy @ _).
+      refine (plus_Sn _ _ @ _).
+      refine (_ @ (plus_Sn _ _)^).
+      refine (ap succ _).
+      refine ((plus_assoc _ _ _)^ @ _).
+      refine (_ @ plus_assoc _ _ _).
+      refine (ap (fun z => plus z (times x Sy)) (plus_comm _ _)).
+    - intros Py HPy ; unfold minus.
+      refine (ap (fun z => plus z (negate (succ x))) HPy @ _) ; simpl.
+      refine (_ @ (plus_Pn _ _)^).
+      refine (ap pred _).
+      apply plus_assoc.
+  Defined.
+
+  Definition times_nS x y : times x (succ y) = plus x (times x y) := idpath.
+
+  Lemma times_Pn x : forall y, times (pred x) y = minus (times x y) y.
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _) ; try (intros ; apply set_path2) ; simpl.
+    - reflexivity.
+    - intros Sy HSy.
+      refine (ap (fun z => plus (pred x) z) HSy @ _) ; unfold minus.
+      refine (plus_Pn _ _ @ _) ; simpl.
+      refine (ap pred _).
+      apply (plus_assoc _ _ _)^.
+    - intros Py HPy.
+      refine (ap (fun z => minus z (pred x)) HPy @ _) ; unfold minus ; simpl.
+      refine (ap succ _).
+      refine (plus_assoc _ _ _ @ _).
+      refine (_ @ (plus_assoc _ _ _)^).
+      refine (ap (fun z => plus (times x Py) z) (plus_comm _ _)).
+  Defined.
+
+  Definition times_nP x y : times x (pred y) = minus (times x y) x := idpath.
+
+  Lemma times_comm x : forall y, times x y = times y x.
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _)
+    ; simpl ; try (intros ; apply set_path2).
+    - apply (times_0n x)^.
+    - intros Sx HSx.
+      apply (ap (fun z => plus x z) HSx @ (times_Sn _ _)^).
+    - intros Py HPy.
+      apply (ap (fun z => minus z x) HPy @ (times_Pn _ _)^).
+  Defined.
+
+  Lemma times_negatex x : forall y, times x (negate y) = negate (times x y).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _)
+    ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros Sy HSy.
+      unfold minus.
+      refine (ap (fun z => plus z (negate x)) HSy @ _).
+      refine (plus_negate _ _ @ _).
+      apply (ap negate (plus_comm _ _)).
+    - intros Py HPy.
+      refine (ap (plus x) HPy @ _).
+      unfold minus.
+      refine (ap (fun z => plus z (negate (times x Py))) (negate_negate _)^ @ _).
+      refine (plus_negate _ _ @ _).
+      refine (ap negate (plus_comm _ _)).
+  Defined.     
+  
+  Definition times_xnegate x y : times (negate x) y = negate (times x y) :=
+    times_comm (negate x) y @ times_negatex y x @ ap negate (times_comm y x).
+
+  Lemma dist_times_plus x y : forall z, times x (plus y z) = plus (times x y) (times x z).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _)
+    ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros Sz HSz.
+      refine (ap (plus x) HSz @ _).
+      refine ((plus_assoc _ _ _)^ @ _).
+      refine (_ @ plus_assoc _ _ _).
+      refine (ap (fun z => plus z (times x Sz)) (plus_comm _ _)).
+    - intros Pz HPz.
+      refine (ap (fun z => minus z x) HPz @ _).
+      unfold minus ; simpl.
+      apply plus_assoc.
+  Defined.
+
+  Lemma dist_plus_times x y z : times (plus x y) z = plus (times x z) (times y z).
+  Proof.
+    refine (times_comm _ _ @ _).
+    refine (dist_times_plus _ _ _ @ _).
+    refine (ap (plus (times z x)) (times_comm _ _) @ _).
+    apply (ap (fun a => plus a (times y z)) (times_comm _ _)).
+  Defined.
+  
+  Lemma times_assoc x y : forall z, times (times x y) z = times x (times y z).
+  Proof.
+    simple refine (Z_ind _ _ _ _ _ _)
+    ; simpl ; try (intros ; apply set_path2).
+    - reflexivity.
+    - intros Sz HSz.
+      refine (ap (plus (times x y)) HSz @ _).
+      symmetry ; apply dist_times_plus.
+    - intros Pz HPz.
+      refine (ap (fun z => minus z (times x y)) HPz @ _).
+      unfold minus.
+      refine (_ @ (dist_times_plus _ _ _)^).
+      refine (ap (plus (times x (times y Pz))) _).
+      apply (times_negatex _ _)^.
+  Defined.
+
+End ring_Z.
+
+(*
 Definition Z_to_S : Z -> S1.
 Proof.
-refine (Z_rec _ _ _ _ _ _).
+  refine (Z_rec _ _ _ _ _ _).
   Unshelve. 
 
   Focus 1.
@@ -165,15 +367,15 @@ Defined.
 
 Lemma eq1 : ap Z_to_S (inv1 (pred (succ (pred nul)))) = reflexivity base.
 Proof.
-rewrite Z_rec_beta_inv1.
-reflexivity.
+  rewrite Z_rec_beta_inv1.
+  reflexivity.
 Qed.
 
 
 Lemma eq2 : ap Z_to_S (ap pred (inv2 (succ (pred nul)))) = loop.
 Proof.
-rewrite <- ap_compose.
-enough (forall (n m : Z) (p : n = m), ap Z_to_S p = ap (fun n : Z => Z_to_S(pred n)) p).
+  rewrite <- ap_compose.
+  enough (forall (n m : Z) (p : n = m), ap Z_to_S p = ap (fun n : Z => Z_to_S(pred n)) p).
   Focus 2.
   compute.
   reflexivity.
@@ -185,72 +387,72 @@ Qed.
 
 Module Export AltInts.
 
-Private Inductive Z' : Type0 :=
-| positive : nat -> Z'
-| negative : nat -> Z'.
+  Private Inductive Z' : Type0 :=
+  | positive : nat -> Z'
+  | negative : nat -> Z'.
 
-Axiom path : positive 0 = negative 0.
+  Axiom path : positive 0 = negative 0.
 
-Fixpoint Z'_ind
-  (P : Z' -> Type)
-  (po : forall (x : nat), P (positive x))
-  (ne : forall (x : nat), P (negative x))
-  (i : path # (po 0) = ne 0)
-  (x : Z')
-  {struct x}
-  : P x
-  := 
-    (match x return _ -> P x with
-      | positive n => fun _ => po n
-      | negative n => fun _ => ne n
-    end) i.
+  Fixpoint Z'_ind
+           (P : Z' -> Type)
+           (po : forall (x : nat), P (positive x))
+           (ne : forall (x : nat), P (negative x))
+           (i : path # (po 0) = ne 0)
+           (x : Z')
+           {struct x}
+    : P x
+    := 
+      (match x return _ -> P x with
+       | positive n => fun _ => po n
+       | negative n => fun _ => ne n
+       end) i.
 
-Axiom Z'_ind_beta_inv1 : forall
-  (P : Z' -> Type)
-  (po : forall (x : nat), P (positive x))
-  (ne : forall (x : nat), P (negative x))
-  (i : path # (po 0) = ne 0)
-  , apD (Z'_ind P po ne i) path = i.
+  Axiom Z'_ind_beta_inv1 : forall
+      (P : Z' -> Type)
+      (po : forall (x : nat), P (positive x))
+      (ne : forall (x : nat), P (negative x))
+      (i : path # (po 0) = ne 0)
+    , apD (Z'_ind P po ne i) path = i.
 End AltInts.
 
 Definition succ_Z' : Z' -> Z'.
 Proof.
-refine (Z'_ind _ _ _ _).
- Unshelve.
- Focus 2.
- intro n.
- apply (positive (S n)).
+  refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 2.
+  intro n.
+  apply (positive (S n)).
 
- Focus 2.
- intro n.
- induction n.
+  Focus 2.
+  intro n.
+  induction n.
   apply (positive 1).
 
   apply (negative n).
 
- simpl.
- rewrite transport_const.
- reflexivity.
+  simpl.
+  rewrite transport_const.
+  reflexivity.
 Defined.
 
 Definition pred_Z' : Z' -> Z'.
 Proof.
-refine (Z'_ind _ _ _ _).
- Unshelve.
- Focus 2.
- intro n.
- induction n.
+  refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 2.
+  intro n.
+  induction n.
   apply (negative 1).
 
   apply (positive n).
 
- Focus 2.
- intro n.
- apply (negative (S n)).
+  Focus 2.
+  intro n.
+  apply (negative (S n)).
 
- simpl.
- rewrite transport_const.
- reflexivity.
+  simpl.
+  rewrite transport_const.
+  reflexivity.
 Defined.
 
 
@@ -262,7 +464,7 @@ Fixpoint Nat_to_Pos (n : nat) : Pos :=
 
 Definition Z'_to_Int : Z' -> Int.
 Proof.
-refine (Z'_ind _ _ _ _).
+  refine (Z'_ind _ _ _ _).
   Unshelve.
 
   Focus 2.
@@ -284,72 +486,72 @@ Defined.
 
 Definition Pos_to_Nat : Pos -> nat.
 Proof.
-intro x.
-induction x.
-apply 1.
-apply (S IHx).
+  intro x.
+  induction x.
+  apply 1.
+  apply (S IHx).
 Defined.
 
 
 Definition Int_to_Z' (x : Int) : Z'.
 Proof.
-induction x.
-apply (negative (Pos_to_Nat p)).
-apply (positive 0).
-apply (positive (Pos_to_Nat p)).
+  induction x.
+  apply (negative (Pos_to_Nat p)).
+  apply (positive 0).
+  apply (positive (Pos_to_Nat p)).
 Defined.
 
 Lemma Z'_to_int_pos_homomorphism : 
   forall n : nat, Z'_to_Int (positive (S n)) = succ_int (Z'_to_Int (positive n)).
 Proof.
-intro n.
-reflexivity.
+  intro n.
+  reflexivity.
 Qed.
 
 Lemma Z'_to_int_neg_homomorphism : 
   forall n : nat, Z'_to_Int (negative (S n)) = pred_int (Z'_to_Int (negative n)).
 Proof.
-intro n.
-reflexivity.
+  intro n.
+  reflexivity.
 Qed.
 
 Theorem isoEq1 : forall x : Int, Z'_to_Int(Int_to_Z' x) = x.
 Proof.
-intro x.
-induction x.
-induction p.
-reflexivity.
+  intro x.
+  induction x.
+  induction p.
+  reflexivity.
 
-rewrite Z'_to_int_neg_homomorphism.
-rewrite IHp.
-reflexivity.
+  rewrite Z'_to_int_neg_homomorphism.
+  rewrite IHp.
+  reflexivity.
 
-reflexivity.
+  reflexivity.
 
-induction p.
-reflexivity.
+  induction p.
+  reflexivity.
 
-rewrite Z'_to_int_pos_homomorphism.
-rewrite IHp.
-reflexivity.
+  rewrite Z'_to_int_pos_homomorphism.
+  rewrite IHp.
+  reflexivity.
 Defined.
 
 Lemma Int_to_Z'_succ_homomorphism :
   forall x : Int, Int_to_Z' (succ_int x) = succ_Z' (Int_to_Z' x).
 Proof.
-simpl.
-intro x.
-simpl.
-induction x.
- induction p.
+  simpl.
+  intro x.
+  simpl.
+  induction x.
+  induction p.
   compute.
   apply path.
 
   reflexivity.
 
- reflexivity.
+  reflexivity.
 
- induction p.
+  induction p.
   reflexivity.
 
   reflexivity.
@@ -358,16 +560,16 @@ Qed.
 Lemma Int_to_Z'_pred_homomorphism :
   forall x : Int, Int_to_Z' (pred_int x) = pred_Z' (Int_to_Z' x).
 Proof.
-intro x.
-induction x.
- induction p.
+  intro x.
+  induction x.
+  induction p.
   reflexivity.
 
   reflexivity.
 
- reflexivity.
+  reflexivity.
 
- induction p.
+  induction p.
   reflexivity.
 
   reflexivity.
@@ -376,7 +578,7 @@ Qed.
 
 Theorem isoEq2 : forall x : Z', Int_to_Z'(Z'_to_Int x) = x.
 Proof.
-refine (Z'_ind _ _ _ _).
+  refine (Z'_ind _ _ _ _).
   Unshelve.
 
   Focus 2.
@@ -414,32 +616,32 @@ Defined.
 Theorem adj : 
   forall x : Z', isoEq1 (Z'_to_Int x) = ap Z'_to_Int (isoEq2 x).
 Proof.
-intro x.
-apply hset_int.
+  intro x.
+  apply hset_int.
 Defined.
 
 Definition isomorphism : IsEquiv Z'_to_Int.
 Proof.
-apply (BuildIsEquiv Z' Int Z'_to_Int Int_to_Z' isoEq1 isoEq2 adj).
+  apply (BuildIsEquiv Z' Int Z'_to_Int Int_to_Z' isoEq1 isoEq2 adj).
 Qed.
 
 Axiom everythingSet : forall T : Type, IsHSet T.
 
 Definition Z_to_Z' : Z -> Z'.
 Proof.
-refine (Z_rec _ _ _ _ _ _).
- Unshelve.
- Focus 1.
- apply (positive 0).
+  refine (Z_rec _ _ _ _ _ _).
+  Unshelve.
+  Focus 1.
+  apply (positive 0).
 
- Focus 3.
- apply succ_Z'.
+  Focus 3.
+  apply succ_Z'.
 
- Focus 3.
- apply pred_Z'.
+  Focus 3.
+  apply pred_Z'.
 
- Focus 1.
- refine (Z'_ind _ _ _ _).
+  Focus 1.
+  refine (Z'_ind _ _ _ _).
   Unshelve.
   Focus 2.
   intros.
@@ -448,24 +650,24 @@ refine (Z_rec _ _ _ _ _ _).
   Focus 2.
   intros.
   induction x.
-   Focus 1.
-   compute.
-   apply path^.
+  Focus 1.
+  compute.
+  apply path^.
 
-   reflexivity.
+  reflexivity.
 
   apply everythingSet.
 
- refine (Z'_ind _ _ _ _).
+  refine (Z'_ind _ _ _ _).
   Unshelve.
   Focus 2.
   intros.
   induction x.
-   Focus 1.
-   compute.
-   apply path.
+  Focus 1.
+  compute.
+  apply path.
 
-   reflexivity.
+  reflexivity.
 
   Focus 2.
   intros.
@@ -477,156 +679,157 @@ Defined.
 
 Definition Z'_to_Z : Z' -> Z.
 Proof.
-refine (Z'_ind _ _ _ _).
- Unshelve.
- Focus 2.
- induction 1.
+  refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 2.
+  induction 1.
   apply nul.
 
   apply (succ IHx).
 
- Focus 2.
- induction 1.
+  Focus 2.
+  induction 1.
   Focus 1.
   apply nul.
 
   apply (pred IHx).
 
- simpl.
- rewrite transport_const.
- reflexivity.
+  simpl.
+  rewrite transport_const.
+  reflexivity.
 
 Defined.
 
 Theorem isoZEq1 : forall n : Z', Z_to_Z'(Z'_to_Z n) = n.
 Proof.
-refine (Z'_ind _ _ _ _).
- Unshelve.
- Focus 3.
- intros.
- induction x.
+  refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 3.
+  intros.
+  induction x.
   compute.
   apply path.
 
   transitivity (Z_to_Z' (pred (Z'_to_Z (negative x)))).
-   enough (Z'_to_Z (negative x.+1) = pred (Z'_to_Z (negative x))).
-    rewrite X.
-    reflexivity.
+  enough (Z'_to_Z (negative x.+1) = pred (Z'_to_Z (negative x))).
+  rewrite X.
+  reflexivity.
 
-    reflexivity.
+  reflexivity.
 
-   transitivity (pred_Z' (Z_to_Z' (Z'_to_Z (negative x)))).
-    Focus 1.
-    reflexivity.
+  transitivity (pred_Z' (Z_to_Z' (Z'_to_Z (negative x)))).
+  Focus 1.
+  reflexivity.
 
-    rewrite IHx.
-    reflexivity.
+  rewrite IHx.
+  reflexivity.
 
- Focus 2.
- intros.
- induction x.
+  Focus 2.
+  intros.
+  induction x.
   Focus 1.
   reflexivity.
 
   transitivity (Z_to_Z' (succ (Z'_to_Z (positive x)))).
-   reflexivity.
+  reflexivity.
 
-   transitivity (succ_Z' (Z_to_Z' (Z'_to_Z (positive x)))).
-    reflexivity.
+  transitivity (succ_Z' (Z_to_Z' (Z'_to_Z (positive x)))).
+  reflexivity.
 
-    rewrite IHx.
-    reflexivity.
+  rewrite IHx.
+  reflexivity.
 
- apply everythingSet.
+  apply everythingSet.
 Defined.
 
 Theorem isoZEq2 : forall n : Z, Z'_to_Z(Z_to_Z' n) = n.
 Proof.
-refine (Z_ind _ _ _ _ _ _).
- Unshelve.
- Focus 1.
- reflexivity.
+  refine (Z_ind _ _ _ _ _ _).
+  Unshelve.
+  Focus 1.
+  reflexivity.
 
- Focus 1.
- intros.
- apply everythingSet.
+  Focus 1.
+  intros.
+  apply everythingSet.
 
- Focus 1.
- intros.
- apply everythingSet.
+  Focus 1.
+  intros.
+  apply everythingSet.
 
- Focus 1.
- intro n.
- intro X.
- transitivity (Z'_to_Z (succ_Z' (Z_to_Z' n))).
+  Focus 1.
+  intro n.
+  intro X.
+  transitivity (Z'_to_Z (succ_Z' (Z_to_Z' n))).
   reflexivity.
 
   transitivity (succ (Z'_to_Z (Z_to_Z' n))).
-   Focus 2.
-   rewrite X.
-   reflexivity.
+  Focus 2.
+  rewrite X.
+  reflexivity.
 
-   enough (forall m : Z', Z'_to_Z (succ_Z' m) = succ (Z'_to_Z m)).
-    rewrite X0.
-    reflexivity.
+  enough (forall m : Z', Z'_to_Z (succ_Z' m) = succ (Z'_to_Z m)).
+  rewrite X0.
+  reflexivity.
 
-    refine (Z'_ind _ _ _ _).
-     Unshelve.
-     Focus 2.
-     intros.
-     reflexivity.
+  refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 2.
+  intros.
+  reflexivity.
 
-     Focus 2.
-     intros.
-     induction x.
-      Focus 1.
-      reflexivity.
+  Focus 2.
+  intros.
+  induction x.
+  Focus 1.
+  reflexivity.
 
-      compute.
-      rewrite <- inv2.
-      reflexivity.
+  compute.
+  rewrite <- inv2.
+  reflexivity.
 
-     apply everythingSet.
+  apply everythingSet.
 
- intros.
- transitivity (Z'_to_Z (pred_Z' (Z_to_Z' n))).
+  intros.
+  transitivity (Z'_to_Z (pred_Z' (Z_to_Z' n))).
   reflexivity.
 
   transitivity (pred (Z'_to_Z (Z_to_Z' n))).
-   Focus 2.
-   rewrite X.
-   reflexivity.
+  Focus 2.
+  rewrite X.
+  reflexivity.
 
-   enough (forall m : Z', Z'_to_Z (pred_Z' m) = pred (Z'_to_Z m)).
-    rewrite X0.
-    reflexivity.
+  enough (forall m : Z', Z'_to_Z (pred_Z' m) = pred (Z'_to_Z m)).
+  rewrite X0.
+  reflexivity.
 
-    refine (Z'_ind _ _ _ _).
-     Unshelve.
-     Focus 1.
-     apply everythingSet.
+  refine (Z'_ind _ _ _ _).
+  Unshelve.
+  Focus 1.
+  apply everythingSet.
 
-     Focus 1.
-     intro x.
-     induction x.
-      reflexivity.
+  Focus 1.
+  intro x.
+  induction x.
+  reflexivity.
 
-      compute.
-      rewrite <- inv1.
-      reflexivity.
+  compute.
+  rewrite <- inv1.
+  reflexivity.
 
-     intro x.
-     reflexivity.
+  intro x.
+  reflexivity.
 Defined.
 
 Theorem adj2 : 
   forall x : Z', isoZEq2 (Z'_to_Z x) = ap Z'_to_Z (isoZEq1 x).
 Proof.
-intro x.
-apply everythingSet.
+  intro x.
+  apply everythingSet.
 Defined.
 
 Definition isomorphism2 : IsEquiv Z'_to_Z.
 Proof.
-apply (BuildIsEquiv Z' Z Z'_to_Z Z_to_Z' isoZEq2 isoZEq1 adj2).
+  apply (BuildIsEquiv Z' Z Z'_to_Z Z_to_Z' isoZEq2 isoZEq1 adj2).
 Qed.
+*)
