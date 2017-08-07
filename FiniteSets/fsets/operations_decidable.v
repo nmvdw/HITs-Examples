@@ -7,7 +7,7 @@ Section decidable_A.
   Context {A_deceq : DecidablePaths A}.
   Context `{Univalence}.
 
-  Global Instance isIn_decidable : forall (a : A) (X : FSet A), Decidable (isIn a X).
+  Global Instance isIn_decidable : forall (a : A) (X : FSet A), Decidable (a ∈ X).
   Proof.
     intros a.
     hinduction ; try (intros ; apply path_ishprop).
@@ -24,12 +24,12 @@ Section decidable_A.
   Defined.
 
   Definition isIn_b (a : A) (X : FSet A) :=
-    match dec (isIn a X) with
+    match dec (a ∈ X) with
     | inl _ => true
     | inr _ => false
     end.
   
-  Global Instance subset_decidable : forall (X Y : FSet A), Decidable (subset X Y).
+  Global Instance subset_decidable : forall (X Y : FSet A), Decidable (X ⊆ Y).
   Proof.
     hinduction ; try (intros ; apply path_ishprop).
     - intro ; apply _.
@@ -38,7 +38,7 @@ Section decidable_A.
   Defined.
 
   Definition subset_b (X Y : FSet A) :=
-    match dec (subset X Y) with
+    match dec (X ⊆ Y) with
     | inl _ => true
     | inr _ => false
     end.
