@@ -92,23 +92,28 @@ Section operations.
   Defined.
 
   Context {B : Type}.
-  
+
+  Definition single_product (a : A) : FSet B -> FSet (A * B).
+  Proof.
+    hrecursion.
+    - apply ∅.
+    - intro b.
+      apply {|(a, b)|}.
+    - apply U.
+    - intros X Y Z ; apply assoc.
+    - intros X Y ; apply comm.
+    - intros ; apply nl.
+    - intros ; apply nr.
+    - intros ; apply idem.
+  Defined.
+        
   Definition product : FSet A -> FSet B -> FSet (A * B).
   Proof.
     intros X Y.
     hrecursion X.
     - apply ∅.
     - intro a.
-      hrecursion Y ; simpl in *.
-      * apply ∅.
-      * intro b.
-        apply {|(a, b)|}.
-      * apply U.
-      * intros X Y Z ; apply assoc.
-      * intros X Y ; apply comm.
-      * intros ; apply nl.
-      * intros ; apply nr.
-      * intros ; apply idem.
+      apply (single_product a Y).
     - apply U.
     - intros ; apply assoc.
     - intros ; apply comm.
