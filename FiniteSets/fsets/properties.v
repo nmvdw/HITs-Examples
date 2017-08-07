@@ -7,7 +7,7 @@ Section operations_isIn.
   Context {A : Type}.
   Context `{Univalence}.
 
-  Lemma union_idem : forall x: FSet A, U x x = x.
+  Lemma union_idem : forall x: FSet A, x ∪ x = x.
   Proof.
     hinduction ; try (intros ; apply set_path2).
     - apply nl.
@@ -24,7 +24,7 @@ Section operations_isIn.
 
   (** ** Properties about subset relation. *)
   Lemma subset_union (X Y : FSet A) : 
-    subset X Y -> U X Y = Y.
+    X ⊆ Y -> X ∪ Y = Y.
   Proof.
     hinduction X ; try (intros; apply path_forall; intro; apply set_path2).
     - intros. apply nl.
@@ -54,7 +54,7 @@ Section operations_isIn.
   Defined.
   
   Lemma subset_union_l (X : FSet A) :
-    forall Y, subset X (U X Y).
+    forall Y, X ⊆ X ∪ Y.
   Proof.
     hinduction X ; try (repeat (intro; intros; apply path_forall);
                         intro ; apply equiv_hprop_allpath ; apply _).
@@ -69,8 +69,8 @@ Section operations_isIn.
 
   (* simplify it using extensionality *)
   Lemma comprehension_or : forall ϕ ψ (x: FSet A),
-      comprehension (fun a => orb (ϕ a) (ψ a)) x = U (comprehension ϕ x) 
-                                                     (comprehension ψ x).
+      comprehension (fun a => orb (ϕ a) (ψ a)) x
+      = (comprehension ϕ x) ∪ (comprehension ψ x).
   Proof.
     intros ϕ ψ.
     hinduction ; try (intros; apply set_path2). 
@@ -101,15 +101,15 @@ Section properties.
   Context `{Univalence}.
 
   (** isIn properties *)
-  Definition empty_isIn (a: A) : isIn a E -> Empty := idmap.
+  Definition empty_isIn (a: A) : a ∈ E -> Empty := idmap.
   
-  Definition singleton_isIn (a b: A) : isIn a (L b) -> Trunc (-1) (a = b) := idmap.
+  Definition singleton_isIn (a b: A) : a ∈ {|b|} -> Trunc (-1) (a = b) := idmap.
 
   Definition union_isIn (X Y : FSet A) (a : A)
-    : isIn a (U X Y) = isIn a X ∨ isIn a Y := idpath.
+    : a ∈ X ∪ Y = a ∈ X ∨ a ∈ Y := idpath.
 
   Lemma comprehension_isIn (ϕ : A -> Bool) (a : A) : forall X : FSet A,
-      isIn a (comprehension ϕ X) = if ϕ a then isIn a X else False_hp.
+      a ∈ (comprehension ϕ X) = if ϕ a then a ∈ X else False_hp.
   Proof.
     hinduction ; try (intros ; apply set_path2) ; cbn.
     - destruct (ϕ a) ; reflexivity.
@@ -139,7 +139,7 @@ Section properties.
 
   (* The proof can be simplified using extensionality *)
   (** comprehension properties *)
-  Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = E.
+  Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = ∅.
   Proof.
     hrecursion Y; try (intros; apply set_path2).
     - reflexivity.
@@ -151,7 +151,7 @@ Section properties.
 
   (* Can be simplified using extensionality *)
   Lemma comprehension_subset : forall ϕ (X : FSet A),
-      U (comprehension ϕ X) X = X.
+      (comprehension ϕ X) ∪ X = X.
   Proof.
     intros ϕ.
     hrecursion; try (intros ; apply set_path2) ; cbn.
@@ -171,7 +171,7 @@ Section properties.
       reflexivity.
   Defined.
   
-  Lemma merely_choice : forall X : FSet A, hor (X = E) (hexists (fun a => isIn a X)).
+  Lemma merely_choice : forall X : FSet A, hor (X = ∅) (hexists (fun a => a ∈ X)).
   Proof.
     hinduction; try (intros; apply equiv_hprop_allpath ; apply _).
     - apply (tr (inl idpath)).

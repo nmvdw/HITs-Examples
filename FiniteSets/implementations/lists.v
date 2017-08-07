@@ -47,7 +47,7 @@ Section ListToSet.
   Context `{Univalence}.
 
   Lemma member_isIn (a : A) (l : list A)  :
-    member a l = isIn a (list_to_set A l).
+    member a l = a ∈ (list_to_set A l).
   Proof.
     induction l ; unfold member in * ; simpl in *.
     - reflexivity.
@@ -60,7 +60,7 @@ Section ListToSet.
       * apply (tr (inr z2)).
   Defined.
   
-  Definition empty_empty : list_to_set A empty = E := idpath.
+  Definition empty_empty : list_to_set A empty = ∅ := idpath.
 
   Lemma filter_comprehension (ϕ : A -> Bool) (l : list A)  :
     list_to_set A (filter ϕ l) = comprehension ϕ (list_to_set A l).
@@ -68,17 +68,17 @@ Section ListToSet.
     induction l ; cbn in *.
     - reflexivity.
     - destruct (ϕ a) ; cbn in * ; unfold list_to_set in IHl.
-      * refine (ap (fun y => U {|a|} y) _).
+      * refine (ap (fun y => {|a|} ∪ y) _).
         apply IHl.
       * rewrite nl.
         apply IHl.
   Defined.
   
-  Definition singleton_single (a : A) : list_to_set A (singleton a) = L a :=
-    nr (L a).
+  Definition singleton_single (a : A) : list_to_set A (singleton a) = {|a|} :=
+    nr {|a|}.
 
   Lemma append_union (l1 l2 : list A) :
-    list_to_set A (union l1 l2) = U (list_to_set A l1) (list_to_set A l2).
+    list_to_set A (union l1 l2) = (list_to_set A l1) ∪ (list_to_set A l2).
   Proof.
     induction l1 ; induction l2 ; cbn.
     - apply (union_idem _)^.

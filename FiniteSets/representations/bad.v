@@ -62,11 +62,11 @@ Module Export FSet.
                   comm x y #
                        uP x y px py = uP y x py px).
     Variable  (nlP : forall (x : FSet A) (px: P x), 
-                  nl x # uP E x eP px = px).
+                  nl x # uP ∅ x eP px = px).
     Variable  (nrP : forall (x : FSet A) (px: P x), 
-                  nr x # uP x E px eP = px).
+                  nr x # uP x ∅ px eP = px).
     Variable  (idemP : forall (x : A), 
-                  idem x # uP (L x) (L x) (lP x) (lP x) = lP x).
+                  idem x # uP {|x|} {|x|} (lP x) (lP x) = lP x).
 
     (* Induction principle *)
     Fixpoint FSet_ind

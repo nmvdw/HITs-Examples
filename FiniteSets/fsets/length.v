@@ -11,7 +11,7 @@ Section Length.
 
   Opaque isIn_b.
 
-  Definition length (x: FSetC A) : nat.
+  Definition length (x : FSetC A) : nat.
   Proof.
     simple refine (FSetC_ind A _ _ _ _ _ _ x ); simpl.
     - exact 0.
@@ -31,7 +31,7 @@ Section Length.
 
   Definition length_FSet (x: FSet A) := length (FSet_to_FSetC x).
 
-  Lemma length_singleton: forall (a: A), length_FSet (L a) = 1.
+  Lemma length_singleton: forall (a: A), length_FSet ({|a|}) = 1.
   Proof. 
     intro a.
     cbn. reflexivity. 

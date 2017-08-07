@@ -8,7 +8,7 @@ Section ext.
   Context `{Univalence}.
 
   Lemma subset_union_equiv
-    : forall X Y : FSet A, subset X Y <~> U X Y = Y.
+    : forall X Y : FSet A, X ⊆ Y <~> X ∪ Y = Y.
   Proof.
     intros X Y.
     eapply equiv_iff_hprop_uncurried.
@@ -20,8 +20,8 @@ Section ext.
   Defined.
 
   Lemma subset_isIn (X Y : FSet A) :
-    (forall (a : A), isIn a X -> isIn a Y)
-      <~> (subset X Y).
+    (forall (a : A), a ∈ X -> a ∈ Y)
+      <~> (X ⊆ Y).
   Proof.
     eapply equiv_iff_hprop_uncurried.
     split.
@@ -32,19 +32,17 @@ Section ext.
         apply f.
         apply tr ; reflexivity.
       + intros X1 X2 H1 H2 f.
-        enough (subset X1 Y).
-        enough (subset X2 Y).
+        enough (X1 ⊆ Y).
+        enough (X2 ⊆ Y).
         { split. apply X. apply X0. }
         * apply H2.
           intros a Ha.
-          apply f.
-          apply tr.
+          refine (f _ (tr _)).
           right.
           apply Ha.
         * apply H1.
           intros a Ha.
-          apply f.
-          apply tr.
+          refine (f _ (tr _)).
           left.
           apply Ha.
     - hinduction X ;
@@ -64,7 +62,7 @@ Section ext.
 
   (** ** Extensionality proof *)
 
-  Lemma eq_subset' (X Y : FSet A) : X = Y <~> (U Y X = X) * (U X Y = Y).
+  Lemma eq_subset' (X Y : FSet A) : X = Y <~> (Y ∪ X = X) * (X ∪ Y = Y).
   Proof.
     unshelve eapply BuildEquiv.
     { intro H'. rewrite H'. split; apply union_idem. }
@@ -76,20 +74,20 @@ Section ext.
   Defined.
 
   Lemma eq_subset (X Y : FSet A) :
-    X = Y <~> (subset Y X * subset X Y).
+    X = Y <~> (Y ⊆ X * X ⊆ Y).
   Proof.
-    transitivity ((U Y X = X) * (U X Y = Y)).
+    transitivity ((Y ∪ X = X) * (X ∪ Y = Y)).
     apply eq_subset'.
     symmetry.
     eapply equiv_functor_prod'; apply subset_union_equiv.
   Defined.
 
   Theorem fset_ext (X Y : FSet A) :
-    X = Y <~> (forall (a : A), isIn a X = isIn a Y).
+    X = Y <~> (forall (a : A), a ∈ X = a ∈ Y).
   Proof.
     refine (@equiv_compose' _ _ _ _ _) ; [ | apply eq_subset ].
-    refine (@equiv_compose' _ ((forall a, isIn a Y -> isIn a X)
-                               *(forall a, isIn a X -> isIn a Y)) _ _ _).
+    refine (@equiv_compose' _ ((forall a, a ∈ Y -> a ∈ X)
+                               *(forall a, a ∈ X -> a ∈ Y)) _ _ _).
     - apply equiv_iff_hprop_uncurried.
       split.
       * intros [H1 H2 a].

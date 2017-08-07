@@ -29,7 +29,7 @@ Section operations_isIn.
   Defined.
 
   Lemma L_isIn (a b : A) :
-    isIn a {|b|} -> a = b.
+    a ∈ {|b|} -> a = b.
   Proof.
     intros. strip_truncations. assumption.
   Defined.
@@ -63,7 +63,7 @@ Section operations_isIn.
   
   (* Union and membership *)
   Lemma union_isIn_b (X Y : FSet A) (a : A) :
-    isIn_b a (U X Y) = orb (isIn_b a X) (isIn_b a Y).
+    isIn_b a (X ∪ Y) = orb (isIn_b a X) (isIn_b a Y).
   Proof.
     unfold isIn_b ; unfold dec.
     simpl.
@@ -109,7 +109,7 @@ Section SetLattice.
 
   Instance fset_max : maximum (FSet A) := U.
   Instance fset_min : minimum (FSet A) := intersection.
-  Instance fset_bot : bottom (FSet A) := E.
+  Instance fset_bot : bottom (FSet A) := ∅.
   
   Instance lattice_fset : Lattice (FSet A).
   Proof.
@@ -133,7 +133,7 @@ Section comprehension_properties.
   Defined.
   
   (** comprehension properties *)
-  Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = E.
+  Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = ∅.
   Proof.
     toBool.
   Defined.
@@ -145,7 +145,7 @@ Section comprehension_properties.
   Defined.
   
   Lemma comprehension_subset : forall ϕ (X : FSet A),
-      U (comprehension ϕ X) X = X.
+      (comprehension ϕ X) ∪ X = X.
   Proof.
     toBool.
   Defined.
@@ -159,7 +159,7 @@ Section dec_eq.
   Instance fsets_dec_eq : DecidablePaths (FSet A).
   Proof.
     intros X Y.
-    apply (decidable_equiv' ((subset Y X) * (subset X Y)) (eq_subset X Y)^-1).
+    apply (decidable_equiv' ((Y ⊆ X) * (X ⊆ Y)) (eq_subset X Y)^-1).
     apply decidable_prod.
   Defined.
 

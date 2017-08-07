@@ -34,11 +34,11 @@ Section interface.
 
   Class sets :=
     {
-      f_empty : forall A, f A empty = E ;
-      f_singleton : forall A a, f A (singleton a) = L a;
-      f_union : forall A X Y, f A (union X Y) = U (f A X) (f A Y);
+      f_empty : forall A, f A empty = ∅ ;
+      f_singleton : forall A a, f A (singleton a) = {|a|};
+      f_union : forall A X Y, f A (union X Y) = (f A X) ∪ (f A Y);
       f_filter : forall A ϕ X, f A (filter ϕ X) = comprehension ϕ (f A X);
-      f_member : forall A a X, member a X = isIn a (f A X)
+      f_member : forall A a X, member a X = a ∈ (f A X)
     }.
 End interface.
 
@@ -47,9 +47,11 @@ Section properties.
   Variable (T : Type -> Type) (f : forall A, T A -> FSet A).
   Context `{sets T f}.
 
-  Definition set_eq : forall A, T A -> T A -> hProp := fun A X Y =>  (BuildhProp (f A X = f A Y)).
+  Definition set_eq : forall A, T A -> T A -> hProp :=
+    fun A X Y => (BuildhProp (f A X = f A Y)).
 
-  Definition set_subset : forall A, T A -> T A -> hProp := fun A X Y => subset (f A X) (f A Y).
+  Definition set_subset : forall A, T A -> T A -> hProp :=
+    fun A X Y => (f A X) ⊆ (f A Y).
 
   Ltac reduce := intros ; repeat (rewrite ?(f_empty _ _) ; rewrite ?(f_singleton _ _) ;
                          rewrite ?(f_union _ _) ; rewrite ?(f_filter _ _) ;

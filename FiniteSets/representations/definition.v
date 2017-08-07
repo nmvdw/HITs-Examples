@@ -33,7 +33,7 @@ Module Export FSet.
     Axiom trunc : IsHSet FSet.
 
   End FSet.
-
+  
   Arguments E {_}.
   Arguments U {_} _ _.
   Arguments L {_} _.
@@ -42,29 +42,32 @@ Module Export FSet.
   Arguments nl {_} _.
   Arguments nr {_} _.
   Arguments idem {_} _.
+  Notation "{| x |}" :=  (L x).
+  Infix "∪" := U (at level 8, right associativity).
+  Notation "∅" := E.
 
   Section FSet_induction.
     Variable A: Type.
     Variable  (P : FSet A -> Type).
-    Variable  (H :  forall a : FSet A, IsHSet (P a)).
-    Variable  (eP : P E).
-    Variable  (lP : forall a: A, P (L a)).
-    Variable  (uP : forall (x y: FSet A), P x -> P y -> P (U x y)).
+    Variable  (H :  forall X : FSet A, IsHSet (P X)).
+    Variable  (eP : P ∅).
+    Variable  (lP : forall a: A, P {|a|}).
+    Variable  (uP : forall (x y: FSet A), P x -> P y -> P (x ∪ y)).
     Variable  (assocP : forall (x y z : FSet A) 
                                (px: P x) (py: P y) (pz: P z),
                   assoc x y z #
-                        (uP      x    (U y z)          px        (uP y z py pz)) 
+                        (uP x (y ∪ z) px (uP y z py pz)) 
                   = 
-                  (uP   (U x y)    z       (uP x y px py)          pz)).
+                  (uP (x ∪ y) z (uP x y px py) pz)).
     Variable  (commP : forall (x y: FSet A) (px: P x) (py: P y),
                   comm x y #
                        uP x y px py = uP y x py px).
     Variable  (nlP : forall (x : FSet A) (px: P x), 
-                  nl x # uP E x eP px = px).
+                  nl x # uP ∅ x eP px = px).
     Variable  (nrP : forall (x : FSet A) (px: P x), 
-                  nr x # uP x E px eP = px).
+                  nr x # uP x ∅ px eP = px).
     Variable  (idemP : forall (x : A), 
-                  idem x # uP (L x) (L x) (lP x) (lP x) = lP x).
+                  idem x # uP {|x|} {|x|} (lP x) (lP x) = lP x).
     
     (* Induction principle *)
     Fixpoint FSet_ind
@@ -183,9 +186,11 @@ Module Export FSet.
     
   End FSet_recursion.
 
-  Instance FSet_recursion A : HitRecursion (FSet A) := {
-                                                        indTy := _; recTy := _; 
-                                                        H_inductor := FSet_ind A; H_recursor := FSet_rec A }.
+  Instance FSet_recursion A : HitRecursion (FSet A) :=
+    {
+      indTy := _; recTy := _; 
+      H_inductor := FSet_ind A; H_recursor := FSet_rec A
+    }.
 
 End FSet.
 
