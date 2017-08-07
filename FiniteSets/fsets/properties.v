@@ -9,8 +9,7 @@ Section operations_isIn.
 
   Lemma union_idem : forall x: FSet A, U x x = x.
   Proof.
-    hinduction; 
-      try (intros ; apply set_path2).
+    hinduction ; try (intros ; apply set_path2).
     - apply nl.
     - apply idem.
     - intros x y P Q.
@@ -21,16 +20,16 @@ Section operations_isIn.
       rewrite (comm y x).
       rewrite <- (assoc x y y).
       f_ap. 
-  Qed.
+  Defined.
 
   (** ** Properties about subset relation. *)
   Lemma subset_union (X Y : FSet A) : 
     subset X Y -> U X Y = Y.
   Proof.
-    hinduction X; try (intros; apply path_forall; intro; apply set_path2).
+    hinduction X ; try (intros; apply path_forall; intro; apply set_path2).
     - intros. apply nl.
-    - intros a. hinduction Y;
-                  try (intros; apply path_forall; intro; apply set_path2).
+    - intros a.
+      hinduction Y ; try (intros; apply path_forall; intro; apply set_path2).
       + intro.
         contradiction.
       + intro a0.
@@ -53,34 +52,28 @@ Section operations_isIn.
       rewrite (IH2 G2).
       apply (IH1 G1).
   Defined.
-
+  
   Lemma subset_union_l (X : FSet A) :
     forall Y, subset X (U X Y).
   Proof.
-    hinduction X ;
-      try (repeat (intro; intros; apply path_forall); intro; apply equiv_hprop_allpath ; apply _).
+    hinduction X ; try (repeat (intro; intros; apply path_forall);
+                        intro ; apply equiv_hprop_allpath ; apply _).
     - apply (fun _ => tt).
     - intros a Y.
-      apply tr ; left ; apply tr ; reflexivity.
+      apply (tr(inl(tr idpath))).
     - intros X1 X2 HX1 HX2 Y.
       split. 
       * rewrite <- assoc. apply HX1.
       * rewrite (comm X1 X2). rewrite <- assoc. apply HX2.
   Defined.
 
-  (* Union and membership *)
-  Lemma union_isIn (X Y : FSet A) (a : A) :
-    isIn a (U X Y) = isIn a X ∨ isIn a Y.
-  Proof.
-    reflexivity.
-  Defined.
-
+  (* simplify it using extensionality *)
   Lemma comprehension_or : forall ϕ ψ (x: FSet A),
       comprehension (fun a => orb (ϕ a) (ψ a)) x = U (comprehension ϕ x) 
                                                      (comprehension ψ x).
   Proof.
     intros ϕ ψ.
-    hinduction; try (intros; apply set_path2). 
+    hinduction ; try (intros; apply set_path2). 
     - apply (union_idem _)^.
     - intros.
       destruct (ϕ a) ; destruct (ψ a) ; symmetry.
@@ -108,16 +101,43 @@ Section properties.
   Context `{Univalence}.
 
   (** isIn properties *)
-  Lemma singleton_isIn (a b: A) : isIn a (L b) -> Trunc (-1) (a = b).
+  Definition empty_isIn (a: A) : isIn a E -> Empty := idmap.
+  
+  Definition singleton_isIn (a b: A) : isIn a (L b) -> Trunc (-1) (a = b) := idmap.
+
+  Definition union_isIn (X Y : FSet A) (a : A)
+    : isIn a (U X Y) = isIn a X ∨ isIn a Y := idpath.
+
+  Lemma comprehension_isIn (ϕ : A -> Bool) (a : A) : forall X : FSet A,
+      isIn a (comprehension ϕ X) = if ϕ a then isIn a X else False_hp.
   Proof.
-    apply idmap.
+    hinduction ; try (intros ; apply set_path2) ; cbn.
+    - destruct (ϕ a) ; reflexivity.
+    - intros b.
+      assert (forall c d, ϕ a = c -> ϕ b = d ->
+                          a ∈ (if ϕ b then {|b|} else ∅)
+                          =
+                          (if ϕ a then BuildhProp (Trunc (-1) (a = b)) else False_hp)) as X.
+      {
+        intros c d Hc Hd.
+        destruct c ; destruct d ; rewrite Hc, Hd ; try reflexivity
+        ; apply path_iff_hprop ; try contradiction ; intros ; strip_truncations
+        ; apply (false_ne_true).
+        * apply (Hd^ @ ap ϕ X^ @ Hc). 
+        * apply (Hc^ @ ap ϕ X @ Hd).
+      }
+      apply (X (ϕ a) (ϕ b) idpath idpath).
+    - intros X Y H1 H2.
+      rewrite H1, H2.
+      destruct (ϕ a).
+      * reflexivity.
+      * apply path_iff_hprop.
+        ** intros Z ; strip_truncations.
+           destruct Z ; assumption.
+        ** intros ; apply tr ; right ; assumption.
   Defined.
 
-  Lemma empty_isIn (a: A) : isIn a E -> Empty.
-  Proof. 
-    apply idmap.
-  Defined.
-
+  (* The proof can be simplified using extensionality *)
   (** comprehension properties *)
   Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = E.
   Proof.
@@ -125,11 +145,11 @@ Section properties.
     - reflexivity.
     - reflexivity.
     - intros x y IHa IHb.
-      rewrite IHa.
-      rewrite IHb.
+      rewrite IHa, IHb.
       apply union_idem.
   Defined.
 
+  (* Can be simplified using extensionality *)
   Lemma comprehension_subset : forall ϕ (X : FSet A),
       U (comprehension ϕ X) X = X.
   Proof.
@@ -160,54 +180,21 @@ Section properties.
     - intros X Y TX TY.
       strip_truncations.
       destruct TX as [XE | HX] ; destruct TY as [YE | HY] ; try(strip_truncations ; apply tr).
-      * apply tr ; left.
+      * refine (tr (inl _)).
         rewrite XE, YE.
         apply (union_idem E).
-      * right.
-        destruct HY as [a Ya].
-        apply tr.
+      * destruct HY as [a Ya].
+        refine (inr (tr _)).
         exists a.
         apply (tr (inr Ya)).
-      * right.
-        destruct HX as [a Xa].
-        apply tr.
+      * destruct HX as [a Xa].
+        refine (inr (tr _)).
         exists a.
         apply (tr (inl Xa)).
-      * right.
-        destruct HX as [a Xa].
-        destruct HY as [b Yb].
-        apply tr.
+      * destruct (HX, HY) as [[a Xa] [b Yb]].
+        refine (inr (tr _)).
         exists a.
         apply (tr (inl Xa)).
-  Defined.
-
-  Lemma comprehension_isIn (ϕ : A -> Bool) (a : A) : forall X : FSet A,
-      isIn a (comprehension ϕ X) = if ϕ a then isIn a X else False_hp.
-  Proof.
-    hinduction ; try (intros ; apply set_path2) ; cbn.
-    - destruct (ϕ a) ; reflexivity.
-    - intros b.
-      assert (forall c d, ϕ a = c -> ϕ b = d ->
-                          a ∈ (if ϕ b then {|b|} else ∅)
-                          =
-                          (if ϕ a then BuildhProp (Trunc (-1) (a = b)) else False_hp)) as X.
-      {
-        intros c d Hc Hd.
-        destruct c ; destruct d ; rewrite Hc, Hd ; try reflexivity
-        ; apply path_iff_hprop ; try contradiction ; intros ; strip_truncations
-        ; apply (false_ne_true).
-        * apply (Hd^ @ ap ϕ X^ @ Hc). 
-        * apply (Hc^ @ ap ϕ X @ Hd).
-      }
-      apply (X (ϕ a) (ϕ b) idpath idpath).
-    - intros X Y H1 H2.
-      rewrite H1, H2.
-      destruct (ϕ a).
-      * reflexivity.
-      * apply path_iff_hprop.
-        ** intros Z ; strip_truncations.
-           destruct Z ; assumption.
-        ** intros ; apply tr ; right ; assumption.
   Defined.
   
 End properties.

@@ -42,19 +42,22 @@ Module Export FSet.
   Arguments nl {_} _.
   Arguments nr {_} _.
   Arguments idem {_} _.
+  Notation "{| x |}" :=  (L x).
+  Infix "∪" := U (at level 8, right associativity).
+  Notation "∅" := E.
 
   Section FSet_induction.
     Variable A: Type.
     Variable  (P : FSet A -> Type).
-    Variable  (eP : P E).
-    Variable  (lP : forall a: A, P (L a)).
-    Variable  (uP : forall (x y: FSet A), P x -> P y -> P (U x y)).
+    Variable  (eP : P ∅).
+    Variable  (lP : forall a: A, P {|a |}).
+    Variable  (uP : forall (x y: FSet A), P x -> P y -> P (x ∪ y)).
     Variable  (assocP : forall (x y z : FSet A) 
                                (px: P x) (py: P y) (pz: P z),
                   assoc x y z #
-                        (uP      x    (U y z)          px        (uP y z py pz)) 
+                        (uP x (y ∪ z) px (uP y z py pz)) 
                   = 
-                  (uP   (U x y)    z       (uP x y px py)          pz)).
+                  (uP (x ∪ y) z (uP x y px py) pz)).
     Variable  (commP : forall (x y: FSet A) (px: P x) (py: P y),
                   comm x y #
                        uP x y px py = uP y x py px).
@@ -71,26 +74,24 @@ Module Export FSet.
              {struct x}
       : P x
       := (match x return _ -> _ -> _ -> _ -> _ -> P x with
-          | E => fun _ => fun _ => fun _ => fun _ => fun _ => eP
-          | L a => fun _ => fun _ => fun _ => fun _ => fun _ => lP a
-          | U y z => fun _ => fun _ => fun _ => fun _ => fun _ => uP y z
-                                                                     (FSet_ind y)
-                                                                     (FSet_ind z)
+          | ∅ => fun _ _ _ _ _ => eP
+          | {|a|} => fun _ _ _ _ _ => lP a
+          | y ∪ z => fun _ _ _ _ _ => uP y z (FSet_ind y) (FSet_ind z)
           end) assocP commP nlP nrP idemP.
 
 
     Axiom FSet_ind_beta_assoc : forall (x y z : FSet A),
         apD FSet_ind (assoc x y z) =
-        (assocP x y z (FSet_ind x)  (FSet_ind y) (FSet_ind z)).
+        (assocP x y z (FSet_ind x) (FSet_ind y) (FSet_ind z)).
 
     Axiom FSet_ind_beta_comm : forall (x y : FSet A),
-        apD FSet_ind (comm x y) = (commP x y (FSet_ind x) (FSet_ind y)).
+        apD FSet_ind (comm x y) = commP x y (FSet_ind x) (FSet_ind y).
 
     Axiom FSet_ind_beta_nl : forall (x : FSet A),
-        apD FSet_ind (nl x) = (nlP x (FSet_ind x)).
+        apD FSet_ind (nl x) = nlP x (FSet_ind x).
 
     Axiom FSet_ind_beta_nr : forall (x : FSet A),
-        apD FSet_ind (nr x) = (nrP x (FSet_ind x)).
+        apD FSet_ind (nr x) = nrP x (FSet_ind x).
 
     Axiom FSet_ind_beta_idem : forall (x : A), apD FSet_ind (idem x) = idemP x.
   End FSet_induction.
@@ -183,9 +184,11 @@ Module Export FSet.
     
   End FSet_recursion.
 
-  Instance FSet_recursion A : HitRecursion (FSet A) := {
-                                                        indTy := _; recTy := _; 
-                                                        H_inductor := FSet_ind A; H_recursor := FSet_rec A }.
+  Instance FSet_recursion A : HitRecursion (FSet A) :=
+    {
+      indTy := _; recTy := _; 
+      H_inductor := FSet_ind A; H_recursor := FSet_rec A
+    }.
 
 End FSet.
 
@@ -195,10 +198,12 @@ Notation "∅" := E.
 
 Section set_sphere.
   From HoTT.HIT Require Import Circle.
-  From HoTT Require Import UnivalenceAxiom.
-  Instance S1_recursion : HitRecursion S1 := {
-                                              indTy := _; recTy := _; 
-                                              H_inductor := S1_ind; H_recursor := S1_rec }.
+  Context `{Univalence}.
+  Instance S1_recursion : HitRecursion S1 :=
+    {
+      indTy := _; recTy := _; 
+      H_inductor := S1_ind; H_recursor := S1_rec
+    }.
 
   Variable A : Type.
 
@@ -206,8 +211,7 @@ Section set_sphere.
   Proof.
     hrecursion x.
     - exact loop.
-    - etransitivity. 
-      eapply (@transport_paths_FlFr S1 S1 idmap idmap).
+    - refine (transport_paths_FlFr _ _ @ _). 
       hott_simpl.
   Defined.
 
@@ -225,11 +229,10 @@ Section set_sphere.
   Proof.
     hrecursion x.
     - exact loop.
-    - etransitivity.
-      apply (@transport_paths_FlFr _ _ (fun x => S1op base x) idmap _ _ loop loop).
+    - refine (transport_paths_FlFr loop _ @ _).
       hott_simpl.
       apply moveR_pM. apply moveR_pM. hott_simpl.
-      etransitivity. apply (ap_V (S1op base) loop).
+      refine (ap_V _ _ @ _).
       f_ap. apply S1_rec_beta_loop.
   Defined.
 
@@ -237,8 +240,7 @@ Section set_sphere.
   Proof.
     hrecursion z.
     - reflexivity.
-    - etransitivity.
-      apply (@transport_paths_FlFr _ _ (fun z => S1op x (S1op y z)) (S1op (S1op x y)) _ _ loop idpath). 
+    - refine (transport_paths_FlFr loop _ @ _).
       hott_simpl.
       apply moveR_Mp. hott_simpl.
       rewrite S1_rec_beta_loop.
@@ -274,7 +276,7 @@ Section set_sphere.
 
   Lemma FSet_S_ap : (nl (@E A)) = (nr E) -> idpath = loop.
   Proof.
-    intros H.
+    intros H1.
     enough (ap FSet_to_S (nl E) = ap FSet_to_S (nr E)) as H'.
     - rewrite FSet_rec_beta_nl in H'. 
       rewrite FSet_rec_beta_nr in H'.
@@ -285,7 +287,7 @@ Section set_sphere.
 
   Lemma FSet_not_hset : IsHSet (FSet A) -> False.
   Proof.
-    intros H.
+    intros H1.
     enough (idpath = loop). 
     - assert (S1_encode _ idpath = S1_encode _ (loopexp loop (pos Int.one))) as H' by f_ap.
       rewrite S1_encode_loopexp in H'. simpl in H'. symmetry in H'.
