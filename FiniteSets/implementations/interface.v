@@ -94,15 +94,33 @@ Section properties.
     auto.
   Defined.
 
+  Hint Unfold set_eq set_subset.
+
+  Ltac simplify := intros ; autounfold in * ; apply reflect_eq ; reduce.
+
+  Definition well_defined_union : forall (A : Type) (X1 X2 Y1 Y2 : T A),
+      set_eq A X1 Y1 -> set_eq A X2 Y2 -> set_eq A (union X1 X2) (union Y1 Y2).
+  Proof.
+    simplify.
+    rewrite X, X0.
+    reflexivity.
+  Defined.
+
+  Definition well_defined_filter : forall (A : Type) (ϕ : A -> Bool) (X Y : T A),
+      set_eq A X Y -> set_eq A (filter ϕ X) (filter ϕ Y).
+  Proof.
+    simplify.
+    rewrite X0.
+    reflexivity.
+  Defined.
+  
   Variable (A : Type).
   Context `{DecidablePaths A}.
   
   Lemma union_comm : forall (X Y : T A),
       set_eq A (union X Y) (union Y X).
   Proof.
-    intros.
-    apply reflect_eq.
-    reduce.
+    simplify.
     apply lattice_fset.
   Defined.
 

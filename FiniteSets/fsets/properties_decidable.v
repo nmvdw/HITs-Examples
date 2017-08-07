@@ -62,7 +62,7 @@ Section operations_isIn.
   Defined.
   
   (* Union and membership *)
-  Lemma union_isIn (X Y : FSet A) (a : A) :
+  Lemma union_isIn_b (X Y : FSet A) (a : A) :
     isIn_b a (U X Y) = orb (isIn_b a X) (isIn_b a Y).
   Proof.
     unfold isIn_b ; unfold dec.
@@ -70,73 +70,31 @@ Section operations_isIn.
     destruct (isIn_decidable a X) ; destruct (isIn_decidable a Y) ; reflexivity.
   Defined.
 
-  Lemma intersection_isIn (X Y: FSet A) (a : A) :
-    isIn_b a (intersection X Y) = andb (isIn_b a X) (isIn_b a Y).
-  Proof.
-    hinduction X; try (intros ; apply set_path2).
-    - reflexivity.
-    - intro b.
-      destruct (dec (a = b)).
-      * rewrite p.
-        destruct (isIn_b b Y) ; symmetry ; eauto with bool_lattice_hints.
-      * destruct (isIn_b b Y) ; destruct (isIn_b a Y) ; symmetry ; eauto with bool_lattice_hints.
-      + rewrite and_false.
-        symmetry.
-        apply (L_isIn_b_false a b n).
-      + rewrite and_true.
-        apply (L_isIn_b_false a b n).
-    - intros X1 X2 P Q.
-      rewrite union_isIn ; rewrite union_isIn.
-      rewrite P.
-      rewrite Q.
-      unfold isIn_b, dec.
-      destruct (isIn_decidable a X1)
-      ; destruct (isIn_decidable a X2)
-      ; destruct (isIn_decidable a Y)
-      ; reflexivity.
-  Defined.
-
-  Global Opaque isIn_b.
-
-  Lemma comprehension_isIn (Y : FSet A) (ϕ : A -> Bool) (a : A) :
+  Lemma comprehension_isIn_b (Y : FSet A) (ϕ : A -> Bool) (a : A) :
     isIn_b a (comprehension ϕ Y) = andb (isIn_b a Y) (ϕ a).
   Proof.
-    hinduction Y; try (intros; apply set_path2).
-    - apply empty_isIn.
-    - intro b.
-      destruct (isIn_decidable a {|b|}).
-      * simpl in t.
-        strip_truncations.
-        rewrite t.
-        destruct (ϕ b).
-        ** rewrite (L_isIn_b_true _ _ idpath).
-           eauto with bool_lattice_hints.
-        ** rewrite empty_isIn ; rewrite (L_isIn_b_true _ _ idpath).
-           eauto with bool_lattice_hints.
-      * destruct (ϕ b).
-        ** rewrite L_isIn_b_false.
-           *** eauto with bool_lattice_hints.
-           *** intro. 
-               apply (n (tr X)).
-        ** rewrite empty_isIn.
-           rewrite L_isIn_b_false.
-           *** eauto with bool_lattice_hints.
-           *** intro.
-               apply (n (tr X)).
-    - intros X Y HaX HaY.
-      rewrite !union_isIn.
-      rewrite HaX, HaY.
-      destruct (isIn_b a X), (isIn_b a Y);
-        eauto with bool_lattice_hints typeclass_instances.
+    unfold isIn_b, dec ; simpl.
+    destruct (isIn_decidable a (comprehension ϕ Y)) as [t | t]
+    ; destruct (isIn_decidable a Y) as [n | n] ; rewrite comprehension_isIn in t
+    ; destruct (ϕ a) ; try reflexivity ; try contradiction.
   Defined.
+
+  Lemma intersection_isIn_b (X Y: FSet A) (a : A) :
+    isIn_b a (intersection X Y) = andb (isIn_b a X) (isIn_b a Y).
+  Proof.
+    apply comprehension_isIn_b.
+  Defined.
+
 End operations_isIn.
+
+Global Opaque isIn_b.
 
 (* Some suporting tactics *)
 Ltac simplify_isIn :=
-  repeat (rewrite union_isIn
+  repeat (rewrite union_isIn_b
         || rewrite L_isIn_b_aa
-        || rewrite intersection_isIn
-        || rewrite comprehension_isIn).
+        || rewrite intersection_isIn_b
+        || rewrite comprehension_isIn_b).
 
 Ltac toBool :=
   repeat intro;
@@ -152,7 +110,7 @@ Section SetLattice.
   Instance fset_max : maximum (FSet A) := U.
   Instance fset_min : minimum (FSet A) := intersection.
   Instance fset_bot : bottom (FSet A) := E.
-
+  
   Instance lattice_fset : Lattice (FSet A).
   Proof.
     split; toBool.
@@ -178,13 +136,13 @@ Section comprehension_properties.
   Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = E.
   Proof.
     toBool.
-  Qed.
+  Defined.
 
   Lemma comprehension_all : forall (X : FSet A),
       comprehension (fun a => isIn_b a X) X = X.
   Proof.
     toBool.
-  Qed.
+  Defined.
   
   Lemma comprehension_subset : forall ϕ (X : FSet A),
       U (comprehension ϕ X) X = X.
