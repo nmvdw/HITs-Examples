@@ -181,4 +181,33 @@ Section properties.
         apply (tr (inl Xa)).
   Defined.
 
+  Lemma comprehension_isIn (ϕ : A -> Bool) (a : A) : forall X : FSet A,
+      isIn a (comprehension ϕ X) = if ϕ a then isIn a X else False_hp.
+  Proof.
+    hinduction ; try (intros ; apply set_path2) ; cbn.
+    - destruct (ϕ a) ; reflexivity.
+    - intros b.
+      assert (forall c d, ϕ a = c -> ϕ b = d ->
+                          a ∈ (if ϕ b then {|b|} else ∅)
+                          =
+                          (if ϕ a then BuildhProp (Trunc (-1) (a = b)) else False_hp)) as X.
+      {
+        intros c d Hc Hd.
+        destruct c ; destruct d ; rewrite Hc, Hd ; try reflexivity
+        ; apply path_iff_hprop ; try contradiction ; intros ; strip_truncations
+        ; apply (false_ne_true).
+        * apply (Hd^ @ ap ϕ X^ @ Hc). 
+        * apply (Hc^ @ ap ϕ X @ Hd).
+      }
+      apply (X (ϕ a) (ϕ b) idpath idpath).
+    - intros X Y H1 H2.
+      rewrite H1, H2.
+      destruct (ϕ a).
+      * reflexivity.
+      * apply path_iff_hprop.
+        ** intros Z ; strip_truncations.
+           destruct Z ; assumption.
+        ** intros ; apply tr ; right ; assumption.
+  Defined.
+  
 End properties.
