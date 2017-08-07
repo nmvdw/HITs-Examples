@@ -1,113 +1,69 @@
 (* Implementation of [FSet A] using lists *)
 Require Import HoTT HitTactics.
-Require Import representations.cons_repr FSets.
-From fsets Require Import operations_cons_repr isomorphism length.
+Require Import FSets implementations.interface.
 
 Section Operations.
-  Variable A : Type.
-  Context {A_deceq : DecidablePaths A}.
+  Context `{Univalence}.
+
+  Global Instance list_empty : hasEmpty list := fun A => nil.
+
+  Global Instance list_single : hasSingleton list := fun A a => cons a nil.
   
-  Fixpoint member (l : list A) (a : A) : Bool :=
+  Global Instance list_union : hasUnion list.
+  Proof.
+    intros A l1 l2.
+    induction l1.
+    * apply l2.
+    * apply (cons a IHl1).
+  Defined.
+
+  Global Instance list_membership : hasMembership list.
+  Proof.
+    intros A.
+    intros a l.
+    induction l as [ | b l IHl].
+    - apply False_hp.
+    - apply (hor (a = b) IHl).
+  Defined.
+
+  Global Instance list_comprehension : hasComprehension list.
+  Proof.
+    intros A ϕ l.
+    induction l as [ | b l IHl].
+    - apply nil.
+    - apply (if ϕ b then cons b IHl else IHl).
+  Defined.
+
+  Fixpoint list_to_set A (l : list A) :  FSet A :=
     match l with
-    | nil => false
-    | cons b l => if (dec (a = b)) then true else member l a
-    end.
-
-  Fixpoint append (l1 l2 : list A) :=
-    match l1 with
-    | nil => l2
-    | cons a l => cons a (append l l2)
-    end.
-
-  Definition empty : list A := nil.
-
-  Definition singleton (a : A) : list A := cons a nil.
-
-  Fixpoint filter (ϕ : A -> Bool) (l : list A) : list A :=
-    match l with
-    | nil => nil
-    | cons a l => if ϕ a then cons a (filter ϕ l) else filter ϕ l
-    end.
-
-  Fixpoint cardinality (l : list A) : nat :=
-    match l with
-    | nil => 0
-    | cons a l => if member l a then cardinality l else 1 + cardinality l
+    | nil => E
+    | cons a l => U (L a) (list_to_set A l)
     end.
 
 End Operations.
 
-Arguments nil {_}.
-Arguments cons {_} _ _.
-Arguments member {_} {_} _ _.
-Arguments singleton {_} _.
-Arguments append {_} _ _.
-Arguments empty {_}.
-Arguments filter {_} _ _.
-Arguments cardinality {_} {_} _.
-
 Section ListToSet.
   Variable A : Type.
-  Context {A_deceq : DecidablePaths A} `{Univalence}.
+  Context `{Univalence}.
+
+  Lemma member_isIn (a : A) (l : list A)  :
+    member a l = isIn a (list_to_set A l).
+  Proof.
+    induction l ; unfold member in * ; simpl in *.
+    - reflexivity.
+    - rewrite IHl.
+      unfold hor, merely, lor.
+      apply path_iff_hprop ; intros z ; strip_truncations ; destruct z as [z1 | z2].
+      * apply (tr (inl (tr z1))).
+      * apply (tr (inr z2)).
+      * strip_truncations ; apply (tr (inl z1)).
+      * apply (tr (inr z2)).
+  Defined.
   
-  Fixpoint list_to_setC (l : list A) : FSetC A :=
-    match l with
-    | nil => Nil
-    | cons a l => Cns a (list_to_setC l)
-    end.
+  Definition empty_empty : list_to_set A empty = E := idpath.
 
-  Definition list_to_set (l : list A) := FSetC_to_FSet(list_to_setC l).
-    
-  Lemma list_to_setC_surj : forall X : FSetC A, Trunc (-1) ({l : list A & list_to_setC l = X}).
-  Proof.
-    hrecursion ; try (intros ; apply hprop_allpath ; apply (istrunc_truncation (-1) _)).
-    - apply tr ; exists nil ; cbn. reflexivity.
-    - intros a x P.
-      simple refine (Trunc_rec _ P).
-      intros [l Q].
-      apply tr. 
-      exists (cons a l).
-      simpl.
-      apply (ap (fun y => a;;y) Q).
-  Defined.
-
-  Lemma member_isIn (l : list A) (a : A) :
-    member l a = isIn_b a (FSetC_to_FSet (list_to_setC l)).
-  Proof.
-    induction l ; cbn in *.
-    - reflexivity.
-    - destruct (dec (a = a0)) ; cbn.
-      * rewrite ?p. simplify_isIn. reflexivity.
-      * rewrite IHl. simplify_isIn. rewrite L_isIn_b_false ; auto.
-  Defined.
-
-  Lemma append_FSetCappend (l1 l2 : list A) :
-    list_to_setC (append l1 l2) = operations_cons_repr.append (list_to_setC l1) (list_to_setC l2).
-  Proof.
-    induction l1 ; simpl in *.
-    - reflexivity.
-    - apply (ap (fun y => a ;; y) IHl1).
-  Defined.
-
-  Lemma append_FSetappend (l1 l2 : list A) :
-    list_to_set (append l1 l2) = U (list_to_set l1) (list_to_set l2).
-  Proof.
-    induction l1 ; cbn in *.
-    - symmetry. apply nl.
-    - rewrite <- assoc.
-      refine (ap (fun y => U {|a|} y) _).
-      rewrite <- append_union.
-      rewrite <- append_FSetCappend.
-      reflexivity.
-  Defined.
-
-  Lemma empty_empty : list_to_set empty = E.
-  Proof.
-    reflexivity.
-  Defined.
-
-  Lemma filter_comprehension (l : list A) (ϕ : A -> Bool) :
-    list_to_set (filter ϕ l) = comprehension ϕ (list_to_set l).
+  Lemma filter_comprehension (ϕ : A -> Bool) (l : list A)  :
+    list_to_set A (filter ϕ l) = comprehension ϕ (list_to_set A l).
   Proof.
     induction l ; cbn in *.
     - reflexivity.
@@ -118,32 +74,33 @@ Section ListToSet.
         apply IHl.
   Defined.
   
-  Lemma length_sizeC (l : list A) :
-    cardinality l = length (list_to_setC l).
+  Definition singleton_single (a : A) : list_to_set A (singleton a) = L a :=
+    nr (L a).
+
+  Lemma append_union (l1 l2 : list A) :
+    list_to_set A (union l1 l2) = U (list_to_set A l1) (list_to_set A l2).
   Proof.
-    induction l.
-    - cbn.
-      reflexivity.
-    - simpl.
-      rewrite IHl.
-      rewrite member_isIn.
-      reflexivity.
+    induction l1 ; induction l2 ; cbn.
+    - apply (union_idem _)^.
+    - apply (nl _)^.
+    - rewrite IHl1.
+      apply assoc.
+    - rewrite IHl1.
+      cbn.
+      apply assoc.
   Defined.
-
-  Lemma length_size (l : list A) :
-    cardinality l = length_FSet (list_to_set l).
-  Proof.
-    unfold length_FSet.
-    unfold list_to_set.
-    rewrite repr_iso_id_r.
-    apply length_sizeC.
-  Defined.
-
-  Lemma singleton_single (a : A) :
-    list_to_set (singleton a) = L a.
-  Proof.
-    cbn.
-    apply nr.
-  Defined.    
-
 End ListToSet.
+
+Section lists_are_sets.
+  Context `{Univalence}.
+
+  Instance lists_sets : sets list list_to_set.
+  Proof.
+    split ; intros.
+    - apply empty_empty.
+    - apply singleton_single.
+    - apply append_union.
+    - apply filter_comprehension.
+    - apply member_isIn.
+  Defined.
+End lists_are_sets.

@@ -18,6 +18,7 @@ fsets/monad.v
 FSets.v
 Sub.v
 representations/T.v
+implementations/interface.v
 implementations/lists.v
 variations/enumerated.v
 variations/k_finite.v
