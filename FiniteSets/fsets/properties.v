@@ -139,35 +139,29 @@ Section properties.
 
   Context {B : Type}.
 
-  Lemma isIn_singleproduct : forall (a : A) (b : B) (c : A) (Y : FSet B),
+  Lemma isIn_singleproduct (a : A) (b : B) (c : A) : forall (Y : FSet B),
       isIn (a, b) (single_product c Y) = land (BuildhProp (Trunc (-1) (a = c))) (isIn b Y).
   Proof.
-    intros a b c.
     hinduction ; try (intros ; apply path_ishprop).
-    - apply path_hprop. symmetry. apply prod_empty_r.
+    - apply path_hprop ; symmetry ; apply prod_empty_r.
     - intros d.
       apply path_iff_hprop.
       * intros. 
-         strip_truncations.
-         split ; apply tr ; try (apply (ap fst X)) ; try (apply (ap snd X)).
+        strip_truncations.
+        split ; apply tr ; try (apply (ap fst X)) ; try (apply (ap snd X)).
       * intros [Z1 Z2].
-         strip_truncations.
-         rewrite Z1, Z2.
-         apply (tr idpath).
+        strip_truncations.
+        rewrite Z1, Z2.
+        apply (tr idpath).
     - intros X1 X2 HX1 HX2.
-      unfold lor.
       apply path_iff_hprop.
       *  intros X.
          strip_truncations.
-         destruct X as [H1 | H1].
-         ** rewrite HX1 in H1.
-            destruct H1 as [H1 H2].
-            split.
+         destruct X as [H1 | H1] ; rewrite ?HX1, ?HX2 in H1 ; destruct H1 as [H1 H2].
+         ** split.
             *** apply H1.
             *** apply (tr(inl H2)).
-         ** rewrite HX2 in H1.
-            destruct H1 as [H1 H2].
-            split.
+         ** split.
             *** apply H1.
             *** apply (tr(inr H2)).
       * intros [H1 H2].
@@ -176,15 +170,14 @@ Section properties.
         rewrite HX1, HX2.
         destruct H2 as [Hb1 | Hb2].
         ** left.
-           split ;  try (apply (tr H1)) ; try (apply Hb1).
+           split ; try (apply (tr H1)) ; try (apply Hb1).
         ** right.
            split ; try (apply (tr H1)) ; try (apply Hb2).
   Defined.
       
-  Definition isIn_product : forall (a : A) (b : B) (X : FSet A) (Y : FSet B),
+  Definition isIn_product (a : A) (b : B) (X : FSet A) (Y : FSet B) :
       isIn (a,b) (product X Y) = land (isIn a X) (isIn b Y).
   Proof.
-    intros a b X Y.
     hinduction X ; try (intros ; apply path_ishprop).
     - apply path_hprop ; symmetry ; apply prod_empty_l.
     - intros.
@@ -194,18 +187,14 @@ Section properties.
       apply path_iff_hprop.
       * intros X.
         strip_truncations.
-        destruct X as [[H3 H4] | [H3 H4]].
-        ** split.
-           *** apply (tr(inl H3)).
-           *** apply H4.
-        ** split.
-           *** apply (tr(inr H3)).
-           *** apply H4.
+        destruct X as [[H3 H4] | [H3 H4]] ; split ; try (apply H4).
+        ** apply (tr(inl H3)).
+        ** apply (tr(inr H3)).
       * intros [H1 H2].
         strip_truncations.
-        destruct H1 as [H1 | H1].
-        ** apply tr ; left ; split ; assumption.
-        ** apply tr ; right ; split ; assumption.
+        destruct H1 as [H1 | H1] ; apply tr.
+        ** left ; split ; assumption.
+        ** right ; split ; assumption.
   Defined.
 
   (* The proof can be simplified using extensionality *)
