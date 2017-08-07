@@ -74,7 +74,48 @@ Section operations.
     simple refine (FSet_rec _ _ _ true (fun _ => false) andb _ _ _ _ _)
     ; try eauto with bool_lattice_hints typeclass_instances.
     intros ; symmetry ; eauto with lattice_hints typeclass_instances.
-  Defined.    
+  Defined.
+
+  Lemma union_idemL Z : forall x: FSet Z, x ∪ x = x.
+  Proof.
+    hinduction ; try (intros ; apply set_path2).
+    - apply nl.
+    - apply idem.
+    - intros x y P Q.
+      rewrite assoc.
+      rewrite (comm x y).
+      rewrite <- (assoc y x x).
+      rewrite P.
+      rewrite (comm y x).
+      rewrite <- (assoc x y y).
+      f_ap. 
+  Defined.
+
+  Context {B : Type}.
+  
+  Definition product : FSet A -> FSet B -> FSet (A * B).
+  Proof.
+    intros X Y.
+    hrecursion X.
+    - apply ∅.
+    - intro a.
+      hrecursion Y ; simpl in *.
+      * apply ∅.
+      * intro b.
+        apply {|(a, b)|}.
+      * apply U.
+      * intros X Y Z ; apply assoc.
+      * intros X Y ; apply comm.
+      * intros ; apply nl.
+      * intros ; apply nr.
+      * intros ; apply idem.
+    - apply U.
+    - intros ; apply assoc.
+    - intros ; apply comm.
+    - intros ; apply nl.
+    - intros ; apply nr.
+    - intros ; apply union_idemL.
+  Defined.
   
 End operations.
 

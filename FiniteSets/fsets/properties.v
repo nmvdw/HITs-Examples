@@ -137,6 +137,36 @@ Section properties.
         ** intros ; apply tr ; right ; assumption.
   Defined.
 
+  Context {B : Type}.
+  
+  Definition isIn_product : forall (a : A) (b : B) (X : FSet A) (Y : FSet B),
+      isIn a X -> isIn b Y -> isIn (a,b) (product X Y).
+  Proof.
+    intros a b X Y.
+    hinduction X ; try (intros ; apply path_forall ; intro ; apply path_ishprop).
+    - contradiction.
+    - intros c Hc.
+      hinduction Y ; try (intros ; apply path_forall ; intro ; apply path_ishprop).
+      * contradiction.
+      * intros d Hd.
+        strip_truncations.
+        apply tr.
+        rewrite Hc, Hd.
+        reflexivity.
+      * intros Y1 Y2 HY1 HY2 HOr.
+        strip_truncations.
+        apply tr.
+        destruct HOr as [H1 | H2].
+        ** apply (inl (HY1 H1)).
+        ** apply (inr (HY2 H2)).
+    - intros X1 X2 HX1 HX2 Hor HY.
+      strip_truncations.
+      apply tr.
+      destruct Hor as [H1 | H2].
+      * apply (inl(HX1 H1 HY)).
+      * apply (inr (HX2 H2 HY)).
+  Defined.
+
   (* The proof can be simplified using extensionality *)
   (** comprehension properties *)
   Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = ∅.
