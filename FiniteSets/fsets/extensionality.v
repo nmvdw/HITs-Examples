@@ -1,11 +1,54 @@
 (** Extensionality of the FSets *)
 Require Import HoTT HitTactics.
-From representations Require Import definition.
-From fsets Require Import operations properties.
+Require Import representations.definition fsets.operations.
 
 Section ext.
   Context {A : Type}.
   Context `{Univalence}.
+
+  Lemma subset_union (X Y : FSet A) : 
+    X ⊆ Y -> X ∪ Y = Y.
+  Proof.
+    hinduction X ; try (intros; apply path_forall; intro; apply set_path2).
+    - intros. apply nl.
+    - intros a.
+      hinduction Y ; try (intros; apply path_forall; intro; apply set_path2).
+      + intro.
+        contradiction.
+      + intro a0.
+        simple refine (Trunc_ind _ _).
+        intro p ; simpl. 
+        rewrite p; apply idem.
+      + intros X1 X2 IH1 IH2.
+        simple refine (Trunc_ind _ _).
+        intros [e1 | e2].
+        ++ rewrite assoc.
+           rewrite (IH1 e1).
+           reflexivity.
+        ++ rewrite comm.
+           rewrite <- assoc.
+           rewrite (comm X2).
+           rewrite (IH2 e2).
+           reflexivity.
+    - intros X1 X2 IH1 IH2 [G1 G2].
+      rewrite <- assoc.
+      rewrite (IH2 G2).
+      apply (IH1 G1).
+  Defined.
+
+  Lemma subset_union_l (X : FSet A) :
+    forall Y, X ⊆ X ∪ Y.
+  Proof.
+    hinduction X ; try (repeat (intro; intros; apply path_forall);
+                        intro ; apply equiv_hprop_allpath ; apply _).
+    - apply (fun _ => tt).
+    - intros a Y.
+      apply (tr(inl(tr idpath))).
+    - intros X1 X2 HX1 HX2 Y.
+      split. 
+      * rewrite <- assoc. apply HX1.
+      * rewrite (comm X1 X2). rewrite <- assoc. apply HX2.
+  Defined.
 
   Lemma subset_union_equiv
     : forall X Y : FSet A, X ⊆ Y <~> X ∪ Y = Y.

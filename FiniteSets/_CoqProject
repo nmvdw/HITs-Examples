@@ -9,9 +9,9 @@ fsets/operations_cons_repr.v
 fsets/properties_cons_repr.v
 fsets/isomorphism.v
 fsets/operations.v
-fsets/properties.v
 fsets/operations_decidable.v
 fsets/extensionality.v
+fsets/properties.v
 fsets/properties_decidable.v
 fsets/length.v
 fsets/monad.v

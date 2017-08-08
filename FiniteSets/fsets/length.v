@@ -19,14 +19,16 @@ Section Length.
       pose (y' := FSetC_to_FSet y).
       exact (if isIn_b a y' then n else (S n)).
     - intros. rewrite transport_const. cbn.
-      simplify_isIn. simpl. reflexivity.
+      simplify_isIn_b. simpl. reflexivity.
     - intros. rewrite transport_const. cbn.
-      simplify_isIn.
+      simplify_isIn_b.
       destruct (dec (a = b)) as [Hab | Hab].
-      + rewrite Hab. simplify_isIn. simpl. reflexivity.
-      + rewrite ?L_isIn_b_false; auto. simpl. 
-        destruct (isIn_b a (FSetC_to_FSet x0)), (isIn_b b (FSetC_to_FSet x0)) ; reflexivity.
-        intro p. contradiction (Hab p^).
+      + rewrite Hab. simplify_isIn_b. simpl. reflexivity.
+      + rewrite ?L_isIn_b_false; auto.
+        ++ simpl. 
+           destruct (isIn_b a (FSetC_to_FSet x0)), (isIn_b b (FSetC_to_FSet x0))
+           ; reflexivity.
+        ++ intro p. contradiction (Hab p^).
   Defined.
 
   Definition length_FSet (x: FSet A) := length (FSet_to_FSetC x).

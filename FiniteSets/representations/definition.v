@@ -197,3 +197,18 @@ End FSet.
 Notation "{| x |}" :=  (L x).
 Infix "∪" := U (at level 8, right associativity).
 Notation "∅" := E.
+
+Lemma union_idem {A : Type} : forall x: FSet A, x ∪ x = x.
+Proof.
+  hinduction ; try (intros ; apply set_path2).
+  - apply nl.
+  - apply idem.
+  - intros x y P Q.
+    rewrite assoc.
+    rewrite (comm x y).
+    rewrite <- (assoc y x x).
+    rewrite P.
+    rewrite (comm y x).
+    rewrite <- (assoc x y y).
+    f_ap. 
+Defined.

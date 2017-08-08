@@ -76,24 +76,7 @@ Section operations.
     intros ; symmetry ; eauto with lattice_hints typeclass_instances.
   Defined.
 
-  Lemma union_idemL Z : forall x: FSet Z, x ∪ x = x.
-  Proof.
-    hinduction ; try (intros ; apply set_path2).
-    - apply nl.
-    - apply idem.
-    - intros x y P Q.
-      rewrite assoc.
-      rewrite (comm x y).
-      rewrite <- (assoc y x x).
-      rewrite P.
-      rewrite (comm y x).
-      rewrite <- (assoc x y y).
-      f_ap. 
-  Defined.
-
-  Context {B : Type}.
-
-  Definition single_product (a : A) : FSet B -> FSet (A * B).
+  Definition single_product {B : Type} (a : A) : FSet B -> FSet (A * B).
   Proof.
     hrecursion.
     - apply ∅.
@@ -107,7 +90,7 @@ Section operations.
     - intros ; apply idem.
   Defined.
         
-  Definition product : FSet A -> FSet B -> FSet (A * B).
+  Definition product {B : Type} : FSet A -> FSet B -> FSet (A * B).
   Proof.
     intros X Y.
     hrecursion X.
@@ -119,7 +102,7 @@ Section operations.
     - intros ; apply comm.
     - intros ; apply nl.
     - intros ; apply nr.
-    - intros ; apply union_idemL.
+    - intros ; apply union_idem.
   Defined.
   
 End operations.

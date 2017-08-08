@@ -87,10 +87,8 @@ Section operations_isIn.
 
 End operations_isIn.
 
-Global Opaque isIn_b.
-
 (* Some suporting tactics *)
-Ltac simplify_isIn :=
+Ltac simplify_isIn_b :=
   repeat (rewrite union_isIn_b
         || rewrite L_isIn_b_aa
         || rewrite intersection_isIn_b
@@ -99,7 +97,7 @@ Ltac simplify_isIn :=
 Ltac toBool :=
   repeat intro;
   apply ext ; intros ;
-  simplify_isIn ; eauto with bool_lattice_hints typeclass_instances.
+  simplify_isIn_b ; eauto with bool_lattice_hints typeclass_instances.
 
 Section SetLattice.
 
