@@ -1,18 +1,23 @@
 Require Import HoTT.
-Require Import disjunction lattice.
+Require Import disjunction lattice notation.
 
 Section subobjects.
   Variable A : Type.
 
   Definition Sub := A -> hProp.
 
-  Definition empty_sub : Sub := fun _ => False_hp.
+  Global Instance sub_empty : hasEmpty Sub := fun _ => False_hp.
+  Global Instance sub_union : hasUnion Sub := max_fun.
+  Global Instance sub_intersection : hasIntersection Sub := min_fun.
+  Global Instance sub_singleton : hasSingleton Sub A
+    := fun a b => BuildhProp (Trunc (-1) (b = a)).
+  Global Instance sub_membership : hasMembership Sub A := fun a X => X a.
+  Global Instance sub_comprehension : hasComprehension Sub A
+    := fun ϕ X a => BuildhProp (X a * (ϕ a = true)).
+  Global Instance sub_subset `{Univalence} : hasSubset Sub
+    := fun X Y => BuildhProp (forall a, X a -> Y a).
 
-  Definition singleton (a : A) : Sub := fun b => BuildhProp (Trunc (-1) (b = a)).
 End subobjects.
-
-Arguments empty_sub {_}.
-Arguments singleton {_} _.
 
 Section sub_classes.
   Context {A : Type}.
@@ -25,11 +30,11 @@ Section sub_classes.
     apply _.
   Defined.  
 
-  Definition closedUnion := forall X Y, C X -> C Y -> C (max_fun X Y).
-  Definition closedIntersection := forall X Y, C X -> C Y -> C (min_fun X Y).
-  Definition closedEmpty := C empty_sub.
-  Definition closedSingleton := forall a, C (singleton a).
-  Definition hasDecidableEmpty := forall X, C X -> hor (X = empty_sub) (hexists (fun a => X a)).
+  Definition closedUnion := forall X Y, C X -> C Y -> C (X ∪ Y).
+  Definition closedIntersection := forall X Y, C X -> C Y -> C (X ∩ Y).
+  Definition closedEmpty := C ∅.
+  Definition closedSingleton := forall a, C {|a|}.
+  Definition hasDecidableEmpty := forall X, C X -> hor (X = ∅) (hexists (fun a => a ∈ X)).
 End sub_classes.
 
 Section isIn.
@@ -43,7 +48,7 @@ Section isIn.
   Proof.
     intros.
     unfold Decidable, closedSingleton in *.
-    pose (HIn (singleton a) (HS a) b).
+    pose (HIn {|a|} (HS a) b).
     destruct s.
     - unfold singleton in t.
       left.
@@ -78,33 +83,18 @@ Section intersect.
   Proof.
     intros.
     unfold Decidable, closedEmpty, closedIntersection, closedSingleton, hasDecidableEmpty in *.
-    pose (HI (singleton a) (singleton b) (HS a) (HS b)) as IntAB.
-    pose (HDE (min_fun (singleton a) (singleton b)) IntAB) as IntE.
+    pose (HI {|a|} {|b|} (HS a) (HS b)) as IntAB.
+    pose (HDE ({|a|} ∪ {|b|}) IntAB) as IntE.
     refine (@Trunc_rec _ _ _  _ _ IntE) ; intros [p | p] ; unfold min_fun, singleton in p.
     - right.
-      pose (apD10 p b) as pb ; unfold empty_sub in pb ; cbn in pb.
-      assert (BuildhProp (Trunc (-1) (b = b)) = Unit_hp).
-      {
-        apply path_iff_hprop.
-        - apply (fun _ => tt).
-        - apply (fun _ => tr idpath).          
-      }
-      rewrite X in pb.
-      unfold Unit_hp in pb.
-      assert (forall P : hProp, land P Unit_hp = P).
-      {
-        intro P.
-        apply path_iff_hprop.
-        - intros [x _] ; assumption.
-        - apply (fun x => (x, tt)).          
-      }
-      rewrite (X0 (BuildhProp (Trunc (-1) (b = a)))) in pb.
       intro q.
-      assert (BuildhProp (Trunc (-1) (b = a))).
-      {
-        apply q.
-      }
-      apply (pb # X1).
+      strip_truncations.
+      rewrite q in p.
+      enough (a ∈ ∅) as X.
+      { apply X. }
+      rewrite <- p.
+      cbn.
+      split ; apply (tr idpath).
     - strip_truncations.
       destruct p as [a0 [t1 t2]].
       strip_truncations.
