@@ -25,10 +25,10 @@ Section sub_classes.
     apply _.
   Defined.  
 
-  Definition hasUnion := forall X Y, C X -> C Y -> C (max_fun X Y).
-  Definition hasIntersection := forall X Y, C X -> C Y -> C (min_fun X Y).
-  Definition hasEmpty := C empty_sub.
-  Definition hasSingleton := forall a, C (singleton a).
+  Definition closedUnion := forall X Y, C X -> C Y -> C (max_fun X Y).
+  Definition closedIntersection := forall X Y, C X -> C Y -> C (min_fun X Y).
+  Definition closedEmpty := C empty_sub.
+  Definition closedSingleton := forall a, C (singleton a).
   Definition hasDecidableEmpty := forall X, C X -> hor (X = empty_sub) (hexists (fun a => X a)).
 End sub_classes.
 
@@ -37,12 +37,12 @@ Section isIn.
   Variable C : (A -> hProp) -> hProp.
 
   Context `{Univalence}.
-  Context {HS : hasSingleton C} {HIn : forall X, C X -> forall a, Decidable (X a)}.
+  Context {HS : closedSingleton C} {HIn : forall X, C X -> forall a, Decidable (X a)}.
 
   Theorem decidable_A_isIn : forall a b : A, Decidable (Trunc (-1) (b = a)).
   Proof.
     intros.
-    unfold Decidable, hasSingleton in *.
+    unfold Decidable, closedSingleton in *.
     pose (HIn (singleton a) (HS a) b).
     destruct s.
     - unfold singleton in t.
@@ -71,13 +71,13 @@ Section intersect.
   Defined.
 
   Context
-    {HI :hasIntersection C} {HE : hasEmpty C}
-    {HS : hasSingleton C} {HDE : hasDecidableEmpty C}.
+    {HI : closedIntersection C} {HE : closedEmpty C}
+    {HS : closedSingleton C} {HDE : hasDecidableEmpty C}.
 
   Theorem decidable_A_intersect : forall a b : A, Decidable (Trunc (-1) (b = a)).
   Proof.
     intros.
-    unfold Decidable, hasEmpty, hasIntersection, hasSingleton, hasDecidableEmpty in *.
+    unfold Decidable, closedEmpty, closedIntersection, closedSingleton, hasDecidableEmpty in *.
     pose (HI (singleton a) (singleton b) (HS a) (HS b)) as IntAB.
     pose (HDE (min_fun (singleton a) (singleton b)) IntAB) as IntE.
     refine (@Trunc_rec _ _ _  _ _ IntE) ; intros [p | p] ; unfold min_fun, singleton in p.

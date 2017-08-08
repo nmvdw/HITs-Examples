@@ -223,7 +223,7 @@ Section enumerated_fset.
     end.
   
   Lemma list_to_fset_ext (ls : list A) (a : A):
-    listExt ls a -> isIn a (list_to_fset ls).
+    listExt ls a -> a ∈ (list_to_fset ls).
   Proof.
     induction ls as [|x xs]; simpl.
     - apply idmap.
@@ -269,7 +269,7 @@ Section fset_dec_enumerated.
     - intros a X Hls.
       strip_truncations. apply tr.
       destruct Hls as [ls Hls].
-      exists (cons a ls). intros b. simpl.
+      exists (cons a ls). intros b. cbn.
       f_ap.
     - intros. apply path_ishprop.
     - intros. apply path_ishprop.
@@ -294,16 +294,16 @@ Section subobjects.
   Definition enumeratedS (P : Sub A) : hProp :=
     enumerated (sigT P).
   
-  Lemma enumeratedS_empty : enumeratedS empty_sub.
+  Lemma enumeratedS_empty : closedEmpty enumeratedS.
   Proof.
     unfold enumeratedS.
     apply tr. exists nil. simpl.
     intros [a Ha]. assumption.
   Defined.
 
-  Lemma enumeratedS_singleton (x : A) : enumeratedS (singleton x).
+  Lemma enumeratedS_singleton : closedSingleton enumeratedS.
   Proof.
-    apply tr. simpl.
+    intros x. apply tr. simpl.
     exists (cons (x;tr idpath) nil).
     intros [y Hxy]. simpl.
     strip_truncations. apply tr.
@@ -417,7 +417,7 @@ Section subobjects.
     end.
 
   Lemma list_weaken_to_fset_ext (P : Sub A) (ls : list (sigT P)) (a : A) (Ha : P a):
-    listExt ls (a;Ha) -> isIn a (list_weaken_to_fset P ls).
+    listExt ls (a;Ha) -> a ∈ (list_weaken_to_fset P ls).
   Proof.
     induction ls as [|[x Hx] xs]; simpl.
     - apply idmap.

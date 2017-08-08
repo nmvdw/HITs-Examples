@@ -6,7 +6,7 @@ Section k_finite.
   Context (A : Type).
   Context `{Univalence}.
 
-  Definition map (X : FSet A) : Sub A := fun a => isIn a X.
+  Definition map (X : FSet A) : Sub A := fun a => a ∈ X.
 
   Global Instance map_injective : IsEmbedding map.
   Proof.
@@ -69,37 +69,35 @@ Section structure_k_finite.
   Context (A : Type).
   Context `{Univalence}.
 
-  Lemma map_union : forall X Y : FSet A, map (U X Y) = max_fun (map X) (map Y).
+  Lemma map_union : forall X Y : FSet A, map (X ∪ Y) = max_fun (map X) (map Y).
   Proof.
     intros.
     unfold map, max_fun.
     reflexivity.
   Defined.
 
-  Lemma k_finite_union : hasUnion (Kf_sub A).
+  Lemma k_finite_union : closedUnion (Kf_sub A).
   Proof.
-    unfold hasUnion, Kf_sub, Kf_sub_intern.
+    unfold closedUnion, Kf_sub, Kf_sub_intern.
     intros.
     destruct X0 as [SX XP].
     destruct X1 as [SY YP].
-    exists (U SX SY).
+    exists (SX ∪ SY).
     rewrite map_union.
     rewrite XP, YP.
     reflexivity.
   Defined.
 
-  Lemma k_finite_empty : hasEmpty (Kf_sub A).
+  Lemma k_finite_empty : closedEmpty (Kf_sub A).
   Proof.
-    unfold hasEmpty, Kf_sub, Kf_sub_intern, map, empty_sub.
-    exists E.
+    exists ∅.
     reflexivity.
   Defined.
 
-  Lemma k_finite_singleton : hasSingleton (Kf_sub A).
+  Lemma k_finite_singleton : closedSingleton (Kf_sub A).
   Proof.
-    unfold hasSingleton, Kf_sub, Kf_sub_intern, map, singleton.
     intro.
-    exists (L a).
+    exists {|a|}.
     cbn.
     apply path_forall.
     intro z. 
@@ -108,7 +106,7 @@ Section structure_k_finite.
 
   Lemma k_finite_hasDecidableEmpty : hasDecidableEmpty (Kf_sub A).
   Proof.
-    unfold hasDecidableEmpty, hasEmpty, Kf_sub, Kf_sub_intern, map.
+    unfold hasDecidableEmpty, closedEmpty, Kf_sub, Kf_sub_intern, map.
     intros.
     destruct X0 as [SX EX].
     rewrite EX.

@@ -5,30 +5,29 @@ Require Import FSets implementations.interface.
 Section Operations.
   Context `{Univalence}.
 
-  Global Instance list_empty : hasEmpty list := fun A => nil.
+  Global Instance list_empty A : hasEmpty (list A) := nil.
 
-  Global Instance list_single : hasSingleton list := fun A a => cons a nil.
+  Global Instance list_single A: hasSingleton (list A) A := fun a => cons a nil.
   
-  Global Instance list_union : hasUnion list.
+  Global Instance list_union A : hasUnion (list A).
   Proof.
-    intros A l1 l2.
+    intros l1 l2.
     induction l1.
     * apply l2.
     * apply (cons a IHl1).
   Defined.
 
-  Global Instance list_membership : hasMembership list.
+  Global Instance list_membership A : hasMembership (list A) A.
   Proof.
-    intros A.
     intros a l.
     induction l as [ | b l IHl].
     - apply False_hp.
     - apply (hor (a = b) IHl).
   Defined.
 
-  Global Instance list_comprehension : hasComprehension list.
+  Global Instance list_comprehension A: hasComprehension (list A) A.
   Proof.
-    intros A ϕ l.
+    intros ϕ l.
     induction l as [ | b l IHl].
     - apply nil.
     - apply (if ϕ b then cons b IHl else IHl).
@@ -36,8 +35,8 @@ Section Operations.
 
   Fixpoint list_to_set A (l : list A) :  FSet A :=
     match l with
-    | nil => E
-    | cons a l => U (L a) (list_to_set A l)
+    | nil => ∅
+    | cons a l => {|a|} ∪ (list_to_set A l)
     end.
 
 End Operations.
@@ -60,10 +59,10 @@ Section ListToSet.
       * apply (tr (inr z2)).
   Defined.
   
-  Definition empty_empty : list_to_set A empty = ∅ := idpath.
+  Definition empty_empty : list_to_set A ∅ = ∅ := idpath.
 
   Lemma filter_comprehension (ϕ : A -> Bool) (l : list A)  :
-    list_to_set A (filter ϕ l) = comprehension ϕ (list_to_set A l).
+    list_to_set A (filter ϕ l) =  {| list_to_set A l & ϕ |}.
   Proof.
     induction l ; cbn in *.
     - reflexivity.
@@ -81,7 +80,7 @@ Section ListToSet.
     list_to_set A (union l1 l2) = (list_to_set A l1) ∪ (list_to_set A l2).
   Proof.
     induction l1 ; induction l2 ; cbn.
-    - apply (union_idem _)^.
+    - apply (nl _)^.
     - apply (nl _)^.
     - rewrite IHl1.
       apply assoc.
