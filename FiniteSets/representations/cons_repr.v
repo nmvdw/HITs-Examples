@@ -1,35 +1,35 @@
 (* Definition of Finite Sets as via cons lists *)
 Require Import HoTT HitTactics.
+Require Export notation.
 
 Module Export FSetC.
   
   Section FSetC.
+    Private Inductive FSetC (A : Type) : Type :=
+    | Nil : FSetC A
+    | Cns : A ->  FSetC A -> FSetC A.
+
+    Global Instance fset_empty : hasEmpty FSetC := Nil.
+
     Variable A : Type.
-
-    Private Inductive FSetC : Type :=
-    | Nil : FSetC
-    | Cns : A ->  FSetC -> FSetC.
-
+    Arguments Cns {_} _ _.
     Infix ";;" := Cns (at level 8, right associativity).
-    Notation "∅" := Nil.
-
-    Axiom dupl : forall (a: A) (x: FSetC),
+    
+    Axiom dupl : forall (a : A) (x : FSetC A),
         a ;; a ;; x = a ;; x. 
 
-    Axiom comm : forall (a b: A) (x: FSetC),
+    Axiom comm : forall (a b : A) (x : FSetC A),
         a ;; b ;; x = b ;; a ;; x.
 
-    Axiom trunc : IsHSet FSetC.
+    Axiom trunc : IsHSet (FSetC A).
 
   End FSetC.
 
-  Arguments Nil {_}.
   Arguments Cns {_} _ _.
   Arguments dupl {_} _ _.
   Arguments comm {_} _ _ _.
 
   Infix ";;" := Cns (at level 8, right associativity).
-  Notation "∅" := Nil.
 
   Section FSetC_induction.
 
@@ -84,7 +84,6 @@ Module Export FSetC.
       - apply commP. 
     Defined.
 
-
     Definition FSetC_rec_beta_dupl : forall (a: A) (x : FSetC A),
         ap FSetC_rec (dupl a x) = duplP a (FSetC_rec x).
     Proof.
@@ -106,11 +105,12 @@ Module Export FSetC.
   End FSetC_recursion.
 
 
-  Instance FSetC_recursion A : HitRecursion (FSetC A) := {
-                                                          indTy := _; recTy := _; 
-                                                          H_inductor := FSetC_ind A; H_recursor := FSetC_rec A }.
+  Instance FSetC_recursion A : HitRecursion (FSetC A) :=
+    {
+      indTy := _; recTy := _; 
+      H_inductor := FSetC_ind A; H_recursor := FSetC_rec A
+    }.
 
 End FSetC.
 
 Infix ";;" := Cns (at level 8, right associativity).
-Notation "∅" := Nil.

@@ -1,50 +1,45 @@
 (* This is a /bad/ definition of FSets, without the 0-truncation.
    Here we show that the resulting type is not an h-set. *)
 
-Require Import HoTT.
-Require Import HitTactics.
+Require Import HoTT HitTactics.
+Require Import notation.
+
 Module Export FSet.
   
   Section FSet.
+    Private Inductive FSet (A : Type): Type :=
+    | E : FSet A
+    | L : A -> FSet A
+    | U : FSet A -> FSet A -> FSet A.
+
+    Global Instance fset_empty : hasEmpty FSet := E.
+    Global Instance fset_singleton : hasSingleton FSet := L.
+    Global Instance fset_union : hasUnion FSet := U.
+
     Variable A : Type.
 
-    Private Inductive FSet : Type :=
-    | E : FSet
-    | L : A -> FSet
-    | U : FSet -> FSet -> FSet.
-
-    Notation "{| x |}" :=  (L x).
-    Infix "∪" := U (at level 8, right associativity).
-    Notation "∅" := E.
-
-    Axiom assoc : forall (x y z : FSet ),
+    Axiom assoc : forall (x y z : FSet A),
         x ∪ (y ∪ z) = (x ∪ y) ∪ z.
 
-    Axiom comm : forall (x y : FSet),
+    Axiom comm : forall (x y : FSet A),
         x ∪ y = y ∪ x.
 
-    Axiom nl : forall (x : FSet),
+    Axiom nl : forall (x : FSet A),
         ∅ ∪ x = x.
 
-    Axiom nr : forall (x : FSet),
+    Axiom nr : forall (x : FSet A),
         x ∪ ∅ = x.
 
     Axiom idem : forall (x : A),
-        {| x |} ∪ {|x|} = {|x|}.
+        {|x|} ∪ {|x|} = {|x|}.
 
   End FSet.
 
-  Arguments E {_}.
-  Arguments U {_} _ _.
-  Arguments L {_} _.
   Arguments assoc {_} _ _ _.
   Arguments comm {_} _ _.
   Arguments nl {_} _.
   Arguments nr {_} _.
   Arguments idem {_} _.
-  Notation "{| x |}" :=  (L x).
-  Infix "∪" := U (at level 8, right associativity).
-  Notation "∅" := E.
 
   Section FSet_induction.
     Variable A: Type.
@@ -74,11 +69,10 @@ Module Export FSet.
              {struct x}
       : P x
       := (match x return _ -> _ -> _ -> _ -> _ -> P x with
-          | ∅ => fun _ _ _ _ _ => eP
-          | {|a|} => fun _ _ _ _ _ => lP a
-          | y ∪ z => fun _ _ _ _ _ => uP y z (FSet_ind y) (FSet_ind z)
+          | E => fun _ _ _ _ _ => eP
+          | L a => fun _ _ _ _ _ => lP a
+          | U y z => fun _ _ _ _ _ => uP y z (FSet_ind y) (FSet_ind z)
           end) assocP commP nlP nrP idemP.
-
 
     Axiom FSet_ind_beta_assoc : forall (x y z : FSet A),
         apD FSet_ind (assoc x y z) =
@@ -192,10 +186,6 @@ Module Export FSet.
 
 End FSet.
 
-Notation "{| x |}" :=  (L x).
-Infix "∪" := U (at level 8, right associativity).
-Notation "∅" := E.
-
 Section set_sphere.
   From HoTT.HIT Require Import Circle.
   Context `{Univalence}.
@@ -274,10 +264,10 @@ Section set_sphere.
     - simpl. reflexivity.
   Defined.
 
-  Lemma FSet_S_ap : (nl (@E A)) = (nr E) -> idpath = loop.
+  Lemma FSet_S_ap : (nl (E A)) = (nr ∅) -> idpath = loop.
   Proof.
     intros H1.
-    enough (ap FSet_to_S (nl E) = ap FSet_to_S (nr E)) as H'.
+    enough (ap FSet_to_S (nl ∅) = ap FSet_to_S (nr ∅)) as H'.
     - rewrite FSet_rec_beta_nl in H'. 
       rewrite FSet_rec_beta_nr in H'.
       simpl in H'. unfold S1op_nr in H'.

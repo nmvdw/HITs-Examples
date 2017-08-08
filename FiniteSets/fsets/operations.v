@@ -23,32 +23,6 @@ Section operations.
     - intros ; apply lor_idem.
   Defined.
 
-  Definition subset : FSet A -> FSet A -> hProp.
-  Proof.
-    intros X Y.
-    hrecursion X.
-    - exists Unit.
-      exact _.
-    - intros a.
-      apply (isIn a Y).
-    - intros X1 X2.
-      exists (prod X1 X2).
-      exact _.
-    - intros.
-      apply path_trunctype ; apply equiv_prod_assoc.
-    - intros.
-      apply path_trunctype ; apply equiv_prod_symm.
-    - intros.
-      apply path_trunctype ; apply prod_unit_l.
-    - intros.
-      apply path_trunctype ; apply prod_unit_r.
-    - intros a'.
-      apply path_iff_hprop ; cbn.
-      * intros [p1 p2]. apply p1.
-      * intros p.
-        split ; apply p.
-  Defined.
-
   Definition comprehension : 
     (A -> Bool) -> FSet A -> FSet A.
   Proof.
@@ -57,7 +31,7 @@ Section operations.
     - apply ∅.
     - intro a.
       refine (if (P a) then {|a|} else ∅).
-    - apply U.
+    - apply (∪).
     - apply assoc.
     - apply comm.
     - apply nl.
@@ -82,7 +56,7 @@ Section operations.
     - apply ∅.
     - intro b.
       apply {|(a, b)|}.
-    - apply U.
+    - apply (∪).
     - intros X Y Z ; apply assoc.
     - intros X Y ; apply comm.
     - intros ; apply nl.
@@ -97,7 +71,7 @@ Section operations.
     - apply ∅.
     - intro a.
       apply (single_product a Y).
-    - apply U.
+    - apply (∪).
     - intros ; apply assoc.
     - intros ; apply comm.
     - intros ; apply nl.
@@ -107,5 +81,48 @@ Section operations.
   
 End operations.
 
-Infix "∈" := isIn (at level 9, right associativity).
+Section instances_operations.
+  Global Instance fset_comprehension : hasComprehension FSet.
+  Proof.
+    intros A ϕ X.
+    apply (comprehension ϕ X).
+  Defined.
+
+  Context `{Univalence}.
+
+  Global Instance fset_member : hasMembership FSet.
+  Proof.
+    intros A a X.
+    apply (isIn a X).
+  Defined.
+
+  Context {A : Type}.
+  
+  Definition subset : FSet A -> FSet A -> hProp.
+  Proof.
+    intros X Y.
+    hrecursion X.
+    - exists Unit.
+      exact _.
+    - intros a.
+      apply (a ∈ Y).
+    - intros X1 X2.
+      exists (prod X1 X2).
+      exact _.
+    - intros.
+      apply path_trunctype ; apply equiv_prod_assoc.
+    - intros.
+      apply path_trunctype ; apply equiv_prod_symm.
+    - intros.
+      apply path_trunctype ; apply prod_unit_l.
+    - intros.
+      apply path_trunctype ; apply prod_unit_r.
+    - intros a'.
+      apply path_iff_hprop ; cbn.
+      * intros [p1 p2]. apply p1.
+      * intros p.
+        split ; apply p.
+  Defined.
+End instances_operations.
+
 Infix  "⊆" := subset (at level 10, right associativity).

@@ -12,25 +12,35 @@ Section Iso.
   Proof.
     hrecursion.
     - apply E.
-    - intros a x. apply (U (L a) x).
+    - intros a x.
+      apply ({|a|} ∪ x).
     - intros. cbn.  
       etransitivity. apply assoc.
-      apply (ap (fun y => U y x)).
+      apply (ap (∪ x)).
       apply idem.
     - intros. cbn.
       etransitivity. apply assoc.
-      etransitivity. refine (ap (fun y => U y x) _ ).
+      etransitivity. refine (ap (∪ x) _ ).
       apply FSet.comm.
       symmetry. 
       apply assoc.
   Defined.
 
-  Definition FSet_to_FSetC: FSet A -> FSetC A :=
-    FSet_rec A (FSetC A) (FSetC.trunc A) Nil singleton append append_assoc 
-             append_comm append_nl append_nr singleton_idem.
+  Definition FSet_to_FSetC: FSet A -> FSetC A.
+  Proof.
+    hrecursion.
+    - apply ∅.
+    - intro a. apply {|a|}.
+    - intros X Y. apply (X ∪ Y).
+    - apply append_assoc.
+    - apply append_comm.
+    - apply append_nl.
+    - apply append_nr.
+    - apply singleton_idem.
+  Defined.
 
   Lemma append_union: forall (x y: FSetC A), 
-      FSetC_to_FSet (append x y) = U (FSetC_to_FSet x) (FSetC_to_FSet y).
+      FSetC_to_FSet (x ∪ y) = (FSetC_to_FSet x) ∪ (FSetC_to_FSet y).
   Proof.
     intros x. 
     hrecursion x; try (intros; apply path_forall; intro; apply set_path2).

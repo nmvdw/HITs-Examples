@@ -4,9 +4,9 @@ Require Import representations.cons_repr.
 
 Section operations.
 
-  Context {A : Type}.
-
-  Definition append  (x y: FSetC A) : FSetC A.
+  Global Instance fsetc_union : hasUnion FSetC.
+  Proof.
+    intros A x y.
     hinduction x.
     - apply y.
     - apply Cns.
@@ -14,6 +14,6 @@ Section operations.
     - apply comm.
   Defined.
 
-  Definition singleton (a:A) : FSetC A := a;;∅.
+  Global Instance fsetc_singleton : hasSingleton FSetC := fun A a => a;;∅.
 
 End operations.

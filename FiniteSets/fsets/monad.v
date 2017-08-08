@@ -8,7 +8,7 @@ Proof.
   hrecursion.
   - exact ∅.
   - intro a. exact {| f a |}.
-  - exact U.
+  - intros X Y. apply (X ∪ Y).
   - apply assoc.
   - apply comm.
   - apply nl.
@@ -39,7 +39,7 @@ Proof.
 hrecursion.
 - exact ∅.
 - exact idmap.
-- exact U.
+- intros X Y. apply (X ∪ Y).
 - apply assoc.
 - apply comm.
 - apply nl.

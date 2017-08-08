@@ -33,7 +33,7 @@ Section decidable_A.
   Proof.
     hinduction ; try (intros ; apply path_ishprop).
     - intro ; apply _.
-    - intros ; apply _. 
+    - intros. apply _. 
     - intros ; apply _.
   Defined.
 

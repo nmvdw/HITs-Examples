@@ -71,10 +71,10 @@ Section operations_isIn.
   Defined.
 
   Lemma comprehension_isIn_b (Y : FSet A) (ϕ : A -> Bool) (a : A) :
-    isIn_b a (comprehension ϕ Y) = andb (isIn_b a Y) (ϕ a).
+    isIn_b a {|Y & ϕ|} = andb (isIn_b a Y) (ϕ a).
   Proof.
     unfold isIn_b, dec ; simpl.
-    destruct (isIn_decidable a (comprehension ϕ Y)) as [t | t]
+    destruct (isIn_decidable a {|Y & ϕ|}) as [t | t]
     ; destruct (isIn_decidable a Y) as [n | n] ; rewrite comprehension_isIn in t
     ; destruct (ϕ a) ; try reflexivity ; try contradiction.
   Defined.
@@ -105,50 +105,30 @@ Section SetLattice.
   Context {A_deceq : DecidablePaths A}.
   Context `{Univalence}.
 
-  Instance fset_max : maximum (FSet A) := U.
-  Instance fset_min : minimum (FSet A) := intersection.
-  Instance fset_bot : bottom (FSet A) := ∅.
+  Instance fset_max : maximum (FSet A).
+  Proof.
+    intros x y.
+    apply (x ∪ y).
+  Defined.
+      
+  Instance fset_min : minimum (FSet A).
+  Proof.
+    intros x y.
+    apply (intersection x y).
+  Defined.
   
+  Instance fset_bot : bottom (FSet A).
+  Proof.
+    unfold bottom.
+    apply ∅.
+  Defined.
+    
   Instance lattice_fset : Lattice (FSet A).
   Proof.
     split; toBool.
   Defined.
   
 End SetLattice.
-
-(* Comprehension properties *)
-Section comprehension_properties.
-
-  Context {A : Type}.
-  Context {A_deceq : DecidablePaths A}.
-  Context `{Univalence}.
-
-  Lemma comprehension_or : forall ϕ ψ (x: FSet A),
-      comprehension (fun a => orb (ϕ a) (ψ a)) x
-      = U (comprehension ϕ x) (comprehension ψ x).
-  Proof.
-    toBool.
-  Defined.
-  
-  (** comprehension properties *)
-  Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = ∅.
-  Proof.
-    toBool.
-  Defined.
-
-  Lemma comprehension_all : forall (X : FSet A),
-      comprehension (fun a => isIn_b a X) X = X.
-  Proof.
-    toBool.
-  Defined.
-  
-  Lemma comprehension_subset : forall ϕ (X : FSet A),
-      (comprehension ϕ X) ∪ X = X.
-  Proof.
-    toBool.
-  Defined.
-  
-End comprehension_properties.
 
 (* With extensionality we can prove decidable equality *)
 Section dec_eq.

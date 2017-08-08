@@ -1,5 +1,6 @@
 -R . "" COQC = hoqc COQDEP = hoqdep
 -R ../prelude ""
+notation.v
 lattice.v
 disjunction.v
 representations/bad.v

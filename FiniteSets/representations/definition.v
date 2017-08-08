@@ -1,50 +1,44 @@
 (* Definitions of the Kuratowski-finite sets via a HIT *)
-Require Import HoTT.
-Require Import HitTactics.
+Require Import HoTT HitTactics.
+Require Export notation.
 
 Module Export FSet.
   Section FSet.
+    Private Inductive FSet (A : Type) : Type :=
+    | E : FSet A
+    | L : A -> FSet A
+    | U : FSet A -> FSet A -> FSet A.
+
+    Global Instance fset_empty : hasEmpty FSet := E.
+    Global Instance fset_singleton : hasSingleton FSet := L.
+    Global Instance fset_union : hasUnion FSet := U.
+
     Variable A : Type.
-
-    Private Inductive FSet : Type :=
-    | E : FSet
-    | L : A -> FSet
-    | U : FSet -> FSet -> FSet.
-
-    Notation "{| x |}" :=  (L x).
-    Infix "∪" := U (at level 8, right associativity).
-    Notation "∅" := E.
-
-    Axiom assoc : forall (x y z : FSet ),
+    
+    Axiom assoc : forall (x y z : FSet A),
         x ∪ (y ∪ z) = (x ∪ y) ∪ z.
 
-    Axiom comm : forall (x y : FSet),
+    Axiom comm : forall (x y : FSet A),
         x ∪ y = y ∪ x.
 
-    Axiom nl : forall (x : FSet),
+    Axiom nl : forall (x : FSet A),
         ∅ ∪ x = x.
 
-    Axiom nr : forall (x : FSet),
+    Axiom nr : forall (x : FSet A),
         x ∪ ∅ = x.
 
     Axiom idem : forall (x : A),
-        {| x |} ∪ {|x|} = {|x|}.
+        {|x|} ∪ {|x|} = {|x|}.
 
-    Axiom trunc : IsHSet FSet.
+    Axiom trunc : IsHSet (FSet A).
 
   End FSet.
-  
-  Arguments E {_}.
-  Arguments U {_} _ _.
-  Arguments L {_} _.
+
   Arguments assoc {_} _ _ _.
   Arguments comm {_} _ _.
   Arguments nl {_} _.
   Arguments nr {_} _.
-  Arguments idem {_} _.
-  Notation "{| x |}" :=  (L x).
-  Infix "∪" := U (at level 8, right associativity).
-  Notation "∅" := E.
+  Arguments idem {_} _.  
 
   Section FSet_induction.
     Variable A: Type.
@@ -193,10 +187,6 @@ Module Export FSet.
     }.
 
 End FSet.
-
-Notation "{| x |}" :=  (L x).
-Infix "∪" := U (at level 8, right associativity).
-Notation "∅" := E.
 
 Lemma union_idem {A : Type} : forall x: FSet A, x ∪ x = x.
 Proof.

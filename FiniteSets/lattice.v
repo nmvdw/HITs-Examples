@@ -1,16 +1,15 @@
 (* Typeclass for lattices *)
 Require Import HoTT.
+Require Import notation.
 
 Section binary_operation.
   Variable A : Type.
   
-  Definition operation := A -> A -> A.
-
   Class maximum :=
-    max_L : operation.
+    max_L : operation A.
 
   Class minimum :=
-    min_L : operation.
+    min_L : operation A.
 
   Class bottom :=
     empty : A.
@@ -19,41 +18,6 @@ End binary_operation.
 Arguments max_L {_} {_} _.
 Arguments min_L {_} {_} _.
 Arguments empty {_}.
-
-Section Defs.
-  Variable A : Type.
-  Variable f : A -> A -> A.
-
-  Class Commutative :=
-    commutative : forall x y, f x y = f y x.
-
-  Class Associative :=
-    associativity : forall x y z, f (f x y) z = f x (f y z).
-
-  Class Idempotent :=
-    idempotency : forall x, f x x = x.
-
-  Variable g : operation A.
-
-  Class Absorption :=
-    absorb : forall x y, f x (g x y) = x.
-
-  Variable n : A.
-
-  Class NeutralL :=
-    neutralityL : forall x, f n x = x.
-
-  Class NeutralR :=
-    neutralityR : forall x, f x n = x.
-
-End Defs.
-
-Arguments Commutative {_} _.
-Arguments Associative {_} _.
-Arguments Idempotent {_} _.
-Arguments NeutralL {_} _ _.
-Arguments NeutralR {_} _ _.
-Arguments Absorption {_} _ _.
 
 Section JoinSemiLattice.
   Variable A : Type.

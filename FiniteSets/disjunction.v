@@ -1,6 +1,6 @@
 (* Logical disjunction in HoTT (see ch. 3 of the book) *)
 Require Import HoTT.
-Require Import lattice.
+Require Import lattice notation.
 
 Instance lor : maximum hProp := fun X Y => BuildhProp (Trunc (-1) (sum X Y)).
 
