@@ -1,6 +1,7 @@
 Require Import HoTT HitTactics.
 From fsets Require Import operations extensionality.
 Require Export representations.definition disjunction.
+Require Import lattice.
 
 (* Lemmas relating operations to the membership predicate *)
 Section characterize_isIn.
@@ -118,6 +119,14 @@ Ltac toHProp :=
 Section properties.
   Context {A : Type}.
   Context `{Univalence}.
+
+  Instance: bottom(FSet A) := ∅.
+  Instance: maximum(FSet A) := U.
+
+  Global Instance joinsemilattice_fset : JoinSemiLattice (FSet A).
+  Proof.
+    split ; toHProp.
+  Defined.  
 
   (** comprehension properties *)
   Lemma comprehension_false Y : comprehension (fun (_ : A) => false) Y = ∅.

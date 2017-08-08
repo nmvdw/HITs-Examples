@@ -55,6 +55,29 @@ Arguments NeutralL {_} _ _.
 Arguments NeutralR {_} _ _.
 Arguments Absorption {_} _ _.
 
+Section JoinSemiLattice.
+  Variable A : Type.
+  Context {max_L : maximum A} {empty_L : bottom A}.
+
+  Class JoinSemiLattice :=
+    {
+      commutative_max_js :> Commutative max_L ;
+      associative_max_js :> Associative max_L ;
+      idempotent_max_js :> Idempotent max_L ;
+      neutralL_max_js :> NeutralL max_L empty_L ;
+      neutralR_max_js :> NeutralR max_L empty_L ;
+    }.
+End JoinSemiLattice.
+
+Arguments JoinSemiLattice _ {_} {_}.
+
+Create HintDb joinsemilattice_hints.
+Hint Resolve associativity : joinsemilattice_hints.
+Hint Resolve commutative : joinsemilattice_hints.
+Hint Resolve idempotency : joinsemilattice_hints.
+Hint Resolve neutralityL : joinsemilattice_hints.
+Hint Resolve neutralityR : joinsemilattice_hints.
+
 Section Lattice.
   Variable A : Type.
   Context {max_L : maximum A} {min_L : minimum A} {empty_L : bottom A}.
