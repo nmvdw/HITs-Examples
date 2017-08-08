@@ -48,31 +48,44 @@ Arguments neutralityR {_} {_} {_} {_} _.
 Arguments absorb {_} {_} {_} {_} _ _.
 
 Section structure.
-  Variable (T : Type -> Type).
+  Variable (T A : Type).
   
   Class hasMembership : Type :=
-    member : forall A : Type, A -> T A -> hProp.
+    member : A -> T -> hProp.
+
+  Class hasMembership_decidable : Type :=
+    member_dec : A -> T -> Bool.
+
+  Class hasSubset : Type :=
+    subset : T -> T -> hProp.
+
+  Class hasSubset_decidable : Type :=
+    subset_dec : T -> T -> Bool.
 
   Class hasEmpty : Type :=
-    empty : forall A, T A.
+    empty : T.
 
   Class hasSingleton : Type :=
-    singleton : forall A, A -> T A.
+    singleton : A -> T.
   
   Class hasUnion : Type :=
-    union : forall A, T A -> T A -> T A.
+    union : T -> T -> T.
 
   Class hasIntersection : Type :=
-    intersection : forall A, T A -> T A -> T A.
+    intersection : T -> T -> T.
 
   Class hasComprehension : Type :=
-    filter : forall A, (A -> Bool) -> T A -> T A.
+    filter : (A -> Bool) -> T -> T.
 End structure.
 
 Arguments member {_} {_} {_} _ _.
-Arguments empty {_} {_} {_}.
+Arguments subset {_} {_} _ _.
+Arguments member_dec {_} {_} {_} _ _.
+Arguments subset_dec {_} {_} _ _.
+Arguments empty {_} {_}.
 Arguments singleton {_} {_} {_} _.
-Arguments union {_} {_} {_} _ _.
+Arguments union {_} {_} _ _.
+Arguments intersection {_} {_} _ _.
 Arguments filter {_} {_} {_} _ _.
 
 Notation "∅" := empty.
@@ -87,3 +100,6 @@ Notation "( X ∩ )" := (intersection X) (only parsing).
 Notation "( ∩ Y )" := (fun X => X ∩ Y) (only parsing).
 Notation "{| X & ϕ |}" := (filter ϕ X).
 Infix "∈" := member (at level 9, right associativity).
+Infix  "⊆" := subset (at level 10, right associativity).
+Infix "∈_d" := member_dec (at level 9, right associativity).
+Infix  "⊆_d" := subset_dec (at level 10, right associativity).

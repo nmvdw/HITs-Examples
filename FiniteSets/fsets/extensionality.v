@@ -45,7 +45,7 @@ Section ext.
     - intros a Y.
       apply (tr(inl(tr idpath))).
     - intros X1 X2 HX1 HX2 Y.
-      split. 
+      split ; unfold subset in *.
       * rewrite <- assoc. apply HX1.
       * rewrite (comm X1 X2). rewrite <- assoc. apply HX2.
   Defined.
@@ -64,7 +64,7 @@ Section ext.
 
   Lemma subset_isIn (X Y : FSet A) :
     (forall (a : A), a ∈ X -> a ∈ Y)
-      <~> (X ⊆ Y).
+      <~> X ⊆ Y.
   Proof.
     eapply equiv_iff_hprop_uncurried.
     split.

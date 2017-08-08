@@ -150,7 +150,7 @@ Section properties.
   Defined.  
 
   (** comprehension properties *)
-  Lemma comprehension_false X : {|X & (fun (_ : A) => false)|} = ∅.
+  Lemma comprehension_false : forall (X : FSet A), {|X & fun _ => false|} = ∅.
   Proof.
     toHProp.
   Defined.
@@ -172,7 +172,7 @@ Section properties.
   Defined.
 
   Lemma comprehension_all : forall (X : FSet A),
-      comprehension (fun a => true) X = X.
+      {|X & fun _ => true|} = X.
   Proof.
     toHProp.
   Defined.

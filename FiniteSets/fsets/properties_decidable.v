@@ -8,13 +8,13 @@ Section operations_isIn.
 
   Context {A : Type} `{DecidablePaths A} `{Univalence}.
 
-  Lemma ext : forall (S T : FSet A), (forall a, isIn_b a S = isIn_b a T) -> S = T.
+  Lemma ext : forall (S T : FSet A), (forall a, a ∈_d S = a ∈_d T) -> S = T.
   Proof.
     intros X Y H2.
     apply fset_ext.
     intro a.
     specialize (H2 a).
-    unfold isIn_b, dec in H2.
+    unfold member_dec, fset_member_bool, dec in H2.
     destruct (isIn_decidable a X) ; destruct (isIn_decidable a Y).
     - apply path_iff_hprop ; intro ; assumption.
     - contradiction (true_ne_false).
@@ -23,7 +23,7 @@ Section operations_isIn.
   Defined.
 
   Lemma empty_isIn (a : A) :
-    isIn_b a ∅ = false.
+    a ∈_d ∅ = false.
   Proof.
     reflexivity.
   Defined.
@@ -35,9 +35,9 @@ Section operations_isIn.
   Defined.
 
   Lemma L_isIn_b_true (a b : A) (p : a = b) :
-    isIn_b a {|b|} = true.
+    a ∈_d {|b|} = true.
   Proof.
-    unfold isIn_b, dec.
+    unfold member_dec, fset_member_bool, dec.
     destruct (isIn_decidable a {|b|}) as [n | n] .
     - reflexivity.
     - simpl in n.
@@ -45,15 +45,15 @@ Section operations_isIn.
   Defined.
 
   Lemma L_isIn_b_aa (a : A) :
-    isIn_b a {|a|} = true.
+    a ∈_d {|a|} = true.
   Proof.
     apply L_isIn_b_true ; reflexivity.
   Defined.
 
   Lemma L_isIn_b_false (a b : A) (p : a <> b) :
-    isIn_b a {|b|} = false.
+    a ∈_d {|b|} = false.
   Proof.
-    unfold isIn_b, dec.
+    unfold member_dec, fset_member_bool, dec in *.
     destruct (isIn_decidable a {|b|}).
     - simpl in t.
       strip_truncations.
@@ -63,24 +63,25 @@ Section operations_isIn.
   
   (* Union and membership *)
   Lemma union_isIn_b (X Y : FSet A) (a : A) :
-    isIn_b a (X ∪ Y) = orb (isIn_b a X) (isIn_b a Y).
+    a ∈_d (X ∪ Y) = orb (a ∈_d X) (a ∈_d Y).
   Proof.
-    unfold isIn_b ; unfold dec.
+    unfold member_dec, fset_member_bool, dec.
     simpl.
     destruct (isIn_decidable a X) ; destruct (isIn_decidable a Y) ; reflexivity.
   Defined.
 
   Lemma comprehension_isIn_b (Y : FSet A) (ϕ : A -> Bool) (a : A) :
-    isIn_b a {|Y & ϕ|} = andb (isIn_b a Y) (ϕ a).
+    a ∈_d {|Y & ϕ|} = andb (a ∈_d Y) (ϕ a).
   Proof.
-    unfold isIn_b, dec ; simpl.
+    unfold member_dec, fset_member_bool, dec ; simpl.
     destruct (isIn_decidable a {|Y & ϕ|}) as [t | t]
     ; destruct (isIn_decidable a Y) as [n | n] ; rewrite comprehension_isIn in t
-    ; destruct (ϕ a) ; try reflexivity ; try contradiction.
+    ; destruct (ϕ a) ; try reflexivity ; try contradiction
+    ; try (contradiction (n t)) ; contradiction (t n).
   Defined.
 
   Lemma intersection_isIn_b (X Y: FSet A) (a : A) :
-    isIn_b a (intersection X Y) = andb (isIn_b a X) (isIn_b a Y).
+    a ∈_d (intersection X Y) = andb (a ∈_d X) (a ∈_d Y).
   Proof.
     apply comprehension_isIn_b.
   Defined.
@@ -114,7 +115,7 @@ Section SetLattice.
   Instance fset_min : minimum (FSet A).
   Proof.
     intros x y.
-    apply (intersection x y).
+    apply (x ∩ y).
   Defined.
   
   Instance fset_bot : bottom (FSet A).

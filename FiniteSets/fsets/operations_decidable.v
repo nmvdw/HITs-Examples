@@ -6,8 +6,9 @@ Section decidable_A.
   Context {A : Type}.
   Context {A_deceq : DecidablePaths A}.
   Context `{Univalence}.
-
-  Global Instance isIn_decidable : forall (a : A) (X : FSet A), Decidable (a ∈ X).
+  
+  Global Instance isIn_decidable : forall (a : A) (X : FSet A),
+      Decidable (a ∈ X).
   Proof.
     intros a.
     hinduction ; try (intros ; apply path_ishprop).
@@ -23,26 +24,31 @@ Section decidable_A.
     - intros. apply _. 
   Defined.
 
-  Definition isIn_b (a : A) (X : FSet A) :=
-    match dec (a ∈ X) with
-    | inl _ => true
-    | inr _ => false
-    end.
-  
+  Global Instance fset_member_bool : hasMembership_decidable (FSet A) A.
+  Proof.
+    intros a X.
+    destruct (dec (a ∈ X)).
+    - apply true.
+    - apply false.
+  Defined.
+
   Global Instance subset_decidable : forall (X Y : FSet A), Decidable (X ⊆ Y).
   Proof.
     hinduction ; try (intros ; apply path_ishprop).
     - intro ; apply _.
-    - intros. apply _. 
-    - intros ; apply _.
+    - intros ; apply _. 
+    - intros. unfold subset in *. apply _.
   Defined.
 
-  Definition subset_b (X Y : FSet A) :=
-    match dec (X ⊆ Y) with
-    | inl _ => true
-    | inr _ => false
-    end.
+  Global Instance fset_subset_bool : hasSubset_decidable (FSet A).
+  Proof.
+    intros X Y.
+    destruct (dec (X ⊆ Y)).
+    - apply true.
+    - apply false.
+  Defined.
 
-  Definition intersection (X Y : FSet A) : FSet A := comprehension (fun a => isIn_b a Y) X. 
+  Global Instance fset_intersection : hasIntersection (FSet A)
+    := fun X Y => {|X & (fun a => a ∈_d Y)|}. 
 
 End decidable_A.

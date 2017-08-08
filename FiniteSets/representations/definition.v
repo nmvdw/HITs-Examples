@@ -9,9 +9,9 @@ Module Export FSet.
     | L : A -> FSet A
     | U : FSet A -> FSet A -> FSet A.
 
-    Global Instance fset_empty : hasEmpty FSet := E.
-    Global Instance fset_singleton : hasSingleton FSet := L.
-    Global Instance fset_union : hasUnion FSet := U.
+    Global Instance fset_empty : forall A, hasEmpty (FSet A) := E.
+    Global Instance fset_singleton : forall A, hasSingleton (FSet A) A := L.
+    Global Instance fset_union : forall A, hasUnion (FSet A) := U.
 
     Variable A : Type.
     

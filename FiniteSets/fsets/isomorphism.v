@@ -45,7 +45,7 @@ Section Iso.
     intros x. 
     hrecursion x; try (intros; apply path_forall; intro; apply set_path2).
     - intros. symmetry. apply nl.
-    - intros a x HR y. rewrite HR. apply assoc.
+    - intros a x HR y. unfold union, fsetc_union in *. rewrite HR. apply assoc.
   Defined.
 
   Lemma repr_iso_id_l: forall (x: FSet A), FSetC_to_FSet (FSet_to_FSetC x) = x.
@@ -55,7 +55,6 @@ Section Iso.
     - intro. apply nr.
     - intros x y p q. rewrite append_union, p, q. reflexivity.
   Defined.
-
 
   Lemma repr_iso_id_r: forall (x: FSetC A), FSet_to_FSetC (FSetC_to_FSet x) = x.
   Proof.

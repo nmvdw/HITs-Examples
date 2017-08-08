@@ -3,12 +3,11 @@ Require Import HoTT HitTactics.
 Require Import representations.definition disjunction lattice.
 
 Section operations.
-  Context {A : Type}.
   Context `{Univalence}.
 
-  Definition isIn : A -> FSet A -> hProp.
+  Global Instance fset_member : forall A, hasMembership (FSet A) A.
   Proof.
-    intros a.
+    intros A a.
     hrecursion.
     - exists Empty.
       exact _.
@@ -23,10 +22,9 @@ Section operations.
     - intros ; apply lor_idem.
   Defined.
 
-  Definition comprehension : 
-    (A -> Bool) -> FSet A -> FSet A.
+  Global Instance fset_comprehension : forall A, hasComprehension (FSet A) A.
   Proof.
-    intros P.
+    intros A P.
     hrecursion.
     - apply ∅.
     - intro a.
@@ -42,7 +40,7 @@ Section operations.
       + apply nl.
   Defined.
 
-  Definition isEmpty :
+  Definition isEmpty (A : Type) :
     FSet A -> Bool.
   Proof.
     simple refine (FSet_rec _ _ _ true (fun _ => false) andb _ _ _ _ _)
@@ -50,7 +48,7 @@ Section operations.
     intros ; symmetry ; eauto with lattice_hints typeclass_instances.
   Defined.
 
-  Definition single_product {B : Type} (a : A) : FSet B -> FSet (A * B).
+  Definition single_product {A B : Type} (a : A) : FSet B -> FSet (A * B).
   Proof.
     hrecursion.
     - apply ∅.
@@ -64,7 +62,7 @@ Section operations.
     - intros ; apply idem.
   Defined.
         
-  Definition product {B : Type} : FSet A -> FSet B -> FSet (A * B).
+  Definition product {A B : Type} : FSet A -> FSet B -> FSet (A * B).
   Proof.
     intros X Y.
     hrecursion X.
@@ -78,29 +76,10 @@ Section operations.
     - intros ; apply nr.
     - intros ; apply union_idem.
   Defined.
-  
-End operations.
-
-Section instances_operations.
-  Global Instance fset_comprehension : hasComprehension FSet.
+   
+  Global Instance fset_subset : forall A, hasSubset (FSet A).
   Proof.
-    intros A ϕ X.
-    apply (comprehension ϕ X).
-  Defined.
-
-  Context `{Univalence}.
-
-  Global Instance fset_member : hasMembership FSet.
-  Proof.
-    intros A a X.
-    apply (isIn a X).
-  Defined.
-
-  Context {A : Type}.
-  
-  Definition subset : FSet A -> FSet A -> hProp.
-  Proof.
-    intros X Y.
+    intros A X Y.
     hrecursion X.
     - exists Unit.
       exact _.
@@ -123,6 +102,4 @@ Section instances_operations.
       * intros p.
         split ; apply p.
   Defined.
-End instances_operations.
-
-Infix  "⊆" := subset (at level 10, right associativity).
+End operations.

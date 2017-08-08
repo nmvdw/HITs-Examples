@@ -9,24 +9,22 @@ Section Length.
   Context {A_deceq : DecidablePaths A}.
   Context `{Univalence}.
 
-  Opaque isIn_b.
-
   Definition length (x : FSetC A) : nat.
   Proof.
     simple refine (FSetC_ind A _ _ _ _ _ _ x ); simpl.
     - exact 0.
     - intros a y n. 
       pose (y' := FSetC_to_FSet y).
-      exact (if isIn_b a y' then n else (S n)).
-    - intros. rewrite transport_const. cbn.
-      simplify_isIn_b. simpl. reflexivity.
-    - intros. rewrite transport_const. cbn.
+      exact (if a ∈_d y' then n else (S n)).
+    - intros. rewrite transport_const. simpl.
+      simplify_isIn_b. reflexivity.
+    - intros. rewrite transport_const. simpl.
       simplify_isIn_b.
       destruct (dec (a = b)) as [Hab | Hab].
-      + rewrite Hab. simplify_isIn_b. simpl. reflexivity.
+      + rewrite Hab. simplify_isIn_b. reflexivity.
       + rewrite ?L_isIn_b_false; auto.
         ++ simpl. 
-           destruct (isIn_b a (FSetC_to_FSet x0)), (isIn_b b (FSetC_to_FSet x0))
+           destruct (a ∈_d (FSetC_to_FSet x0)), (b ∈_d (FSetC_to_FSet x0))
            ; reflexivity.
         ++ intro p. contradiction (Hab p^).
   Defined.

@@ -3,8 +3,7 @@ Require Import HoTT HitTactics.
 Require Import representations.cons_repr.
 
 Section operations.
-
-  Global Instance fsetc_union : hasUnion FSetC.
+  Global Instance fsetc_union : forall A, hasUnion (FSetC A).
   Proof.
     intros A x y.
     hinduction x.
@@ -14,6 +13,6 @@ Section operations.
     - apply comm.
   Defined.
 
-  Global Instance fsetc_singleton : hasSingleton FSetC := fun A a => a;;∅.
+  Global Instance fsetc_singleton : forall A, hasSingleton (FSetC A) A := fun A a => a;;∅.
 
 End operations.

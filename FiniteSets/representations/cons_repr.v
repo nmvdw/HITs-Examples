@@ -9,7 +9,7 @@ Module Export FSetC.
     | Nil : FSetC A
     | Cns : A ->  FSetC A -> FSetC A.
 
-    Global Instance fset_empty : hasEmpty FSetC := Nil.
+    Global Instance fset_empty : forall A,hasEmpty (FSetC A) := Nil.
 
     Variable A : Type.
     Arguments Cns {_} _ _.
