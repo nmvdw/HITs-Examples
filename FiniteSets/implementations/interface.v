@@ -292,4 +292,42 @@ Proof.
   eapply union_neutral; eauto.
 Defined.
 
+Definition View_FSet A : View A -> FSet A.
+Proof.
+hrecursion.
+- apply f.
+- done.
+Defined.
+
+Instance View_emb A : IsEmbedding (View_FSet A).
+Proof.
+apply isembedding_isinj_hset.
+unfold isinj.
+hrecursion; [ | intros; apply path_ishprop ]. intro X.
+hrecursion; [ | intros; apply path_ishprop ]. intro Y.
+intros. by apply related_classes_eq.
+Defined.
+
+Instance View_surj A: IsSurjection (View_FSet A).
+Proof.
+apply BuildIsSurjection.
+intros X. apply tr.
+hrecursion X; try (intros; apply path_ishprop).
+- exists ∅. simpl. eapply f_empty; eauto.
+- intros a. exists {|a|}; simpl. eapply f_singleton; eauto.
+- intros X Y [pX HpX] [pY HpY].
+  exists (pX ∪ pY); simpl.
+  rewrite <- HpX, <- HpY.
+  clear HpX HpY.
+  hrecursion pY; [ | intros; apply set_path2]. intro tY.
+  hrecursion pX; [ | intros; apply set_path2]. intro tX.
+  eapply f_union; eauto.
+Defined.
+
+Definition view_iso A : View A <~> FSet A.
+Proof.
+refine (BuildEquiv _ _ (View_FSet A) _).
+apply isequiv_surj_emb; apply _.
+Defined.
+
 End quot.
