@@ -102,4 +102,59 @@ Section operations.
       * intros p.
         split ; apply p.
   Defined.
+
+  Definition map (A B : Type) (f : A -> B) : FSet A -> FSet B.
+  Proof.
+    hrecursion.
+    - apply ∅.
+    - intro a.
+      apply {|f a|}.
+    - apply (∪).
+    - apply assoc.
+    - apply comm.
+    - apply nl.
+    - apply nr.
+    - intros.
+      apply idem.
+  Defined.
+
+  Local Ltac remove_transport
+    := intros ; apply path_forall ; intro Z ; rewrite transport_arrow
+       ; rewrite transport_const ; simpl.
+  Local Ltac pointwise
+    := repeat (f_ap) ; try (apply path_forall ; intro Z2) ;
+      rewrite transport_arrow, transport_const, transport_sigma
+      ; f_ap ; hott_simpl ; simple refine (path_sigma _ _ _ _ _)
+      ; try (apply transport_const) ; try (apply path_ishprop).
+
+  Lemma separation (A B : Type) : forall (X : FSet A) (f : {a | a ∈ X} -> B), FSet B.
+  Proof.
+    hinduction.
+    - intros f.
+      apply ∅.
+    - intros a f.
+      apply {|f (a; tr idpath)|}.
+    - intros X1 X2 HX1 HX2 f.
+      pose (fX1 := fun Z : {a : A & a ∈ X1} => f (pr1 Z;tr (inl (pr2 Z)))).
+      pose (fX2 := fun Z : {a : A & a ∈ X2} => f (pr1 Z;tr (inr (pr2 Z)))).
+      specialize (HX1 fX1).
+      specialize (HX2 fX2).
+      apply (HX1 ∪ HX2).
+    - remove_transport.
+      rewrite assoc.
+      pointwise.
+    - remove_transport.
+      rewrite comm.
+      pointwise.
+    - remove_transport.
+      rewrite nl.
+      pointwise.
+    - remove_transport.
+      rewrite nr.
+      pointwise.
+    - remove_transport.
+      rewrite <- (idem (Z (x; tr 1%path))).
+      pointwise.
+  Defined.  
+      
 End operations.

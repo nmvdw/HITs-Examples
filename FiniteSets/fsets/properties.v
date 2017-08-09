@@ -203,27 +203,19 @@ Section properties.
         apply (tr (inl Xa)).
   Defined.
 
-(*
-  Lemma separation : forall (X : FSet A) (f : {a | a ∈ X} -> B),
-      hexists (fun Y : FSet B => forall (b : B),
-                   b ∈ Y = hexists (fun a => hexists (fun (p : a ∈ X) => f (a;p) = b))).
+  Lemma separation_isIn (B : Type) : forall (X : FSet A) (f : {a | a ∈ X} -> B) (b : B),
+      b ∈ (separation A B X f) = hexists (fun a : A => hexists (fun (p : a ∈ X) => f (a;p) = b)).
   Proof.
     hinduction ; try (intros ; apply path_forall ; intro ; apply path_ishprop).
     - intros ; simpl.
-      apply tr.
-      exists ∅.
-      intros ; simpl.
       apply path_iff_hprop ; try contradiction.
-      intros.
+      intros X.
       strip_truncations.
       destruct X as [a X].
       strip_truncations.
       destruct X as [p X].
       assumption.
-    - intros a f.
-      apply tr.
-      exists {|f (a;tr idpath)|}.
-      intros.
+    - intros.
       apply path_iff_hprop ; simpl.
       * intros ; strip_truncations.
         apply tr.
@@ -231,7 +223,7 @@ Section properties.
         apply tr.
         exists (tr idpath).
         apply X^.
-      * intros ; strip_truncations.
+      * intros X ; strip_truncations.
         destruct X as [a0 X].
         strip_truncations.
         destruct X as [X q].
@@ -243,26 +235,19 @@ Section properties.
         simple refine (path_sigma _ _ _ _ _).
         ** apply p.
         ** apply path_ishprop.
-    - intros X1 X2 HX1 HX2 f.
+    - intros X1 X2 HX1 HX2 f b.
       pose (fX1 := fun Z : {a : A & a ∈ X1} => f (pr1 Z;tr (inl (pr2 Z)))).
       pose (fX2 := fun Z : {a : A & a ∈ X2} => f (pr1 Z;tr (inr (pr2 Z)))).
-      specialize (HX1 fX1).
-      specialize (HX2 fX2).
-      strip_truncations.
-      destruct HX1 as [Y1 fY1].
-      destruct HX2 as [Y2 fY2].
-      apply tr.
-      exists (Y1 ∪ Y2).
-      intros b.
-      specialize (fY1 b).
-      specialize (fY2 b).
-      cbn.
-      rewrite fY1, fY2.
+      specialize (HX1 fX1 b).
+      specialize (HX2 fX2 b).
       apply path_iff_hprop.
-      * intros.
+      * intros X.
+        rewrite union_isIn in X.
         strip_truncations.
-        destruct X as [X | X] ; strip_truncations.
-        ** destruct X as [a Ha].
+        destruct X as [X | X].
+        ** rewrite HX1 in X.
+           strip_truncations.
+           destruct X as [a Ha].
            apply tr.
            exists a.
            strip_truncations.
@@ -270,9 +255,10 @@ Section properties.
            apply tr.
            exists (tr(inl p)).
            rewrite <- pa.
-           unfold fX1.
            reflexivity.
-        ** destruct X as [a Ha].
+        ** rewrite HX2 in X.
+           strip_truncations.
+           destruct X as [a Ha].
            apply tr.
            exists a.
            strip_truncations.
@@ -280,15 +266,17 @@ Section properties.
            apply tr.
            exists (tr(inr p)).
            rewrite <- pa.
-           unfold fX2.
            reflexivity.
       * intros.
         strip_truncations.
         destruct X as [a X].
         strip_truncations.
         destruct X as [Ha p].
+        rewrite union_isIn.
         simple refine (Trunc_ind _ _ Ha) ; intros [Ha1 | Ha2].
-        ** refine (tr(inl(tr _))).
+        ** refine (tr(inl _)).
+           rewrite HX1.
+           apply tr.
            exists a.
            apply tr.
            exists Ha1.
@@ -296,7 +284,9 @@ Section properties.
            unfold fX1.
            repeat f_ap.
            apply path_ishprop.
-        ** refine (tr(inr(tr _))).
+        ** refine (tr(inr _)).
+           rewrite HX2.
+           apply tr.
            exists a.
            apply tr.
            exists Ha2.
@@ -305,6 +295,5 @@ Section properties.
            repeat f_ap.
            apply path_ishprop.
   Defined.
-*)
   
 End properties.
