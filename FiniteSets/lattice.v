@@ -4,7 +4,7 @@ Require Import notation.
 
 Section binary_operation.
   Variable A : Type.
-  
+
   Class maximum :=
     max_L : operation A.
 
@@ -75,7 +75,7 @@ Section BoolLattice.
 
   Ltac solve_bool :=
     let x := fresh in
-    repeat (intro x ; destruct x) 
+    repeat (intro x ; destruct x)
     ; compute
     ; auto
     ; try contradiction.
@@ -83,12 +83,12 @@ Section BoolLattice.
   Instance maximum_bool : maximum Bool := orb.
   Instance minimum_bool : minimum Bool := andb.
   Instance bottom_bool : bottom Bool := false.
-  
+
   Global Instance lattice_bool : Lattice Bool.
   Proof.
     split ; solve_bool.
   Defined.
-  
+
   Definition and_true : forall b, andb b true = b.
   Proof.
     solve_bool.
@@ -116,7 +116,7 @@ Section BoolLattice.
   Proof.
     solve_bool.
   Defined.
-  
+
 End BoolLattice.
 
 Section fun_lattice.
@@ -141,7 +141,7 @@ Section fun_lattice.
   Proof.
     split ; solve_fun.
   Defined.
-  
+
 End fun_lattice.
 
 Section sub_lattice.
@@ -152,7 +152,7 @@ Section sub_lattice.
   Context {Hbot : P empty_L}.
 
   Definition AP : Type := sig P.
-  
+
   Instance botAP : bottom AP := (empty_L ; Hbot).
 
   Instance maxAP : maximum AP :=
@@ -174,17 +174,17 @@ Section sub_lattice.
 
   Ltac solve_sub :=
     let x := fresh in
-    repeat (intro x ; destruct x) 
+    repeat (intro x ; destruct x)
     ; simple refine (path_sigma _ _ _ _ _)
     ; simpl
     ; try (apply hprop_sub)
     ; eauto 3 with lattice_hints typeclass_instances.
-  
+
   Global Instance lattice_sub : Lattice AP.
   Proof.
     split ; solve_sub.
   Defined.
-  
+
 End sub_lattice.
 
 Create HintDb bool_lattice_hints.

@@ -7,7 +7,7 @@ Module Export T.
 
     Private Inductive T (B : Type) : Type :=
     | b : T B
-    | c : T B.    
+    | c : T B.
 
     Axiom p : A -> b A = c A.
     Axiom setT : IsHSet (T A).
@@ -23,7 +23,7 @@ Module Export T.
     Variable (bP : P (b A)).
     Variable (cP : P (c A)).
     Variable (pP : forall a : A, (p a) # bP = cP).
-    
+
     (* Induction principle *)
     Fixpoint T_ind
              (x : T A)
@@ -31,7 +31,7 @@ Module Export T.
       : P x
       := (match x return _ -> _ -> P x with
           | b => fun _ _ => bP
-          | c => fun _ _ => cP                              
+          | c => fun _ _ => cP
           end) pP H.
 
     Axiom T_ind_beta_p : forall (a : A),
@@ -68,7 +68,7 @@ Module Export T.
   End T_recursion.
 
   Instance T_recursion A : HitRecursion (T A)
-    := {indTy := _; recTy := _; 
+    := {indTy := _; recTy := _;
         H_inductor := T_ind A; H_recursor := T_rec A }.
 
 End T.
@@ -119,44 +119,44 @@ Section merely_dec_lem.
 
   Local Ltac f_prop := apply path_forall ; intro ; apply path_ishprop.
 
-  Lemma transport_code_b_x (a : A) : 
+  Lemma transport_code_b_x (a : A) :
     transport code_b (p a) = fun _ => a.
   Proof.
     f_prop.
   Defined.
 
-  Lemma transport_code_c_x (a : A) : 
+  Lemma transport_code_c_x (a : A) :
     transport code_c (p a) = fun _ => tt.
   Proof.
-    f_prop.    
+    f_prop.
   Defined.
 
-  Lemma transport_code_c_x_V (a : A) : 
+  Lemma transport_code_c_x_V (a : A) :
     transport code_c (p a)^ = fun _ => a.
-  Proof. 
-    f_prop.    
+  Proof.
+    f_prop.
   Defined.
 
-  Lemma transport_code_x_b (a : A) : 
+  Lemma transport_code_x_b (a : A) :
     transport (fun x => code x (b A)) (p a) = fun _ => a.
   Proof.
     f_prop.
   Defined.
 
-  Lemma transport_code_x_c (a : A) : 
+  Lemma transport_code_x_c (a : A) :
     transport (fun x => code x (c A)) (p a) = fun _ => tt.
   Proof.
     f_prop.
   Defined.
 
-  Lemma transport_code_x_c_V (a : A) : 
+  Lemma transport_code_x_c_V (a : A) :
     transport (fun x => code x (c A)) (p a)^ = fun _ => a.
   Proof.
     f_prop.
   Defined.
 
   Lemma ap_diag {B : Type} {x y : B} (p : x = y) :
-    ap (fun x : B => (x, x)) p = path_prod' p p.   
+    ap (fun x : B => (x, x)) p = path_prod' p p.
   Proof.
       by path_induction.
   Defined.
@@ -217,7 +217,7 @@ Section merely_dec_lem.
       refine (transport_arrow _ _ _ @ _).
       refine (transport_paths_FlFr _ _ @ _).
       rewrite transport_code_c_x_V.
-      hott_simpl.      
+      hott_simpl.
   Defined.
 
   Lemma transport_paths_FlFr_trunc :
@@ -229,7 +229,7 @@ Section merely_dec_lem.
     refine (ap tr _).
     exact ((concat_1p r)^ @ (concat_p1 (1 @ r))^).
   Defined.
-  
+
   Definition decode : forall (x y : T A), code x y -> x = y.
   Proof.
     simple refine (T_ind _ _ _ _ _ _); simpl.
@@ -248,7 +248,7 @@ Section merely_dec_lem.
         f_ap.
         refine (ap (fun x => (p x)) _).
         apply path_ishprop.
-      + intro.        
+      + intro.
         rewrite transport_code_x_c_V.
         hott_simpl.
       + intro b.
@@ -264,7 +264,7 @@ Section merely_dec_lem.
     intros p. induction p.
     simpl. revert u. simple refine (T_ind _ _ _ _ _ _).
     + simpl. reflexivity.
-    + simpl. reflexivity.    
+    + simpl. reflexivity.
     + intro a.
       apply set_path2.
   Defined.
@@ -278,12 +278,12 @@ Section merely_dec_lem.
       + simpl. intro a. apply path_ishprop.
       + intro a. apply path_forall; intros ?. apply set_path2.
     - simple refine (T_ind _ _ _ _ _ _).
-      + simpl. intro a. apply path_ishprop. 
-      + simpl. apply path_ishprop. 
+      + simpl. intro a. apply path_ishprop.
+      + simpl. apply path_ishprop.
       + intro a. apply path_forall; intros ?. apply set_path2.
     - intro a. repeat (apply path_forall; intros ?). apply set_path2.
   Defined.
-  
+
 
   Instance T_hprop (a : A) : IsHProp (b A = c A).
   Proof.
@@ -307,7 +307,7 @@ Section merely_dec_lem.
     rewrite ?decode_encode in H1.
     apply H1.
   Defined.
-  
+
   Lemma equiv_pathspace_T : (b A = c A) = A.
   Proof.
     apply path_iff_ishprop.

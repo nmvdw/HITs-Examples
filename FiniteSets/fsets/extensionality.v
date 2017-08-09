@@ -6,7 +6,7 @@ Section ext.
   Context {A : Type}.
   Context `{Univalence}.
 
-  Lemma subset_union (X Y : FSet A) : 
+  Lemma subset_union (X Y : FSet A) :
     X ⊆ Y -> X ∪ Y = Y.
   Proof.
     hinduction X ; try (intros; apply path_forall; intro; apply set_path2).
@@ -17,7 +17,7 @@ Section ext.
         contradiction.
       + intro a0.
         simple refine (Trunc_ind _ _).
-        intro p ; simpl. 
+        intro p ; simpl.
         rewrite p; apply idem.
       + intros X1 X2 IH1 IH2.
         simple refine (Trunc_ind _ _).
@@ -112,8 +112,8 @@ Section ext.
     unshelve esplit.
     { intros [H1 H2]. etransitivity. apply H1^.
       rewrite comm. apply H2. }
-    intro; apply path_prod; apply set_path2. 
-    all: intro; apply set_path2.  
+    intro; apply path_prod; apply set_path2.
+    all: intro; apply set_path2.
   Defined.
 
   Lemma eq_subset (X Y : FSet A) :

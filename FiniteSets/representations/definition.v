@@ -14,7 +14,7 @@ Module Export FSet.
     Global Instance fset_union : forall A, hasUnion (FSet A) := U.
 
     Variable A : Type.
-    
+
     Axiom assoc : forall (x y z : FSet A),
         x ∪ (y ∪ z) = (x ∪ y) ∪ z.
 
@@ -38,7 +38,7 @@ Module Export FSet.
   Arguments comm {_} _ _.
   Arguments nl {_} _.
   Arguments nr {_} _.
-  Arguments idem {_} _.  
+  Arguments idem {_} _.
 
   Section FSet_induction.
     Variable A: Type.
@@ -47,22 +47,22 @@ Module Export FSet.
     Variable  (eP : P ∅).
     Variable  (lP : forall a: A, P {|a|}).
     Variable  (uP : forall (x y: FSet A), P x -> P y -> P (x ∪ y)).
-    Variable  (assocP : forall (x y z : FSet A) 
+    Variable  (assocP : forall (x y z : FSet A)
                                (px: P x) (py: P y) (pz: P z),
                   assoc x y z #
-                        (uP x (y ∪ z) px (uP y z py pz)) 
-                  = 
+                        (uP x (y ∪ z) px (uP y z py pz))
+                  =
                   (uP (x ∪ y) z (uP x y px py) pz)).
     Variable  (commP : forall (x y: FSet A) (px: P x) (py: P y),
                   comm x y #
                        uP x y px py = uP y x py px).
-    Variable  (nlP : forall (x : FSet A) (px: P x), 
+    Variable  (nlP : forall (x : FSet A) (px: P x),
                   nl x # uP ∅ x eP px = px).
-    Variable  (nrP : forall (x : FSet A) (px: P x), 
+    Variable  (nrP : forall (x : FSet A) (px: P x),
                   nr x # uP x ∅ px eP = px).
-    Variable  (idemP : forall (x : A), 
+    Variable  (idemP : forall (x : A),
                   idem x # uP {|x|} {|x|} (lP x) (lP x) = lP x).
-    
+
     (* Induction principle *)
     Fixpoint FSet_ind
              (x : FSet A)
@@ -119,7 +119,7 @@ Module Export FSet.
     Defined.
 
     Definition FSet_rec_beta_assoc : forall (x y z : FSet A),
-        ap FSet_rec (assoc x y z) 
+        ap FSet_rec (assoc x y z)
         =
         assocP (FSet_rec x) (FSet_rec y) (FSet_rec z).
     Proof.
@@ -131,7 +131,7 @@ Module Export FSet.
     Defined.
 
     Definition FSet_rec_beta_comm : forall (x y : FSet A),
-        ap FSet_rec (comm x y) 
+        ap FSet_rec (comm x y)
         =
         commP (FSet_rec x) (FSet_rec y).
     Proof.
@@ -143,7 +143,7 @@ Module Export FSet.
     Defined.
 
     Definition FSet_rec_beta_nl : forall (x : FSet A),
-        ap FSet_rec (nl x) 
+        ap FSet_rec (nl x)
         =
         nlP (FSet_rec x).
     Proof.
@@ -155,7 +155,7 @@ Module Export FSet.
     Defined.
 
     Definition FSet_rec_beta_nr : forall (x : FSet A),
-        ap FSet_rec (nr x) 
+        ap FSet_rec (nr x)
         =
         nrP (FSet_rec x).
     Proof.
@@ -167,7 +167,7 @@ Module Export FSet.
     Defined.
 
     Definition FSet_rec_beta_idem : forall (a : A),
-        ap FSet_rec (idem a) 
+        ap FSet_rec (idem a)
         =
         idemP a.
     Proof.
@@ -177,12 +177,12 @@ Module Export FSet.
       simple refine ((apD_const _ _)^ @ _).
       apply FSet_ind_beta_idem.
     Defined.
-    
+
   End FSet_recursion.
 
   Instance FSet_recursion A : HitRecursion (FSet A) :=
     {
-      indTy := _; recTy := _; 
+      indTy := _; recTy := _;
       H_inductor := FSet_ind A; H_recursor := FSet_rec A
     }.
 
@@ -200,5 +200,5 @@ Proof.
     rewrite P.
     rewrite (comm y x).
     rewrite <- (assoc x y y).
-    f_ap. 
+    f_ap.
 Defined.

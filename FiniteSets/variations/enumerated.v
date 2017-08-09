@@ -47,7 +47,7 @@ Proof.
   destruct (if P a as b return ((b = true) + (b = false))
      then inl 1%path
      else inr 1%path) as [Pa' | Pa'].
-  - rewrite Pa' in Pa. contradiction (true_ne_false Pa). 
+  - rewrite Pa' in Pa. contradiction (true_ne_false Pa).
   - reflexivity.
 Defined.
 
@@ -104,7 +104,7 @@ Defined.
 Lemma enumerated_surj (A B : Type) (f : A -> B) :
   IsSurjection f -> enumerated A -> enumerated B.
 Proof.
-  intros Hsurj HeA. strip_truncations; apply tr. 
+  intros Hsurj HeA. strip_truncations; apply tr.
   destruct HeA as [eA HeA].
   exists (map f eA).
   intros x. specialize (Hsurj x).
@@ -157,7 +157,7 @@ destruct ys as [|y ys].
 Defined.
 
 Fixpoint listProd {A B} (xs : list A) (ys : list B) : list (A * B).
-Proof.  
+Proof.
 destruct xs as [|x xs].
 - exact nil.
 - refine (app _ _).
@@ -165,7 +165,7 @@ destruct xs as [|x xs].
   + exact (listProd _ _ xs ys).
 Defined.
 
-Lemma listExt_prod_sing {A B} (x : A) (y : B) (ys : list B) : 
+Lemma listExt_prod_sing {A B} (x : A) (y : B) (ys : list B) :
   listExt ys y -> listExt (listProd_sing x ys) (x, y).
 Proof.
 induction ys; simpl.
@@ -193,11 +193,11 @@ induction xs as [| x' xs]; intros x y.
       rewrite <- Hyy' in IHxs.
       apply listExt_app_l. apply IHxs. assumption.
       simpl. apply tr. left. apply tr. reflexivity.
-    * right. 
+    * right.
       apply listExt_app_l.
       apply IHxs. assumption.
       simpl. apply tr. right. assumption.
-Defined.      
+Defined.
 
 (** Properties of enumerated sets: closed under products *)
 Lemma enumerated_prod (A B : Type) `{Funext} :
@@ -221,7 +221,7 @@ Section enumerated_fset.
     | nil => ∅
     | cons x xs => {|x|} ∪ (list_to_fset xs)
     end.
-  
+
   Lemma list_to_fset_ext (ls : list A) (a : A):
     listExt ls a -> a ∈ (list_to_fset ls).
   Proof.
@@ -250,8 +250,8 @@ End enumerated_fset.
 Section fset_dec_enumerated.
   Variable A : Type.
   Context `{Univalence}.
- 
-  Definition Kf_fsetc : 
+
+  Definition Kf_fsetc :
     Kf A -> exists (X : FSetC A), forall (a : A), k_finite.map (FSetC_to_FSet X) a.
   Proof.
     intros [X HX].
@@ -260,7 +260,7 @@ Section fset_dec_enumerated.
     by rewrite <- HX.
   Defined.
 
-  Definition merely_enumeration_FSetC : 
+  Definition merely_enumeration_FSetC :
     forall (X : FSetC A),
     hexists (fun (ls : list A) => forall a, a ∈ (FSetC_to_FSet X) = listExt ls a).
   Proof.
@@ -274,13 +274,13 @@ Section fset_dec_enumerated.
     - intros. apply path_ishprop.
     - intros. apply path_ishprop.
   Defined.
-  
+
   Definition Kf_enumerated : Kf A -> enumerated A.
   Proof.
     intros HKf. apply Kf_fsetc in HKf.
     destruct HKf as [X HX].
-    pose (ls' := (merely_enumeration_FSetC X)).    
-    simple refine (@Trunc_rec _ _ _ _ _ ls'). clear ls'.    
+    pose (ls' := (merely_enumeration_FSetC X)).
+    simple refine (@Trunc_rec _ _ _ _ _ ls'). clear ls'.
     intros [ls Hls].
     apply tr. exists ls.
     intros a. rewrite <- Hls. apply (HX a).
@@ -293,7 +293,7 @@ Section subobjects.
 
   Definition enumeratedS (P : Sub A) : hProp :=
     enumerated (sigT P).
-  
+
   Lemma enumeratedS_empty : closedEmpty enumeratedS.
   Proof.
     unfold enumeratedS.
@@ -319,7 +319,7 @@ Section subobjects.
     - apply (cons (x; tr (inr Hx))).
       apply (weaken_list_r _ _ ls).
   Defined.
- 
+
   Lemma listExt_weaken (P Q : Sub A) (ls : list (sigT Q)) (x : A) (Hx : Q x) :
     listExt ls (x; Hx) -> listExt (weaken_list_r P Q ls) (x; tr (inr Hx)).
   Proof.
@@ -333,7 +333,7 @@ Section subobjects.
         exists (Hxy..1). apply path_ishprop.
       + right. apply IHls. assumption.
   Defined.
-  
+
   Fixpoint concatD {P Q : Sub A}
     (ls : list (sigT P)) (ls' : list (sigT Q)) : list (sigT (max_L P Q)).
   Proof.
@@ -382,9 +382,9 @@ Section subobjects.
   Defined.
 
   Opaque enumeratedS.
-  Definition FSet_to_enumeratedS : 
+  Definition FSet_to_enumeratedS :
     forall (X : FSet A), enumeratedS (k_finite.map X).
-  Proof.  
+  Proof.
     hinduction.
     - apply enumeratedS_empty.
     - intros a. apply enumeratedS_singleton.

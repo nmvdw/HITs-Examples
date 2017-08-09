@@ -12,7 +12,7 @@ Open Scope logic_scope.
 Section lor_props.
   Context `{Univalence}.
   Variable X Y Z : hProp.
-  
+
   Lemma lor_assoc : (X ∨ Y) ∨ Z = X ∨ Y ∨ Z.
   Proof.
     apply path_iff_hprop ; cbn.
@@ -20,15 +20,15 @@ Section lor_props.
       intros [xy | z] ; cbn.
       + simple refine (Trunc_ind _ _ xy).
         intros [x | y].
-        ++ apply (tr (inl x)). 
+        ++ apply (tr (inl x)).
         ++ apply (tr (inr (tr (inl y)))).
       + apply (tr (inr (tr (inr z)))).
-    * simple refine (Trunc_ind _ _).    
+    * simple refine (Trunc_ind _ _).
       intros [x | yz] ; cbn.
       + apply (tr (inl (tr (inl x)))).
       + simple refine (Trunc_ind _ _ yz).
         intros [y | z].
-        ++ apply (tr (inl (tr (inr y)))). 
+        ++ apply (tr (inl (tr (inr y)))).
         ++ apply (tr (inr z)).
   Defined.
 
@@ -131,7 +131,7 @@ Section hPropLattice.
     - intros [a b] ; apply a.
     - intros a ; apply (pair a a).
   Defined.
-  
+
   Instance lor_neutrall : NeutralL lor lfalse.
   Proof.
     unfold NeutralL.
@@ -169,7 +169,7 @@ Section hPropLattice.
       * assumption.
       * apply (tr (inl X)).
   Defined.
-  
+
   Global Instance lattice_hprop : Lattice hProp :=
     { commutative_min := _ ;
       commutative_max := _ ;
@@ -182,5 +182,5 @@ Section hPropLattice.
       absorption_min_max := _ ;
       absorption_max_min := _
   }.
-  
+
 End hPropLattice.

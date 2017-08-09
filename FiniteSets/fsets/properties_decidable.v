@@ -60,7 +60,7 @@ Section operations_isIn.
       contradiction.
     - reflexivity.
   Defined.
-  
+
   (* Union and membership *)
   Lemma union_isIn_b (X Y : FSet A) (a : A) :
     a ∈_d (X ∪ Y) = orb (a ∈_d X) (a ∈_d Y).
@@ -111,24 +111,24 @@ Section SetLattice.
     intros x y.
     apply (x ∪ y).
   Defined.
-      
+
   Instance fset_min : minimum (FSet A).
   Proof.
     intros x y.
     apply (x ∩ y).
   Defined.
-  
+
   Instance fset_bot : bottom (FSet A).
   Proof.
     unfold bottom.
     apply ∅.
   Defined.
-    
+
   Instance lattice_fset : Lattice (FSet A).
   Proof.
     split; toBool.
   Defined.
-  
+
 End SetLattice.
 
 (* With extensionality we can prove decidable equality *)

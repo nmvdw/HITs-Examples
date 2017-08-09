@@ -87,12 +87,12 @@ Section properties.
 
   Definition well_defined_filter : forall (A : Type) (ϕ : A -> Bool) (X Y : T A),
     set_eq A X Y -> set_eq A (filter ϕ X) (filter ϕ Y).
-  Proof.    
+  Proof.
     intros A ϕ X Y HXY.
     simplify.
     by rewrite HXY.
   Defined.
-  
+
   Lemma union_comm : forall A (X Y : T A),
     set_eq A (X ∪ Y) (Y ∪ X).
   Proof.
@@ -151,7 +151,7 @@ Proof. intros a b c Hab Hbc. apply (Hab @ Hbc). Defined.
 
 Instance View_recursion A : HitRecursion (View A) :=
   {
-    indTy := _; recTy := forall (P : Type) (HP: IsHSet P) (u : T A -> P), (forall x y : T A, set_eq T (@f) A x y -> u x = u y) -> View A -> P; 
+    indTy := _; recTy := forall (P : Type) (HP: IsHSet P) (u : T A -> P), (forall x y : T A, set_eq T (@f) A x y -> u x = u y) -> View A -> P;
     H_inductor := quotient_ind (R A); H_recursor := @quotient_rec _ (R A) _
   }.
 
@@ -169,7 +169,7 @@ assert (resp1 : forall x y y', set_eq (@f) y y' -> u x y = u x y').
 assert (resp2 : forall x x' y, set_eq (@f) x x' -> u x y = u x' y).
 { intros x x' y Hxx'.
   apply Hresp. apply Hxx'.
-  reflexivity. }  
+  reflexivity. }
 hrecursion.
 - intros a.
   hrecursion.
@@ -193,7 +193,7 @@ simple refine (View_rec2 _ _ _ _).
   apply related_classes_eq.
   unfold R in *.
   eapply well_defined_union; eauto.
-Defined.  
+Defined.
 
 Ltac reduce :=
   intros ;

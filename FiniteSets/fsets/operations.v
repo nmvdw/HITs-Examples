@@ -34,7 +34,7 @@ Section operations.
     - apply comm.
     - apply nl.
     - apply nr.
-    - intros; simpl. 
+    - intros; simpl.
       destruct (P x).
       + apply idem.
       + apply nl.
@@ -61,7 +61,7 @@ Section operations.
     - intros ; apply nr.
     - intros ; apply idem.
   Defined.
-        
+
   Definition product {A B : Type} : FSet A -> FSet B -> FSet (A * B).
   Proof.
     intros X Y.
@@ -76,7 +76,7 @@ Section operations.
     - intros ; apply nr.
     - intros ; apply union_idem.
   Defined.
-   
+
   Global Instance fset_subset : forall A, hasSubset (FSet A).
   Proof.
     intros A X Y.
@@ -101,21 +101,6 @@ Section operations.
       * intros [p1 p2]. apply p1.
       * intros p.
         split ; apply p.
-  Defined.
-
-  Definition map (A B : Type) (f : A -> B) : FSet A -> FSet B.
-  Proof.
-    hrecursion.
-    - apply ∅.
-    - intro a.
-      apply {|f a|}.
-    - apply (∪).
-    - apply assoc.
-    - apply comm.
-    - apply nl.
-    - apply nr.
-    - intros.
-      apply idem.
   Defined.
 
   Local Ltac remove_transport
@@ -155,6 +140,6 @@ Section operations.
     - remove_transport.
       rewrite <- (idem (Z (x; tr 1%path))).
       pointwise.
-  Defined.  
-      
+  Defined.
+
 End operations.

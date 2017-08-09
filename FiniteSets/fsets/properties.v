@@ -10,7 +10,7 @@ Section characterize_isIn.
 
   (** isIn properties *)
   Definition empty_isIn (a: A) : a ∈ ∅ -> Empty := idmap.
-  
+
   Definition singleton_isIn (a b: A) : a ∈ {|b|} -> Trunc (-1) (a = b) := idmap.
 
   Definition union_isIn (X Y : FSet A) (a : A)
@@ -20,7 +20,7 @@ Section characterize_isIn.
       {|X ∪ Y & ϕ|} = {|X & ϕ|} ∪ {|Y & ϕ|}.
   Proof.
     reflexivity.
-  Defined.  
+  Defined.
 
   Lemma comprehension_isIn (ϕ : A -> Bool) (a : A) : forall X : FSet A,
       a ∈ {|X & ϕ|} = if ϕ a then a ∈ X else False_hp.
@@ -37,7 +37,7 @@ Section characterize_isIn.
         destruct c ; destruct d ; rewrite Hc, Hd ; try reflexivity
         ; apply path_iff_hprop ; try contradiction ; intros ; strip_truncations
         ; apply (false_ne_true).
-        * apply (Hd^ @ ap ϕ X^ @ Hc). 
+        * apply (Hd^ @ ap ϕ X^ @ Hc).
         * apply (Hc^ @ ap ϕ X @ Hd).
       }
       apply (X (ϕ a) (ϕ b) idpath idpath).
@@ -57,7 +57,7 @@ End characterize_isIn.
 Section product_isIn.
   Context {A B : Type}.
   Context `{Univalence}.
-  
+
   Lemma isIn_singleproduct (a : A) (b : B) (c : A) : forall (Y : FSet B),
       (a, b) ∈ (single_product c Y) = land (BuildhProp (Trunc (-1) (a = c))) (b ∈ Y).
   Proof.
@@ -65,7 +65,7 @@ Section product_isIn.
     - apply path_hprop ; symmetry ; apply prod_empty_r.
     - intros d.
       apply path_iff_hprop.
-      * intros. 
+      * intros.
         strip_truncations.
         split ; apply tr ; try (apply (ap fst X)) ; try (apply (ap snd X)).
       * intros [Z1 Z2].
@@ -93,7 +93,7 @@ Section product_isIn.
         ** right.
            split ; try (apply (tr H1)) ; try (apply Hb2).
   Defined.
-  
+
   Definition isIn_product (a : A) (b : B) (X : FSet A) (Y : FSet B) :
     (a,b) ∈ (product X Y) = land (a ∈ X) (b ∈ Y).
   Proof.
@@ -147,7 +147,7 @@ Section properties.
   Global Instance joinsemilattice_fset : JoinSemiLattice (FSet A).
   Proof.
     split ; toHProp.
-  Defined.  
+  Defined.
 
   (** comprehension properties *)
   Lemma comprehension_false : forall (X : FSet A), {|X & fun _ => false|} = ∅.
@@ -176,7 +176,7 @@ Section properties.
   Proof.
     toHProp.
   Defined.
-  
+
   Lemma merely_choice : forall X : FSet A, hor (X = ∅) (hexists (fun a => a ∈ X)).
   Proof.
     hinduction; try (intros; apply equiv_hprop_allpath ; apply _).
@@ -295,5 +295,5 @@ Section properties.
            repeat f_ap.
            apply path_ishprop.
   Defined.
-  
+
 End properties.

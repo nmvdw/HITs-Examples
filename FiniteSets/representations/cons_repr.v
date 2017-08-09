@@ -3,7 +3,7 @@ Require Import HoTT HitTactics.
 Require Export notation.
 
 Module Export FSetC.
-  
+
   Section FSetC.
     Private Inductive FSetC (A : Type) : Type :=
     | Nil : FSetC A
@@ -14,9 +14,9 @@ Module Export FSetC.
     Variable A : Type.
     Arguments Cns {_} _ _.
     Infix ";;" := Cns (at level 8, right associativity).
-    
+
     Axiom dupl : forall (a : A) (x : FSetC A),
-        a ;; a ;; x = a ;; x. 
+        a ;; a ;; x = a ;; x.
 
     Axiom comm : forall (a b : A) (x : FSetC A),
         a ;; b ;; x = b ;; a ;; x.
@@ -41,9 +41,9 @@ Module Export FSetC.
     Variable (duplP : forall (a: A) (x: FSetC A) (px : P x),
 	         dupl a x # cnsP a (a;;x) (cnsP a x px) = cnsP a x px).
     Variable (commP : forall (a b: A) (x: FSetC A) (px: P x),
-		 comm a b x # cnsP a (b;;x) (cnsP b x px) = 
+		 comm a b x # cnsP a (b;;x) (cnsP b x px) =
 		 cnsP b (a;;x) (cnsP a x px)).
-    
+
     (* Induction principle *)
     Fixpoint FSetC_ind
              (x : FSetC A)
@@ -76,18 +76,18 @@ Module Export FSetC.
     (* Recursion principle *)
     Definition FSetC_rec : FSetC A -> P.
     Proof.
-      simple refine (FSetC_ind _ _ _ _ _  _ _ ); 
+      simple refine (FSetC_ind _ _ _ _ _  _ _ );
         try (intros; simple refine ((transport_const _ _) @ _ ));  cbn.
       - apply nil.
-      - apply 	(fun a => fun _ => cns a). 
+      - apply 	(fun a => fun _ => cns a).
       - apply duplP.
-      - apply commP. 
+      - apply commP.
     Defined.
 
     Definition FSetC_rec_beta_dupl : forall (a: A) (x : FSetC A),
         ap FSetC_rec (dupl a x) = duplP a (FSetC_rec x).
     Proof.
-      intros. 
+      intros.
       eapply (cancelL (transport_const (dupl a x) _)).
       simple refine ((apD_const _ _)^ @ _).
       apply FSetC_ind_beta_dupl.
@@ -96,7 +96,7 @@ Module Export FSetC.
     Definition FSetC_rec_beta_comm : forall (a b: A) (x : FSetC A),
         ap FSetC_rec (comm a b x) = commP a b (FSetC_rec x).
     Proof.
-      intros. 
+      intros.
       eapply (cancelL (transport_const (comm a b x) _)).
       simple refine ((apD_const _ _)^ @ _).
       apply FSetC_ind_beta_comm.
@@ -107,7 +107,7 @@ Module Export FSetC.
 
   Instance FSetC_recursion A : HitRecursion (FSetC A) :=
     {
-      indTy := _; recTy := _; 
+      indTy := _; recTy := _;
       H_inductor := FSetC_ind A; H_recursor := FSetC_rec A
     }.
 

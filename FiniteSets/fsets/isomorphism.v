@@ -14,7 +14,7 @@ Section Iso.
     - apply E.
     - intros a x.
       apply ({|a|} ∪ x).
-    - intros. cbn.  
+    - intros. cbn.
       etransitivity. apply assoc.
       apply (ap (∪ x)).
       apply idem.
@@ -22,7 +22,7 @@ Section Iso.
       etransitivity. apply assoc.
       etransitivity. refine (ap (∪ x) _ ).
       apply FSet.comm.
-      symmetry. 
+      symmetry.
       apply assoc.
   Defined.
 
@@ -39,10 +39,10 @@ Section Iso.
     - apply singleton_idem.
   Defined.
 
-  Lemma append_union: forall (x y: FSetC A), 
+  Lemma append_union: forall (x y: FSetC A),
       FSetC_to_FSet (x ∪ y) = (FSetC_to_FSet x) ∪ (FSetC_to_FSet y).
   Proof.
-    intros x. 
+    intros x.
     hrecursion x; try (intros; apply path_forall; intro; apply set_path2).
     - intros. symmetry. apply nl.
     - intros a x HR y. unfold union, fsetc_union in *. rewrite HR. apply assoc.

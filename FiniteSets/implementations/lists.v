@@ -8,7 +8,7 @@ Section Operations.
   Global Instance list_empty A : hasEmpty (list A) := nil.
 
   Global Instance list_single A: hasSingleton (list A) A := fun a => cons a nil.
-  
+
   Global Instance list_union A : hasUnion (list A).
   Proof.
     intros l1 l2.
@@ -58,7 +58,7 @@ Section ListToSet.
       * strip_truncations ; apply (tr (inl z1)).
       * apply (tr (inr z2)).
   Defined.
-  
+
   Definition empty_empty : list_to_set A ∅ = ∅ := idpath.
 
   Lemma filter_comprehension (ϕ : A -> Bool) (l : list A)  :
@@ -72,7 +72,7 @@ Section ListToSet.
       * rewrite nl.
         apply IHl.
   Defined.
-  
+
   Definition singleton_single (a : A) : list_to_set A (singleton a) = {|a|} :=
     nr {|a|}.
 

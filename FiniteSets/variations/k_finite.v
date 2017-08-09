@@ -100,7 +100,7 @@ Section structure_k_finite.
     exists {|a|}.
     cbn.
     apply path_forall.
-    intro z. 
+    intro z.
     reflexivity.
   Defined.
 
