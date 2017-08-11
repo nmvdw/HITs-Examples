@@ -12,6 +12,7 @@ fsets/isomorphism.v
 fsets/operations.v
 fsets/operations_decidable.v
 fsets/extensionality.v
+fsets/extensionality_alt.v
 fsets/properties.v
 fsets/properties_decidable.v
 fsets/length.v
