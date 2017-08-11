@@ -40,7 +40,7 @@ Section ext.
     forall Y, X ⊆ X ∪ Y.
   Proof.
     hinduction X ; try (repeat (intro; intros; apply path_forall);
-                        intro ; apply equiv_hprop_allpath ; apply _).
+                        intro ; apply path_ishprop).
     - apply (fun _ => tt).
     - intros a Y.
       apply (tr(inl(tr idpath))).
@@ -69,7 +69,7 @@ Section ext.
     eapply equiv_iff_hprop_uncurried.
     split.
     - hinduction X ;
-        try (intros; repeat (apply path_forall; intro); apply equiv_hprop_allpath ; apply _).
+        try (intros; repeat (apply path_forall; intro); apply path_ishprop).
       + intros ; reflexivity.
       + intros a f.
         apply f.
@@ -89,7 +89,7 @@ Section ext.
           left.
           apply Ha.
     - hinduction X ;
-        try (intros; repeat (apply path_forall; intro); apply equiv_hprop_allpath ; apply _).
+        try (intros; repeat (apply path_forall; intro); apply path_ishprop).
       + intros. contradiction.
       + intros b f a.
         simple refine (Trunc_ind _ _) ; cbn.
