@@ -110,8 +110,7 @@ Section structure_k_finite.
     intros.
     destruct X0 as [SX EX].
     rewrite EX.
-    simple refine (Trunc_ind _ _ (merely_choice SX)).
-    intros [SXE | H1].
+    destruct (merely_choice SX) as [SXE | H1].
     - rewrite SXE.
       apply (tr (inl idpath)).
     - apply (tr (inr H1)).

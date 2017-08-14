@@ -177,30 +177,47 @@ Section properties.
     toHProp.
   Defined.
 
-  Lemma merely_choice : forall X : FSet A, hor (X = ∅) (hexists (fun a => a ∈ X)).
+  Local Ltac solve_mc :=
+    repeat (let x := fresh in intro x ; try(destruct x))
+    ; simpl
+    ; rewrite transport_sum
+    ; try (f_ap ; apply path_ishprop)
+    ; try (f_ap ; apply set_path2).
+
+  Lemma merely_choice : forall X : FSet A, (X = ∅) + (hexists (fun a => a ∈ X)).
   Proof.
-    hinduction; try (intros; apply equiv_hprop_allpath ; apply _).
-    - apply (tr (inl idpath)).
+    hinduction.
+    - apply (inl idpath).
     - intro a.
-      refine (tr (inr (tr (a ; tr idpath)))).
+      refine (inr (tr (a ; tr idpath))).
     - intros X Y TX TY.
-      strip_truncations.
-      destruct TX as [XE | HX] ; destruct TY as [YE | HY] ; try(strip_truncations ; apply tr).
-      * refine (tr (inl _)).
+      destruct TX as [XE | HX] ; destruct TY as [YE | HY].
+      * refine (inl _).
         rewrite XE, YE.
         apply (union_idem ∅).
-      * destruct HY as [a Ya].
-        refine (inr (tr _)).
+      * right.
+        strip_truncations.
+        destruct HY as [a Ya].
+        refine (tr _).
         exists a.
         apply (tr (inr Ya)).
-      * destruct HX as [a Xa].
-        refine (inr (tr _)).
+      * right.
+        strip_truncations.
+        destruct HX as [a Xa].
+        refine (tr _).
         exists a.
         apply (tr (inl Xa)).
-      * destruct (HX, HY) as [[a Xa] [b Yb]].
-        refine (inr (tr _)).
+      * right.
+        strip_truncations.
+        destruct (HX, HY) as [[a Xa] [b Yb]].
+        refine (tr _).
         exists a.
         apply (tr (inl Xa)).
+    - solve_mc.
+    - solve_mc.
+    - solve_mc.
+    - solve_mc.
+    - solve_mc.
   Defined.
 
   Lemma separation_isIn (B : Type) : forall (X : FSet A) (f : {a | a ∈ X} -> B) (b : B),
