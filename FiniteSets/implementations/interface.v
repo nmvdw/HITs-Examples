@@ -77,49 +77,46 @@ Section properties.
 
   Ltac simplify := intros ; autounfold in * ; apply reflect_eq ; reduce.
 
-  Definition well_defined_union : forall (A : Type) (X1 X2 Y1 Y2 : T A),
+  Definition well_defined_union (A : Type) (X1 X2 Y1 Y2 : T A) :
     set_eq A X1 Y1 -> set_eq A X2 Y2 -> set_eq A (union X1 X2) (union Y1 Y2).
   Proof.
-    intros A X1 X2 Y1 Y2 HXY1 HXY2.
+    intros HXY1 HXY2.
     simplify.
     by rewrite HXY1, HXY2.
   Defined.
 
-  Definition well_defined_filter : forall (A : Type) (ϕ : A -> Bool) (X Y : T A),
+  Definition well_defined_filter (A : Type) (ϕ : A -> Bool) (X Y : T A) :
     set_eq A X Y -> set_eq A (filter ϕ X) (filter ϕ Y).
   Proof.
-    intros A ϕ X Y HXY.
+    intros HXY.
     simplify.
     by rewrite HXY.
   Defined.
 
+  Ltac reflect_equality := simplify ; eauto with lattice_hints typeclass_instances.
+
   Lemma union_comm : forall A (X Y : T A),
-    set_eq A (X ∪ Y) (Y ∪ X).
+      set_eq A (X ∪ Y) (Y ∪ X).
   Proof.
-    simplify.
-    apply comm.
+    reflect_equality.
   Defined.
 
   Lemma union_assoc : forall A (X Y Z : T A),
-    set_eq A ((X ∪ Y) ∪ Z) (X ∪ (Y ∪ Z)) .
+    set_eq A ((X ∪ Y) ∪ Z) (X ∪ (Y ∪ Z)).
   Proof.
-    simplify.
-    symmetry.
-    apply assoc.
+    reflect_equality.
   Defined.
 
   Lemma union_idem : forall A (X : T A),
     set_eq A (X ∪ X) X.
   Proof.
-    simplify.
-    apply union_idem.
+    reflect_equality.
   Defined.
 
   Lemma union_neutral : forall A (X : T A),
     set_eq A (∅ ∪ X) X.
   Proof.
-    simplify.
-    apply nl.
+    reflect_equality.
   Defined.
 
 End properties.
@@ -258,8 +255,7 @@ Proof.
   - intros. apply path_forall; intro. apply set_path2.
 Defined.
 
-Ltac buggeroff := intros;
-  (repeat (apply path_forall; intro)); apply set_path2.
+Ltac buggeroff := intros; apply path_ishprop.
 
 Instance View_max_assoc A: Associative (@max_L (View A) _).
 Proof.
