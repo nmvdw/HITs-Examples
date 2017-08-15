@@ -19,13 +19,13 @@ Section interface.
       f_filter : forall A φ X, f A (filter φ X) = {| f A X & φ |};
       f_member : forall A a X, member a X = a ∈ (f A X)
     }.
-  
+
   Global Instance f_surjective A `{sets} : IsSurjection (f A).
   Proof.
     unfold IsSurjection.
     hinduction ; try (intros ; apply path_ishprop).
     - simple refine (BuildContr _ _ _).
-      * refine (tr(∅;_)). 
+      * refine (tr(∅;_)).
         apply f_empty.
       * intros ; apply path_ishprop.
     - intro a.
@@ -33,14 +33,10 @@ Section interface.
       * refine (tr({|a|};_)).
         apply f_singleton.
       * intros ; apply path_ishprop.
-    - intros Y1 Y2 HY1 HY2.
-      destruct HY1 as [X1' HX1].
-      destruct HY2 as [X2' HX2].
+    - intros Y1 Y2 [X1' ?] [X2' ?].
       simple refine (BuildContr _ _ _).
-      * simple refine (Trunc_rec _ X1') ; intro X1.
-        simple refine (Trunc_rec _ X2') ; intro X2.
-        destruct X1 as [X1 fX1].
-        destruct X2 as [X2 fX2].
+      * simple refine (Trunc_rec _ X1') ; intros [X1 fX1].
+        simple refine (Trunc_rec _ X2') ; intros [X2 fX2].
         refine (tr(X1 ∪ X2;_)).
         rewrite f_union, fX1, fX2.
         reflexivity.
@@ -57,7 +53,7 @@ Section quotient_surjection.
 
   Definition f_eq : relation A := fun a1 a2 => f a1 = f a2.
   Definition quotientB : Type := quotient f_eq.
-  
+
   Global Instance quotientB_recursion : HitRecursion quotientB :=
     {
       indTy := _;
@@ -97,29 +93,26 @@ Section quotient_surjection.
   Proof.
     apply isembedding_isinj_hset.
     unfold isinj.
-    simpl.
     hrecursion ; [ | intros; apply path_ishprop ].
     intro.
     hrecursion ; [ | intros; apply path_ishprop ].
     intros.
       by apply related_classes_eq.
   Defined.
-  
+
   Instance quotientB_surj : IsSurjection (quotientB_to_B).
   Proof.
     apply BuildIsSurjection.
     intros Y.
     destruct (H Y).
-    simple refine (Trunc_rec _ center) ; intro X.
-    apply tr.
-    destruct X as [a fa].
-    apply (class_of _ a;fa).
+    simple refine (Trunc_rec _ center) ; intros [a fa].
+    apply (tr(class_of _ a;fa)).
   Defined.
 
   Definition quotient_iso : quotientB <~> B.
   Proof.
     refine (BuildEquiv _ _ quotientB_to_B _).
-    apply isequiv_surj_emb; apply _.
+    apply isequiv_surj_emb ; apply _.
   Defined.
 
   Definition reflect_eq : forall (X Y : A),
@@ -158,7 +151,7 @@ Section quotient_properties.
 
   Definition set_eq A := f_eq (T A) (FSet A) (f A).
   Definition View A : Type := quotientB (T A) (FSet A) (f A).
-  
+
   Definition View_rec2 {A} (P : Type) (HP : IsHSet P) (u : T A -> T A -> P) :
     (forall (x x' : T A), set_eq A x x' -> forall (y y' : T A), set_eq A y y' -> u x y = u x' y')     ->
     forall (x y : View A), P.
@@ -210,8 +203,7 @@ Section quotient_properties.
     - apply (member a).
     - intros X Y HXY.
       reduce T.
-      rewrite HXY.
-      reflexivity.
+      apply (ap _ HXY).
   Defined.
 
   Global Instance View_empty A: hasEmpty (View A).
@@ -232,7 +224,7 @@ Section quotient_properties.
       apply (class_of _ (union a b)).
     - intros x x' Hxx' y y' Hyy' ; simpl.
       apply related_classes_eq.
-      eapply well_defined_union; eauto.
+      eapply well_defined_union ; eauto.
   Defined.
 
   Global Instance View_union A: hasUnion (View A).
@@ -248,7 +240,7 @@ Section quotient_properties.
       apply (class_of _ (filter ϕ X)).
     - intros X X' HXX' ; simpl.
       apply related_classes_eq.
-      eapply well_defined_filter; eauto.
+      eapply well_defined_filter ; eauto.
   Defined.
 
   Hint Unfold Commutative Associative Idempotent NeutralL NeutralR.
@@ -318,7 +310,7 @@ Section properties.
     class_of (set_eq f) ({|X & ϕ|}) = {|(class_of (set_eq f) X) & ϕ|}.
   Proof.
     reflexivity.
-  Defined.  
+  Defined.
 
   Ltac via_quotient := intros ; apply reflect_f_eq
                        ; rewrite ?class_union, ?class_filter
