@@ -152,32 +152,26 @@ Section quotient_properties.
   Definition set_eq A := f_eq (T A) (FSet A) (f A).
   Definition View A : Type := quotientB (T A) (FSet A) (f A).
 
-  Definition View_rec2 {A} (P : Type) (HP : IsHSet P) (u : T A -> T A -> P) :
-    (forall (x x' : T A), set_eq A x x' -> forall (y y' : T A), set_eq A y y' -> u x y = u x' y')     ->
-    forall (x y : View A), P.
+  Definition View_rec2 {A} (P : Type) (HP : IsHSet P) (u : T A -> T A -> P)
+    (Hresp : forall (x x' y y': T A), set_eq A x x' -> set_eq A y y' -> u x y = u x' y')
+    : forall (x y : View A), P.
   Proof.
-    intros Hresp.
-    assert (resp1 : forall x y y', set_eq A y y' -> u x y = u x y').
-    { intros x y y'.
-      apply (Hresp _ _ idpath).
-    }
-    assert (resp2 : forall x x' y, set_eq A x x' -> u x y = u x' y).
-    { intros x x' y Hxx'.
-      apply Hresp. apply Hxx'.
-      reflexivity. }
-    unfold View.
-    hrecursion.
+    unfold View ; hrecursion.
     - intros a.
       hrecursion.
-      + intros b.
-        apply (u a b).
-      + intros b b' Hbb'. simpl.
-          by apply resp1.
-    - intros a a' Haa'. simpl.
-      apply path_forall. red.
-      hinduction.
-      + intros b. apply resp2. apply Haa'.
-      + intros; apply HP.
+      + apply (u a). 
+      + intros b b' Hbb'.
+        apply Hresp.
+        ++ reflexivity.
+        ++ assumption.
+    - intros ; simpl.
+      apply path_forall.
+      red.
+      hinduction ; try (intros ; apply path_ishprop).
+      intros b.
+      apply Hresp.
+      ++ assumption.
+      ++ reflexivity.
   Defined.
 
   Definition well_defined_union (A : Type) (X1 X2 Y1 Y2 : T A) :
