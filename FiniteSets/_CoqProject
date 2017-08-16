@@ -24,5 +24,6 @@ implementations/lists.v
 variations/enumerated.v
 variations/k_finite.v
 variations/b_finite.v
+variations/projective.v
 #empty_set.v
 ordered.v
