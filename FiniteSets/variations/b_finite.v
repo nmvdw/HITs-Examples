@@ -4,7 +4,7 @@ Require Import Sub notation variations.k_finite.
 Require Import fsets.properties.
 
 Section finite_hott.
-  Variable A : Type.
+  Variable (A : Type).
   Context `{Univalence} `{IsHSet A}.
 
   (* A subobject is B-finite if its extension is B-finite as a type *)
@@ -243,8 +243,141 @@ Section finite_hott.
     Defined.
 
   End split.
-  
-    
+End finite_hott.
+
+Arguments Bfin {_} _.
+
+Section dec_membership.
+  Variable (A : Type).
+  Context `{DecidablePaths A} `{Univalence}.
+  Global Instance DecidableMembership (P : Sub A) (Hfin : Bfin P) (a : A) :
+    Decidable (a ∈ P).
+  Proof.
+    destruct Hfin as [n Hequiv].
+    strip_truncations.
+    revert Hequiv.
+    revert P.
+    induction n.
+    - intros.
+      pose (X_empty _ P Hequiv) as p.
+      rewrite p.
+      apply _.
+    - intros.
+      pose (new_el _ P n Hequiv) as b.
+      destruct b as [b HX'].
+      destruct (split _ P n Hequiv) as [X' X'equiv]. simpl in HX'.
+      unfold member, sub_membership.
+      rewrite (HX' a).
+      pose (IHn X' X'equiv) as IH.
+      destruct IH as [IH | IH].
+      + left. apply (tr (inl IH)).
+      + destruct (dec (a = b)) as [Hab | Hab].
+        left. apply (tr (inr (tr Hab))).
+        right. intros α. strip_truncations.
+        destruct α as [β | γ]; [ | strip_truncations]; contradiction.
+  Defined.
+End dec_membership.
+
+Section cowd.
+  Variable (A : Type).
+  Context `{DecidablePaths A} `{Univalence}.
+
+  Definition cow := { X : Sub A | Bfin X}.
+  Definition empty_cow : cow.
+  Proof.
+    exists empty. apply empty_finite.
+  Defined.
+
+  Definition add_cow : forall a : A, cow -> cow.
+  Proof.
+    intros a [X PX].
+    exists (fun z => lor (X z) (merely (z = a))).
+    destruct (dec (a ∈ X)) as [Ha | Ha];
+      destruct PX as [n PX];
+      strip_truncations.
+    - (* a ∈ X *)
+      exists n. apply tr.
+      transitivity ({a : A & a ∈ X}); [ | apply PX ].
+      apply equiv_functor_sigma_id.
+      intro a'. eapply equiv_iff_hprop_uncurried ; split; cbn.
+      + intros Ha'. strip_truncations.
+        destruct Ha' as [HXa' | Haa'].
+        * assumption.
+        * strip_truncations. rewrite Haa'. assumption.
+      + intros HXa'. apply tr.
+        left. assumption.
+    - (* a ∉ X *)
+      exists (S n). apply tr.
+      destruct PX as [f [g Hfg Hgf adj]].
+      unshelve esplit.
+      + intros [a' Ha']. cbn in Ha'.
+        destruct (dec (a' = a)) as [Haa' | Haa'].
+        * right. apply tt.
+        * assert (X a') as HXa'.
+          { strip_truncations.
+            destruct Ha' as [Ha' | Ha']; [ assumption | ].
+            strip_truncations. by (contradiction (Haa' Ha')). }
+          apply (inl (f (a';HXa'))).
+      + apply isequiv_biinv; simpl.
+        unshelve esplit; simpl.
+        * unfold Sect; simpl.
+          simple refine (_;_).
+          { destruct 1 as [M | ?].
+            - destruct (g M) as [a' Ha'].
+              exists a'. apply tr.
+                by left.
+            - exists a. apply (tr (inr (tr idpath))). }
+          simpl. intros [a' Ha'].
+          strip_truncations.
+          destruct Ha' as [HXa' | Haa']; simpl;
+            destruct (dec (a' = a)); simpl.
+          ** apply path_sigma' with p^. apply path_ishprop.
+          ** rewrite Hgf; cbn. done.
+          ** apply path_sigma' with p^. apply path_ishprop.
+          ** rewrite Hgf; cbn. apply path_sigma' with idpath. apply path_ishprop.
+        * unfold Sect; simpl.
+          simple refine (_;_).
+          { destruct 1 as [M | ?].
+            - destruct (g M) as [a' Ha'].
+              exists a'. apply tr.
+                by left.
+            - exists a. apply (tr (inr (tr idpath))). }
+          simpl. intros [M | [] ].
+          ** destruct (dec (_ = a)) as [Haa' | Haa']; simpl.
+             { destruct (g M) as [a' Ha']. rewrite Haa' in Ha'. by contradiction. }
+             { f_ap. }
+          ** destruct (dec (a = a)); try by contradiction.
+             reflexivity.
+  Defined.
+
+  Theorem cowy
+    (P : cow -> hProp)
+    (doge : P empty_cow)
+    (koeientaart : forall a c, P c -> P (add_cow a c))
+    :
+    forall X : cow, P X.
+  Proof.
+    intros [X [n FX]]. strip_truncations.
+    revert X FX.
+    induction n; intros X FX.
+    - pose (HX_emp:= X_empty _ X FX).
+      assert ((X; Build_Finite _ 0 (tr FX)) = empty_cow) as HX.
+      { apply path_sigma' with HX_emp. apply path_ishprop. }
+      rewrite HX. assumption.
+    - pose (a' := new_el _ X n FX).
+      destruct a' as [a' Ha'].
+      destruct (split _ X n FX) as [X' FX'].
+      pose (X'cow := (X'; Build_Finite _ n (tr FX')) : cow).
+      assert ((X; Build_Finite _ (n.+1) (tr FX)) = add_cow a' X'cow) as ℵ.
+      { simple refine (path_sigma' _ _ _); [ | apply path_ishprop ].
+        apply path_forall. intros a.
+        unfold X'cow.
+        specialize (Ha' a). rewrite Ha'. simpl. reflexivity. }
+      rewrite ℵ.
+      apply koeientaart.
+      apply IHn.
+  Defined.
+
   Definition bfin_to_kfin : forall (X : Sub A), Bfin X -> Kf_sub _ X.
   Proof.
     intros X BFinX.
@@ -263,8 +396,8 @@ Section finite_hott.
       apply (fun Xz => f(z;Xz)).
     - intros.
       simpl in *.
-      destruct (new_el X n iso) as [a HXX'].
-      destruct (split X n iso) as [X' X'equiv].
+      destruct (new_el _ X n iso) as [a HXX'].
+      destruct (split _ X n iso) as [X' X'equiv].
       destruct (IHn X' X'equiv) as [Y HY].
       exists (Y ∪ {|a|}).
       unfold map in *.
@@ -277,111 +410,111 @@ Section finite_hott.
       reflexivity.
   Defined.
 
-  Context `{A_deceq : DecidablePaths A}.
-
-(*
-  Lemma kfin_is_bfin : closedUnion Bfin.
+  Lemma kfin_is_bfin : @closedUnion A Bfin.
   Proof.
     intros X Y HX HY.
-    unfold Bfin in *.
-    destruct HX as [n Xequiv].
-    revert X Xequiv.
-    induction n.
-    - intros.
-      strip_truncations.
-      rewrite (X_empty X Xequiv).
-      assert(∅ ∪ Y = Y).
-      { apply path_forall ; intro z.
-        compute-[lor].
-        eauto with lattice_hints typeclass_instances.
-      }      
-      rewrite X0.
-      apply HY.
-    - simpl in *.
-      intros.
-      destruct HY as [m Yequiv].
-      strip_truncations.
-      destruct (new_el X n Xequiv) as [a HXX'].
-      destruct (split X n Xequiv) as [X' X'equiv].
-      destruct (IHn X' (tr X'equiv)) as [k Hk].
-      strip_truncations.
-      cbn in *.
-      rewrite (path_forall _ _ HXX').
-      assert
-        (forall a0,
-          BuildhProp (Trunc (-1) (X' a0 ∨ merely (a0 = a) + Y a0))
-          =
-          BuildhProp (hor (Trunc (-1) (X' a0 + Y a0)) (merely (a0 = a)))
-        ).
-      {
-        intros.
-        apply path_iff_hprop.
-        * intros X0.
-          strip_truncations.
-          destruct X0 as [X0 | X0].
-          ** strip_truncations.
-             destruct X0 as [X0 | X0].
-             *** refine (tr(inl(tr _))).
-                 apply (inl X0).
-             *** refine (tr(inr X0)).
-          ** refine (tr(inl(tr _))).
-             apply (inr X0).
-        * intros X0.
-          strip_truncations.
-          destruct X0 as [X0 | X0].
-          ** strip_truncations.
-             destruct X0 as [X0 | X0].
-             *** refine (tr(inl(tr(inl X0)))).
-             *** refine (tr(inr X0)).
-          ** refine (tr(inl(tr(inr X0)))).            
+    pose (Xcow := (X; HX) : cow).
+    pose (Ycow := (Y; HY) : cow).
+    simple refine (cowy (fun C => Bfin (C.1 ∪ Y)) _ _ Xcow); simpl.
+    - assert ((fun a => Trunc (-1) (Empty + Y a)) = (fun a => Y a)) as Help.
+      { apply path_forall. intros z; simpl.
+        apply path_iff_ishprop.
+        + intros; strip_truncations; auto.
+          destruct X0; auto. destruct e.
+        + intros ?.  apply tr. right; assumption.
+          (* TODO FIX THIS with sum_empty_l *)
       }
-      (* rewrite (path_forall _ _ X0). *)
-      assert
-        (
-          {a0 : A & hor (Trunc (-1) (X' a0 + Y a0)) (merely (a0 = a))}
-          =
-          {a0 : A & Trunc (-1) (X' a0 + Y a0)}
-          +
-          {a0 : A & (merely (a0 = a))}
-        ).
-      {
-        assert ({a0 : A & Trunc (-1) (X' a0 + Y a0)} + {a0 : A & merely (a0 = a)} ->
-                {a0 : A & hor (Trunc (-1) (X' a0 + Y a0)) (merely (a0 = a))}).
-        {
-          intros.
-          destruct X1.
-          * destruct s as [c p].
-            exists c.
-            apply tr.
-            left.
-            apply p.
-          * destruct s as [c p].
-            exists c.
-            apply tr.
-            right. apply p.
-            
-        simple refine (path_universe _).
-        * intros [a0 p].
-          destruct (dec (a0 = a)).
-          ** right. exists a0. apply (tr p0).
-          ** left.
-             exists a0.
-             strip_truncations.
-             destruct p ; strip_truncations.
-             *** apply (tr t).
-             *** contradiction (n0 t).
-        * apply isequiv_biinv.
-          unfold BiInv.
-          split.
-          **  
-          
-          exists a0
-      }
-      rewrite X1.
-      apply finite_sum.
-      * simple refine (Build_Finite _ k (tr Hk)).
-      * apply singleton.
-  Admitted.
-  *)
-      
-End finite_hott.
+      rewrite Help. apply HY.
+    - intros a [X' HX'] [n FX'Y]. strip_truncations.
+      destruct (dec(a ∈ X')) as [HaX' | HaX'].
+      * exists n. apply tr.
+        transitivity ({a : A & Trunc (-1) (X' a + Y a)}); [| assumption ].
+        apply equiv_functor_sigma_id. intro a'.
+        apply equiv_iff_hprop.
+        { intros Q. strip_truncations.
+          destruct Q as [Q | Q].
+          - strip_truncations.
+            apply tr. left.
+            destruct Q ; auto.
+            strip_truncations. rewrite t; assumption.
+          - apply (tr (inr Q)). }
+        { intros Q. strip_truncations.
+          destruct Q as [Q | Q]; apply tr.
+          - left. apply tr. left. done.
+          - right. done. }
+      * destruct (dec (a ∈ Y)) as [HaY | HaY ].
+        ** exists n. apply tr.
+           transitivity ({a : A & Trunc (-1) (X' a + Y a)}); [| assumption ].
+           apply equiv_functor_sigma_id. intro a'.
+           apply equiv_iff_hprop.
+           { intros Q. strip_truncations.
+             destruct Q as [Q | Q].
+             - strip_truncations.
+               apply tr.
+               destruct Q.
+               left. auto.
+               right. strip_truncations. rewrite t; assumption.
+             - apply (tr (inr Q)). }
+           { intros Q. strip_truncations.
+             destruct Q as [Q | Q]; apply tr.
+             - left. apply tr. left. done.
+             - right. done. }
+        ** exists (n.+1). apply tr.
+           destruct FX'Y as [f [g Hfg Hgf adj]].
+           unshelve esplit.
+           { intros [a' Ha']. cbn in Ha'.
+             destruct (dec (BuildhProp (a' = a))) as [Ha'a | Ha'a].
+             - right. apply tt.
+             - left. refine (f (a';_)).
+               strip_truncations.
+               destruct Ha' as [Ha' | Ha'].
+               + strip_truncations.
+                 destruct Ha' as [Ha' | Ha'].
+                 * apply (tr (inl Ha')).
+                 * strip_truncations. contradiction.
+               + apply (tr (inr Ha')). }
+           { apply isequiv_biinv; simpl.
+             unshelve esplit; simpl.
+             - unfold Sect; simpl.
+               simple refine (_;_).
+               { destruct 1 as [M | ?].
+                 - destruct (g M) as [a' Ha'].
+                   exists a'.
+                   strip_truncations; apply tr.
+                   destruct Ha' as [Ha' | Ha'].
+                   + left. apply (tr (inl Ha')).
+                   + right. done.
+                 - exists a. apply (tr (inl (tr (inr (tr idpath))))). }
+               { intros [a' Ha']; simpl.
+                 strip_truncations.
+                 destruct Ha' as [HXa' | Haa']; simpl;
+                   destruct (dec (a' = a)); simpl.
+                 ** apply path_sigma' with p^. apply path_ishprop.
+                 ** rewrite Hgf; cbn. apply path_sigma' with idpath. apply path_ishprop.
+                 ** apply path_sigma' with p^. apply path_ishprop.
+                 ** rewrite Hgf; cbn. done. }
+             - unfold Sect; simpl.
+               simple refine (_;_).
+               { destruct 1 as [M | ?].
+                 - (* destruct (g M) as [a' Ha']. *)
+                   exists (g M).1.
+                   simple refine (Trunc_rec _ (g M).2).
+                   intros Ha'.
+                   apply tr.
+                   (* strip_truncations; apply tr. *)
+                   destruct Ha' as [Ha' | Ha'].
+                   + left. apply (tr (inl Ha')).
+                   + right. done.
+                 - exists a. apply (tr (inl (tr (inr (tr idpath))))). }
+               simpl. intros [M | [] ].
+               ** destruct (dec (_ = a)) as [Haa' | Haa']; simpl.
+                  { destruct (g M) as [a' Ha']. simpl in Haa'.
+                    strip_truncations.
+                    rewrite Haa' in Ha'. destruct Ha'; by contradiction. }
+                  { f_ap. transitivity (f (g M)); [ | apply Hfg].
+                    f_ap. apply path_sigma' with idpath.
+                    apply path_ishprop. }
+               ** destruct (dec (a = a)); try by contradiction.
+                  reflexivity. }
+  Defined.
+End cowd.
