@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Import lattice representations.definition fsets.operations extensionality Sub fsets.properties.
+Require Import lattice representations.definition fsets.operations extensionality Sub fsets.properties fsets.monad.
 
 Section k_finite.
 
@@ -116,3 +116,21 @@ Section structure_k_finite.
     - apply (tr (inr H1)).
   Defined.
 End structure_k_finite.
+
+Section k_properties.
+  Context `{Univalence}.
+
+  Lemma Kf_surjection {X Y : Type} (f : X -> Y) `{IsSurjection f} :
+    Kf X -> Kf Y.
+  Proof.
+    intros HX. apply Kf_unfold. apply Kf_unfold in HX.
+    destruct HX as [Xf HXf].
+    exists (ffmap f Xf).
+    intro y.
+    pose (x' := center (merely (hfiber f y))).
+    simple refine (@Trunc_rec (-1) (hfiber f y) _ _ _ x'). clear x'; intro x.
+    destruct x as [x Hfx]. rewrite <- Hfx.
+    apply fmap_isIn.
+    apply (HXf x).
+  Defined.
+End k_properties.

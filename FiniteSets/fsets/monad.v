@@ -1,6 +1,6 @@
 (* [FSet] is a (strong and stable) finite powerset monad *)
 Require Import HoTT HitTactics.
-Require Export representations.definition fsets.properties.
+Require Export representations.definition fsets.properties fsets.operations.
 
 Definition ffmap {A B : Type} : (A -> B) -> FSet A -> FSet B.
 Proof.
@@ -68,3 +68,17 @@ Defined.
 Lemma join_fmap_return_1 {A : Type} (X : FSet A) :
   join (ffmap (fun x => {|x|}) X) = X.
 Proof. refine ((join_return_fmap _)^ @ join_return_1 _). Defined.
+
+Lemma fmap_isIn `{Univalence} {A B : Type} (f : A -> B) (a : A) (X : FSet A) :
+  a ∈ X -> (f a) ∈ (ffmap f X).
+Proof.
+  hinduction X; try (intros; apply path_ishprop).
+  - apply idmap.
+  - intros b Hab; strip_truncations.
+    apply (tr (ap f Hab)).
+  - intros X0 X1 HX0 HX1 Ha.
+    strip_truncations. apply tr.
+    destruct Ha as [Ha | Ha].
+    + left. by apply HX0.
+    + right. by apply HX1.
+Defined.
