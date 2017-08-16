@@ -1,5 +1,5 @@
 (* Bishop-finiteness is that "default" notion of finiteness in the HoTT library *)
-Require Import HoTT.
+Require Import HoTT HitTactics.
 Require Import Sub notation variations.k_finite.
 Require Import fsets.properties.
 
@@ -517,4 +517,50 @@ Section cowd.
                ** destruct (dec (a = a)); try by contradiction.
                   reflexivity. }
   Defined.
+
 End cowd.
+
+Section Kf_to_Bf.
+  Context `{Univalence}.
+
+  Definition FSet_to_Bfin (A : Type) `{DecidablePaths A} : forall (X : FSet A), Bfin (map X).
+  Proof.
+    hinduction; try (intros; apply path_ishprop).
+    - exists 0. apply tr. simpl.
+      simple refine (BuildEquiv _ _ _ _).
+      destruct 1 as [? []].
+    - intros a.
+      exists 1. apply tr. simpl.
+      transitivity Unit; [ | symmetry; apply sum_empty_l ].
+      unshelve esplit.
+      + exact (fun _ => tt).
+      + apply isequiv_biinv. split.
+        * exists (fun _ => (a; tr(idpath))).
+          intros [b Hb]. strip_truncations.
+          apply path_sigma' with Hb^.
+          apply path_ishprop.
+        * exists (fun _ => (a; tr(idpath))).
+          intros []. reflexivity.
+    - intros Y1 Y2 HY1 HY2.
+      apply kfin_is_bfin; auto.
+  Defined.
+
+  Instance Kf_to_Bf (X : Type) (Hfin : Kf X) `{DecidablePaths X} : Finite X.
+  Proof.
+    apply Kf_unfold in Hfin.
+    destruct Hfin as [Y HY].
+    pose (X' := FSet_to_Bfin _ Y).
+    unfold Bfin in X'.
+    simple refine (finite_equiv' _ _ X').
+    unshelve esplit.
+    - intros [a ?]. apply a.
+    - apply isequiv_biinv. split.
+      * exists (fun a => (a;HY a)).
+        intros [b Hb].
+        apply path_sigma' with idpath.
+        apply path_ishprop.
+      * exists (fun a => (a;HY a)).
+        intros b. reflexivity.
+  Defined.
+
+End Kf_to_Bf.
