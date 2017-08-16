@@ -133,4 +133,15 @@ Section k_properties.
     apply fmap_isIn.
     apply (HXf x).
   Defined.
+
+  Lemma S1_Kfinite : Kf S1.
+  Proof.
+    apply Kf_unfold.
+    exists {|base|}.
+    intro a. simpl.
+    simple refine (S1_ind (fun z => Trunc (-1) (z = base)) _ _ a); simpl.
+    - apply (tr loop).
+    - apply path_ishprop.
+  Defined.
+
 End k_properties.
