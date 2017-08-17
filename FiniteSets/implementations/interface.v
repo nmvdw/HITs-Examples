@@ -88,7 +88,7 @@ Section quotient_surjection.
     - apply f.
     - done.
   Defined.
-
+    
   Instance quotientB_emb : IsEmbedding (quotientB_to_B).
   Proof.
     apply isembedding_isinj_hset.
@@ -130,6 +130,8 @@ Section quotient_surjection.
 
 End quotient_surjection.
 
+Arguments quotient_iso {_} {_} _ {_} {_} {_}.
+  
 Ltac reduce T :=
   intros ;
   repeat (rewrite (f_empty T _)
@@ -137,12 +139,6 @@ Ltac reduce T :=
           || rewrite (f_union T _)
           || rewrite (f_filter T _)
           || rewrite (f_member T _)).
-Ltac simplify T := intros ; autounfold in * ; apply reflect_eq ; reduce T.
-Ltac reflect_equality T := simplify T ; eauto with lattice_hints typeclass_instances.
-Ltac reflect_eq T := autounfold
-                     ; repeat (hinduction ; try (intros ; apply path_ishprop) ; intro)
-                     ; apply related_classes_eq
-                     ; reflect_equality T.
 
 Section quotient_properties.
   Variable (T : Type -> Type).
@@ -152,45 +148,73 @@ Section quotient_properties.
   Definition set_eq A := f_eq (T A) (FSet A) (f A).
   Definition View A : Type := quotientB (T A) (FSet A) (f A).
 
-  Definition View_rec2 {A} (P : Type) (HP : IsHSet P) (u : T A -> T A -> P)
-    (Hresp : forall (x x' y y': T A), set_eq A x x' -> set_eq A y y' -> u x y = u x' y')
-    : forall (x y : View A), P.
+  Instance f_is_surjective A : IsSurjection (f A).
   Proof.
-    unfold View ; hrecursion.
-    - intros a.
-      hrecursion.
-      + apply (u a). 
-      + intros b b' Hbb'.
-        apply Hresp.
-        ++ reflexivity.
-        ++ assumption.
-    - intros ; simpl.
-      apply path_forall.
-      red.
-      hinduction ; try (intros ; apply path_ishprop).
-      intros b.
-      apply Hresp.
-      ++ assumption.
-      ++ reflexivity.
+    apply (f_surjective T f A).
+  Defined.
+    
+  Global Instance view_union (A : Type) : hasUnion (View A).
+  Proof.
+    intros X Y.
+    apply (quotient_iso _)^-1.
+    simple refine (union _ _).
+    - simple refine (quotient_iso (f A) X).
+    - simple refine (quotient_iso (f A) Y).
   Defined.
 
-  Definition well_defined_union (A : Type) (X1 X2 Y1 Y2 : T A) :
-    set_eq A X1 Y1 -> set_eq A X2 Y2 -> set_eq A (union X1 X2) (union Y1 Y2).
+  Definition well_defined_union (A : Type) (X Y : T A) :
+    (class_of _ X) ∪ (class_of _ Y) = class_of _ (X ∪ Y).
   Proof.
-    intros HXY1 HXY2.
-    simplify T.
-    by rewrite HXY1, HXY2.
+    rewrite <- (eissect (quotient_iso _)).
+    simpl.
+    rewrite (f_union T _).
+    reflexivity.
   Defined.
 
-  Definition well_defined_filter (A : Type) (ϕ : A -> Bool) (X Y : T A) :
-    set_eq A X Y -> set_eq A (filter ϕ X) (filter ϕ Y).
+  Global Instance view_comprehension (A : Type) : hasComprehension (View A) A.
   Proof.
-    intros HXY.
-    simplify T.
-    by rewrite HXY.
+    intros ϕ X.
+    apply (quotient_iso _)^-1.
+    simple refine ({|_ & ϕ|}).
+    apply (quotient_iso (f A) X).
   Defined.
 
-  Global Instance View_member A: hasMembership (View A) A.
+  Definition well_defined_filter (A : Type) (ϕ : A -> Bool) (X : T A) :
+    {|class_of _ X & ϕ|} = class_of _ {|X & ϕ|}.
+  Proof.
+    rewrite <- (eissect (quotient_iso _)).
+    simpl.
+    rewrite (f_filter T _).
+    reflexivity.
+  Defined.
+
+  Global Instance View_empty A : hasEmpty (View A).
+  Proof.
+    apply ((quotient_iso _)^-1 ∅).
+  Defined.
+
+  Definition well_defined_empty A : ∅ = class_of (set_eq A) ∅.
+  Proof.
+    rewrite <- (eissect (quotient_iso _)).
+    simpl.
+    rewrite (f_empty T _).
+    reflexivity.
+  Defined.  
+
+  Global Instance View_singleton A: hasSingleton (View A) A.
+  Proof.
+    intro a ; apply ((quotient_iso _)^-1 {|a|}).
+  Defined.
+
+  Definition well_defined_sungleton A (a : A) : {|a|} = class_of _ {|a|}.
+  Proof.
+    rewrite <- (eissect (quotient_iso _)).
+    simpl.
+    rewrite (f_singleton T _).
+    reflexivity.
+  Defined.  
+  
+  Global Instance View_member A : hasMembership (View A) A.
   Proof.
     intros a ; unfold View.
     hrecursion.
@@ -200,54 +224,30 @@ Section quotient_properties.
       apply (ap _ HXY).
   Defined.
 
-  Global Instance View_empty A: hasEmpty (View A).
-  Proof.
-    apply (class_of _ ∅).
-  Defined.
-
-  Global Instance View_singleton A: hasSingleton (View A) A.
-  Proof.
-    intros a.
-    apply (class_of _ {|a|}).
-  Defined.
-
   Instance View_max A : maximum (View A).
   Proof.
-    simple refine (View_rec2 _ _ _ _).
-    - intros a b.
-      apply (class_of _ (union a b)).
-    - intros x x' Hxx' y y' Hyy' ; simpl.
-      apply related_classes_eq.
-      eapply well_defined_union ; eauto.
+    apply view_union.
   Defined.
 
-  Global Instance View_union A: hasUnion (View A).
-  Proof.
-    apply max_L.
-  Defined.
-
-  Global Instance View_comprehension A: hasComprehension (View A) A.
-  Proof.
-    intros ϕ ; unfold View.
-    hrecursion.
-    - intros X.
-      apply (class_of _ (filter ϕ X)).
-    - intros X X' HXX' ; simpl.
-      apply related_classes_eq.
-      eapply well_defined_filter ; eauto.
-  Defined.
-
-  Hint Unfold Commutative Associative Idempotent NeutralL NeutralR.
+  Hint Unfold Commutative Associative Idempotent NeutralL NeutralR View_max view_union.
 
   Instance bottom_view A : bottom (View A).
   Proof.
-    unfold bottom.
-    apply ∅.
+    apply View_empty.
   Defined.
+
+  Ltac sq1 := autounfold ; intros ; try f_ap
+                         ; rewrite ?(eisretr (quotient_iso _))
+                         ; eauto with lattice_hints typeclass_instances.
+
+  Ltac sq2 := autounfold ; intros
+              ; rewrite <- (eissect (quotient_iso _)), ?(eisretr (quotient_iso _))
+              ; f_ap ; simpl
+              ; reduce T ; eauto with lattice_hints typeclass_instances.
 
   Global Instance view_lattice A : JoinSemiLattice (View A).
   Proof.
-    split ; reflect_eq T.
+    split ; try sq1 ; try sq2.
   Defined.
 
 End quotient_properties.
@@ -294,21 +294,9 @@ Section properties.
     refine (same_class _ _ _ _ _ _) ; assumption.
   Defined.
 
-  Lemma class_union (A : Type) (X Y : T A) :
-      class_of (set_eq f) (X ∪ Y) = (class_of (set_eq f) X) ∪ (class_of (set_eq f) Y).
-  Proof.
-    reflexivity.
-  Defined.
-
-  Lemma class_filter (A : Type) (X : T A) (ϕ : A -> Bool) :
-    class_of (set_eq f) ({|X & ϕ|}) = {|(class_of (set_eq f) X) & ϕ|}.
-  Proof.
-    reflexivity.
-  Defined.
-
-  Ltac via_quotient := intros ; apply reflect_f_eq
-                       ; rewrite ?class_union, ?class_filter
-                       ; eauto with lattice_hints typeclass_instances.
+  Ltac via_quotient := intros ; apply reflect_f_eq ; simpl
+                       ; rewrite <- ?(well_defined_union T _), <- ?(well_defined_empty T _)
+                       ; eauto with lattice_hints typeclass_instances.  
 
   Lemma union_comm : forall A (X Y : T A),
       set_eq f (X ∪ Y) (Y ∪ X).
@@ -328,10 +316,16 @@ Section properties.
     via_quotient.
   Defined.
 
-  Lemma union_neutral : forall A (X : T A),
+  Lemma union_neutralL : forall A (X : T A),
     set_eq f (∅ ∪ X) X.
   Proof.
     via_quotient.
   Defined.
 
+  Lemma union_neutralR : forall A (X : T A),
+    set_eq f (X ∪ ∅) X.
+  Proof.
+    via_quotient.
+  Defined.
+  
 End properties.
