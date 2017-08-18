@@ -145,3 +145,91 @@ Section k_properties.
   Defined.
 
 End k_properties.
+
+Section alternative_definition.
+  Context `{Univalence} {A : Type}.
+
+  Definition kf_sub (P : A -> hProp) :=
+    BuildhProp(forall (K' : (A -> hProp) -> hProp),
+               K' ∅ -> (forall a, K' {|a|}) -> (forall U V, K' U -> K' V -> K'(U ∪ V))
+               -> K' P).
+
+  Local Ltac help_solve :=
+    repeat (let x := fresh in intro x ; destruct x) ; intros
+    ; try (simple refine (path_sigma _ _ _ _ _)) ; try (apply path_ishprop) ; simpl
+    ; unfold union, Sub.sub_union, max_fun
+    ; apply path_forall
+    ; intro z
+    ; eauto with lattice_hints typeclass_instances.
+  
+  Definition fset_to_k : FSet A -> {P : A -> hProp & kf_sub P}.
+  Proof.
+    hinduction.
+    - exists ∅.
+      auto.
+    - intros a.
+      exists {|a|}.
+      auto.
+    - intros [P1 HP1] [P2 HP2].
+      exists (P1 ∪ P2).
+      intros ? ? ? HP.
+      apply HP.
+      * apply HP1 ; assumption.
+      * apply HP2 ; assumption.
+    - help_solve.
+    - help_solve.
+    - help_solve.
+    - help_solve.
+    - help_solve.
+  Defined.
+
+  Definition k_to_fset : {P : A -> hProp & kf_sub P} -> FSet A.
+  Proof.
+    intros [P HP].
+    destruct (HP (Kf_sub _) (k_finite_empty _) (k_finite_singleton _) (k_finite_union _)).
+    assumption.
+  Defined.
+
+  Lemma fset_to_k_to_fset X : k_to_fset(fset_to_k X) = X.
+  Proof.
+    hinduction X ; try (intros ; apply path_ishprop) ; try (intros ; reflexivity).
+    intros X1 X2 HX1 HX2.
+    refine ((ap (fun z => _ ∪ z) HX2^)^ @ (ap (fun z => z ∪ X2) HX1^)^).
+  Defined.
+    
+  Lemma k_to_fset_to_k (X : {P : A -> hProp & kf_sub P}) : fset_to_k(k_to_fset X) = X.
+  Proof.
+    simple refine (path_sigma _ _ _ _ _) ; try (apply path_ishprop).
+    apply path_forall.
+    intro z.
+    destruct X as [P HP].
+    unfold kf_sub in HP.
+    unfold k_to_fset.
+    pose (HP (Kf_sub A) (k_finite_empty A) (k_finite_singleton A) (k_finite_union A)) as t.
+    assert (HP (Kf_sub A) (k_finite_empty A) (k_finite_singleton A) (k_finite_union A) = t) as X0.
+    { reflexivity. }
+    rewrite X0 ; clear X0.
+    destruct t as [X HX].
+    assert (P z = map X z) as X1.
+    { rewrite HX. reflexivity. }
+    simpl.
+    rewrite X1 ; clear HX X1.
+    hinduction X ; try (intros ; apply path_ishprop).
+    - apply idpath.
+    - apply (fun a => idpath). 
+    - intros X1 X2 H1 H2.
+      rewrite <- H1, <- H2.
+      reflexivity.
+  Defined.
+
+  Theorem equiv_definition : IsEquiv fset_to_k.
+  Proof.
+    apply isequiv_biinv.
+    split.
+    - exists k_to_fset.
+      intro x ; apply fset_to_k_to_fset.
+    - exists k_to_fset.
+      intro x ; apply k_to_fset_to_k.
+  Defined.
+  
+End alternative_definition.
