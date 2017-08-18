@@ -37,6 +37,7 @@ Arguments JoinSemiLattice _ {_} {_}.
 
 Create HintDb joinsemilattice_hints.
 Hint Resolve associativity : joinsemilattice_hints.
+Hint Resolve (associativity _ _ _)^ : joinsemilattice_hints.
 Hint Resolve commutative : joinsemilattice_hints.
 Hint Resolve idempotency : joinsemilattice_hints.
 Hint Resolve neutralityL : joinsemilattice_hints.
@@ -65,6 +66,7 @@ Arguments Lattice _ {_} {_} {_}.
 
 Create HintDb lattice_hints.
 Hint Resolve associativity : lattice_hints.
+Hint Resolve (associativity _ _ _)^ : lattice_hints.
 Hint Resolve commutative : lattice_hints.
 Hint Resolve absorb : lattice_hints.
 Hint Resolve idempotency : lattice_hints.
@@ -189,6 +191,7 @@ End sub_lattice.
 
 Create HintDb bool_lattice_hints.
 Hint Resolve associativity : bool_lattice_hints.
+Hint Resolve (associativity _ _ _)^ : bool_lattice_hints.
 Hint Resolve commutative : bool_lattice_hints.
 Hint Resolve absorb : bool_lattice_hints.
 Hint Resolve idempotency : bool_lattice_hints.

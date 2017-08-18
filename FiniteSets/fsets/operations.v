@@ -45,7 +45,6 @@ Section operations.
   Proof.
     simple refine (FSet_rec _ _ _ true (fun _ => false) andb _ _ _ _ _)
     ; try eauto with bool_lattice_hints typeclass_instances.
-    intros ; symmetry ; eauto with lattice_hints typeclass_instances.
   Defined.
 
   Definition single_product {A B : Type} (a : A) : FSet B -> FSet (A * B).
