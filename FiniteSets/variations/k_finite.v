@@ -143,7 +143,18 @@ Section k_properties.
     - apply (tr loop).
     - apply path_ishprop.
   Defined.
-
+  
+  Lemma I_Kfinite : Kf interval.
+  Proof.
+    apply Kf_unfold.
+    exists {|Interval.one|}.
+    intro a. simpl.
+    simple refine (interval_ind (fun z => Trunc (-1) (z = Interval.one)) _ _ _ a); simpl.
+    - apply (tr seg).
+    - apply (tr idpath).
+    - apply path_ishprop.
+  Defined.
+  
 End k_properties.
 
 Section alternative_definition.
