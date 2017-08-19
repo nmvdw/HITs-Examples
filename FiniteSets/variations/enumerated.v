@@ -251,35 +251,26 @@ Section fset_dec_enumerated.
   Variable A : Type.
   Context `{Univalence}.
 
-  Definition Kf_fsetc :
-    Kf A -> exists (X : FSetC A), forall (a : A), k_finite.map (FSetC_to_FSet X) a.
+  Definition merely_enumeration_FSet :
+    forall (X : FSet A),
+    hexists (fun (ls : list A) => forall a, a ∈ X = listExt ls a).
   Proof.
-    intros [X HX].
-    exists (FSet_to_FSetC X).
-    rewrite repr_iso_id_l.
-    by rewrite <- HX.
-  Defined.
-
-  Definition merely_enumeration_FSetC :
-    forall (X : FSetC A),
-    hexists (fun (ls : list A) => forall a, a ∈ (FSetC_to_FSet X) = listExt ls a).
-  Proof.
-    hinduction.
+    simple refine (FSet_cons_ind _ _ _ _ _ _); simpl.
     - apply tr. exists nil. simpl. done.
     - intros a X Hls.
       strip_truncations. apply tr.
       destruct Hls as [ls Hls].
       exists (cons a ls). intros b. cbn.
-      f_ap.
+      apply (ap (fun z => _ ∨ z) (Hls b)).
     - intros. apply path_ishprop.
     - intros. apply path_ishprop.
   Defined.
 
   Definition Kf_enumerated : Kf A -> enumerated A.
   Proof.
-    intros HKf. apply Kf_fsetc in HKf.
+    intros HKf. apply Kf_unfold in HKf.
     destruct HKf as [X HX].
-    pose (ls' := (merely_enumeration_FSetC X)).
+    pose (ls' := (merely_enumeration_FSet X)).
     simple refine (@Trunc_rec _ _ _ _ _ ls'). clear ls'.
     intros [ls Hls].
     apply tr. exists ls.
