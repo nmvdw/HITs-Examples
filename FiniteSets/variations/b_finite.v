@@ -151,95 +151,65 @@ Section finite_hott.
   End empty.
   
   Section split.
-    Variable (X : A -> hProp)
+    Variable (P : A -> hProp)
              (n : nat)
-             (Xequiv : {a : A & a ∈ X} <~> Fin n + Unit).
+             (Xequiv : {a : A & P a } <~> Fin n + Unit).
 
-    Definition split : {X' : A -> hProp & {a : A & a ∈ X'} <~> Fin n}.
+    Definition split : exists P' : Sub A, exists b : A,
+      ({a : A & P' a} <~> Fin n) * (forall x, P x = P' x ∨ merely (x = b)).
     Proof.
       destruct Xequiv as [f [g fg gf adj]].
       unfold Sect in *. 
-      pose (fun x : A => sig (fun y : Fin n => x = (g(inl y)).1 )) as X'.
-      assert (forall a : A, IsHProp (X' a)).
+      pose (fun x : A => sig (fun y : Fin n => x = (g (inl y)).1)) as P'.
+      assert (forall x, IsHProp (P' x)).
       {
-        intros.
-        unfold X'.
+        intros a. unfold P'.
         apply hprop_allpath.
         intros [x px] [y py].
-        simple refine (path_sigma _ _ _ _ _).
-        * cbn.
-          pose (f(g(inl x))) as fgx.
-          cut (g(inl x) = g(inl y)).
-          {
-            intros q.
-            pose (ap f q).
-            rewrite !fg in p.
-            refine (path_sum_inl _ p).
-          }
-          apply path_sigma with (px^ @ py).
-          apply path_ishprop.
-        * apply path_ishprop.          
+        simple refine (path_sigma _ _ _ _ _); [ simpl | apply path_ishprop ].
+        apply path_sum_inl with Unit.
+        cut (g (inl x) = g (inl y)).
+        { intros p.
+          pose (ap f p) as Hp.
+          by rewrite !fg in Hp. }
+        apply path_sigma with (px^ @ py).
+        apply path_ishprop.
       }
-      pose (fun a => BuildhProp(X' a)) as Y.
-      exists Y.
-      unfold Y, X'.
-      cbn.
-      unshelve esplit.
-      - intros [a [y p]]. apply y.
-      - apply isequiv_biinv.
-        unshelve esplit.
-        * exists (fun x => (( (g(inl x)).1 ;(x;idpath)))).
-          unfold Sect.
-          intros [a [y p]].
-          apply path_sigma with p^.
-          simpl.
-          rewrite transport_sigma.
-          simple refine (path_sigma _ _ _ _ _) ; simpl.
-          ** rewrite transport_const ; reflexivity.
-          ** apply path_ishprop.
-        * exists (fun x => (( (g(inl x)).1 ;(x;idpath)))).
-          unfold Sect.
-          intros x.
-          reflexivity.
-    Defined.
-    
-    Definition new_el : {a' : A & forall z, X z =
-                                            lor (split.1 z) (merely (z = a'))}.
-    Proof.
-      exists ((Xequiv^-1 (inr tt)).1).
-      intros.
-      apply path_iff_hprop.
-      - intros Xz.
-        pose (Xequiv (z;Xz)) as fz.
-        pose (c := fz).
-        assert (c = fz). reflexivity.
-        destruct c as [fz1 | fz2].
-        * refine (tr(inl _)).
-          unfold split ; simpl.
-          exists fz1.
-          rewrite X0.
-          unfold fz.
-          destruct Xequiv as [? [? ? sect ?]].
-          compute.
-          rewrite sect.
-          reflexivity.
-        * refine (tr(inr(tr _))).
-          destruct fz2.
-          rewrite X0.
-          unfold fz.
-          rewrite eissect.
-          reflexivity.
-      - intros X0.
-        strip_truncations.
-        destruct X0 as [Xl | Xr].
-        * unfold split in Xl ; simpl in Xl.
-          destruct Xequiv as [f [g fg gf adj]].
-          destruct Xl as [m p].
-          rewrite p.
-          apply (g (inl m)).2.
-        * strip_truncations.
-          rewrite Xr.
-          apply ((Xequiv^-1(inr tt)).2).
+      exists (fun a => BuildhProp (P' a)).
+      exists (g (inr tt)).1.
+      split.
+      { unshelve eapply BuildEquiv.
+        { refine (fun x => x.2.1). }
+        apply isequiv_biinv.
+        unshelve esplit;
+          exists (fun x => (((g (inl x)).1; (x; idpath)))).
+        - intros [a [y p]]; cbn.
+          eapply path_sigma with p^.
+          apply path_ishprop.
+        - intros x; cbn.
+          reflexivity. }
+      { intros a.
+        unfold P'.
+        apply path_iff_hprop.
+        - intros Ha.
+          pose (y := f (a;Ha)).
+          assert (Hy : y = f (a; Ha)) by reflexivity.
+          destruct y as [y | []].
+          + refine (tr (inl _)).
+            exists y.
+            rewrite Hy.
+            by rewrite gf.
+          + refine (tr (inr (tr _))).
+            rewrite Hy.
+            by rewrite gf.
+        - intros Hstuff.
+          strip_truncations.
+          destruct Hstuff as [[y Hy] | Ha].
+          + rewrite Hy.
+            apply (g (inl y)).2.
+          + strip_truncations.
+            rewrite Ha.
+            apply (g (inr tt)).2. }
     Defined.
 
   End split.
@@ -263,13 +233,11 @@ Section dec_membership.
       rewrite p.
       apply _.
     - intros.
-      pose (new_el _ P n Hequiv) as b.
-      destruct b as [b HX'].
-      destruct (split _ P n Hequiv) as [X' X'equiv]. simpl in HX'.
+      destruct (split _ P n Hequiv) as
+        (P' & b & HP' & HP).
       unfold member, sub_membership.
-      rewrite (HX' a).
-      pose (IHn X' X'equiv) as IH.
-      destruct IH as [IH | IH].
+      rewrite (HP a).
+      destruct (IHn P' HP') as [IH | IH].
       + left. apply (tr (inl IH)).
       + destruct (dec (a = b)) as [Hab | Hab].
         left. apply (tr (inr (tr Hab))).
@@ -364,50 +332,38 @@ Section cowd.
       assert ((X; Build_Finite _ 0 (tr FX)) = empty_cow) as HX.
       { apply path_sigma' with HX_emp. apply path_ishprop. }
       rewrite HX. assumption.
-    - pose (a' := new_el _ X n FX).
-      destruct a' as [a' Ha'].
-      destruct (split _ X n FX) as [X' FX'].
+    - destruct (split _ X n FX) as
+        (X' & b & FX' & HX).
       pose (X'cow := (X'; Build_Finite _ n (tr FX')) : cow).
-      assert ((X; Build_Finite _ (n.+1) (tr FX)) = add_cow a' X'cow) as ℵ.
+      assert ((X; Build_Finite _ (n.+1) (tr FX)) = add_cow b X'cow) as ℵ.
       { simple refine (path_sigma' _ _ _); [ | apply path_ishprop ].
         apply path_forall. intros a.
         unfold X'cow.
-        specialize (Ha' a). rewrite Ha'. simpl. reflexivity. }
+        rewrite (HX a). simpl. reflexivity. }
       rewrite ℵ.
       apply koeientaart.
       apply IHn.
   Defined.
 
-  Definition bfin_to_kfin : forall (X : Sub A), Bfin X -> Kf_sub _ X.
+  Definition bfin_to_kfin : forall (P : Sub A), Bfin P -> Kf_sub _ P.
   Proof.
-    intros X BFinX.
-    unfold Bfin in BFinX.
-    destruct BFinX as [n iso].
+    intros P [n f].
     strip_truncations.
-    revert iso ; revert X.
-    induction n ; unfold Kf_sub, Kf_sub_intern.
-    - intros.
-      exists ∅.
-      apply path_forall.
-      intro z.
-      simpl in *.
-      apply path_iff_hprop ; try contradiction.
-      destruct iso as [f f_equiv].
-      apply (fun Xz => f(z;Xz)).
-    - intros.
-      simpl in *.
-      destruct (new_el _ X n iso) as [a HXX'].
-      destruct (split _ X n iso) as [X' X'equiv].
-      destruct (IHn X' X'equiv) as [Y HY].
-      exists (Y ∪ {|a|}).
-      unfold map in *.
-      apply path_forall.
-      intro z.
-      rewrite union_isIn.
-      rewrite <- (ap (fun h => h z) HY).
-      rewrite HXX'.
-      cbn.
-      reflexivity.
+    unfold Kf_sub, Kf_sub_intern.
+    revert f. revert P.
+    induction n; intros P f.
+    - exists ∅.
+      apply path_forall; intro a; simpl.
+      apply path_iff_hprop; [ | contradiction ].
+      intros p.
+      apply (f (a;p)).
+    - destruct (split _ P n f) as
+        (P' & b & HP' & HP).
+      destruct (IHn P' HP') as [Y HY].
+      exists (Y ∪ {|b|}).
+      apply path_forall; intro a. simpl.
+      rewrite <- HY.
+      apply HP.
   Defined.
 
   Lemma kfin_is_bfin : @closedUnion A Bfin.
