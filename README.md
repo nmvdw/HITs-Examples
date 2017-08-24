@@ -2,12 +2,20 @@
 
 Needed: https://github.com/HoTT/HoTT
 
-More information on the work is in HITs.pdf.
+The only part of the project that is buildable is the `FiniteSets` library.
 
 # Building
 
-Make sure that you have [hoqc](https://github.com/HoTT/HoTT) installed. Then generate
-the Makefile and build the project:
+Before proceeding make sure that you have [hoqc](https://github.com/HoTT/HoTT) installed.
 
-    coq_makefile -f _CoqProject -o Makefile
-    make
+1. Build the `HitTactics` library in `prelude`.
+```
+cd prelude
+hoqc HitTactics
+```
+2. Generate the Makefile and build the `FiniteSets` library
+```
+cd ../FiniteSets
+coq_makefile -f _CoqProject -o Makefile
+make
+```    
