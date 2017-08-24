@@ -310,9 +310,28 @@ Section dec_membership.
 End dec_membership.
 
 Section bfin_kfin.
-  Variable (A : Type).
   Context `{Univalence}.
-  Definition bfin_to_kfin : forall (P : Sub A), Bfin P -> Kf_sub _ P.
+  Lemma bfin_to_kfin : forall (B : Type), Finite B -> Kf B.
+  Proof.
+    apply finite_ind_hprop.
+    - intros. apply _.
+    - apply Kf_unfold.
+      exists ∅. intros [].
+    - intros B [n f] IH.
+      strip_truncations.
+      apply Kf_unfold in IH.
+      destruct IH as [X HX].
+      apply Kf_unfold.
+      Require Import fsets.monad.
+      exists ((ffmap inl X) ∪ {|inr tt|}); simpl.
+      intros [a | []]; apply tr.
+      + left.
+        apply fmap_isIn.
+        apply (HX a).
+      + right. apply (tr idpath).
+  Defined.
+
+  Definition bfin_to_kfin_sub A : forall (P : Sub A), Bfin P -> Kf_sub _ P.
   Proof.
     intros P [n f].
     strip_truncations.
