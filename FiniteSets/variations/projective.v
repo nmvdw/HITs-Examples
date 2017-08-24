@@ -63,7 +63,7 @@ Section k_fin_lemoo_projective.
   Global Instance kuratowski_projective_oo (X : Type) (Hfin : Kf X) : IsProjective X.
   Proof.
     assert (Finite X).
-    { apply Kf_to_Bf; auto.
+    { eapply Kf_to_Bf; auto.
       intros pp qq. apply LEMoo. }
     apply _.
   Defined.
@@ -78,7 +78,7 @@ Section k_fin_lem_projective.
   Global Instance kuratowski_projective (Hfin : Kf X) : IsProjective X.
   Proof.
     assert (Finite X).
-    { apply Kf_to_Bf; auto.
+    { eapply Kf_to_Bf; auto.
       intros pp qq. apply LEM. apply _. }
     apply _.
   Defined.
