@@ -1,5 +1,5 @@
 (* Bishop-finiteness is that "default" notion of finiteness in the HoTT library *)
-Require Import HoTT HitTactics.
+Require Import HoTT HitTactics plumbing.
 Require Import Sub notation variations.k_finite.
 Require Import fsets.properties.
 
@@ -149,21 +149,6 @@ Section empty.
     contradiction (f(z;x)).
   Defined.  
 End empty.
-
-
-(* TODO: This should go into the HoTT library or in some other places *)
-Lemma ap_inl_path_sum_inl {A B} (x y : A) (p : inl x = inl y) :
-  ap inl (path_sum_inl B p) = p.
-Proof.
-  transitivity (@path_sum _ B (inl x) (inl y) (path_sum_inl B p));
-    [ | apply (eisretr_path_sum _) ].
-  destruct (path_sum_inl B p).
-  reflexivity.
-Defined.
-Lemma ap_equiv {A B} (f : A <~> B) {x y : A} (p : x = y) :
-  ap (f^-1 o f) p = eissect f x @ p @ (eissect f y)^.
-Proof. destruct p. hott_simpl. Defined.
-(* END TODO *)
 
 Section split.
   Context `{Univalence}.
