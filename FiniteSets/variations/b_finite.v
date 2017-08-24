@@ -1,7 +1,7 @@
 (* Bishop-finiteness is that "default" notion of finiteness in the HoTT library *)
 Require Import HoTT HitTactics plumbing.
 Require Import Sub notation variations.k_finite.
-Require Import fsets.properties.
+Require Import fsets.properties fsets.monad.
 
 Section finite_hott.
   Variable (A : Type).
@@ -322,7 +322,6 @@ Section bfin_kfin.
       apply Kf_unfold in IH.
       destruct IH as [X HX].
       apply Kf_unfold.
-      Require Import fsets.monad.
       exists ((ffmap inl X) ∪ {|inr tt|}); simpl.
       intros [a | []]; apply tr.
       + left.
