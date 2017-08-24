@@ -247,6 +247,53 @@ End finite_hott.
 
 Arguments Bfin {_} _.
 
+Section Bfin_not_set.
+  Definition S1toSig (x : S1) : {x : S1 & merely(x = base)}.
+  Proof.
+    exists x.
+    simple refine (S1_ind (fun z => merely(z = base)) _ _ x) ; simpl.
+    - apply (tr idpath).
+    - apply path_ishprop.
+  Defined.
+
+  Instance S1toSig_equiv : IsEquiv S1toSig.
+  Proof.
+    apply isequiv_biinv.
+    split.
+    - exists (fun x => x.1).
+      simple refine (S1_ind _ _ _) ; simpl.
+      * reflexivity.
+      * rewrite transport_paths_FlFr.
+        hott_simpl.
+    - exists (fun x => x.1).
+      intros [z x].
+      simple refine (path_sigma _ _ _ _ _) ; simpl.
+      * reflexivity.
+      * apply path_ishprop.
+  Defined.
+
+  Context `{Univalence}.
+
+  Theorem no_singleton (Hsing : Bfin {|base|}) : Empty.
+  Proof.
+    destruct Hsing as [n equiv].
+    strip_truncations.
+    assert (S1 <~> Fin n) as X.
+    { apply (equiv_compose equiv S1toSig). }
+    assert (IsHSet S1) as X1.
+    {
+      rewrite (path_universe X).
+      apply _.
+    }
+    enough (idpath = loop). 
+    - assert (S1_encode _ idpath = S1_encode _ (loopexp loop (pos Int.one))) as H' by f_ap.
+      rewrite S1_encode_loopexp in H'. simpl in H'. symmetry in H'.
+      apply (pos_neq_zero H').
+    - apply set_path2.
+  Defined.
+
+End Bfin_not_set.
+
 Section dec_membership.
   Variable (A : Type).
   Context `{DecidablePaths A} `{Univalence}.
