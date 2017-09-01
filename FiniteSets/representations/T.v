@@ -15,11 +15,6 @@ Section TR.
     | inr tt, inr tt => Unit_hp
     end.
 
-  Global Instance R_mere : is_mere_relation _ R.
-  Proof.
-    intros x y ; destruct x ; destruct y ; apply _.
-  Defined.
-
   Global Instance R_refl : Reflexive R.
   Proof.
     intro x ; destruct x as [[ ] | [ ]] ; apply tt.

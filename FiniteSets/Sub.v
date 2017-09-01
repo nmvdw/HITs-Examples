@@ -1,5 +1,5 @@
 Require Import HoTT.
-Require Import disjunction lattice notation.
+Require Import disjunction lattice notation plumbing.
 
 Section subobjects.
   Variable A : Type.
@@ -57,17 +57,7 @@ End isIn.
 Section intersect.
   Variable A : Type.
   Variable C : (Sub A) -> hProp.
-  Context `{Univalence}.
-
-  Global Instance hprop_lem : forall (T : Type) (Ttrunc : IsHProp T), IsHProp (T + ~T).
-  Proof.
-    intros.
-    apply (equiv_hprop_allpath _)^-1.
-    intros [x | nx] [y | ny] ; try f_ap ; try (apply Ttrunc) ; try contradiction.
-    - apply equiv_hprop_allpath. apply _.
-  Defined.
-
-  Context
+  Context `{Univalence}
     {HI : closedIntersection C} {HE : closedEmpty C}
     {HS : closedSingleton C} {HDE : hasDecidableEmpty C}.
 
