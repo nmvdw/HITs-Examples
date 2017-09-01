@@ -87,35 +87,41 @@ End k_fin_lem_projective.
 Section k_fin_projective_lem.
   Context `{Univalence}.
   Variable (P : Type).
-  Context `{Hprop : IsHProp P}.
+  Context `{IsHProp P}.
 
-  Definition X : Type := T P.
+  Definition X : Type := TR (BuildhProp P).
   Instance X_set : IsHSet X.
-  Proof. apply _. Defined.
+  Proof.
+    apply _.
+  Defined.
 
   Definition X_fin : Kf X.
   Proof.
     apply Kf_unfold.
-    exists ({|b P|} ∪ {|c P|}).
+    exists ({|TR_zero _|} ∪ {|TR_one _|}).
     hinduction.
-    - apply (tr (inl (tr idpath))).
-    - apply (tr (inr (tr idpath))).
-    - intros. apply path_ishprop.
+    - destruct x as [ [ ] | [ ] ].
+      * apply (tr (inl (tr idpath))).
+      * apply (tr (inr (tr idpath))).
+    - intros.
+      apply path_ishprop.
   Defined.
 
   Definition p (a : Unit + Unit) : X :=
     match a with
-    | inl _ => b P
-    | inr _ => c P
+    | inl _ => TR_zero _
+    | inr _ => TR_one _
     end.
 
   Instance p_surj : IsSurjection p.
   Proof.
     apply BuildIsSurjection.
     hinduction.
-    - apply tr. exists (inl tt). reflexivity.
-    - apply tr. exists (inr tt). reflexivity.
-    - intros. apply path_ishprop.
+    - destruct x as [[ ] | [ ]].
+      * apply tr. exists (inl tt). reflexivity.
+      * apply tr. exists (inr tt). reflexivity.
+    - intros.
+      apply path_ishprop.
   Defined.
 
   Lemma LEM `{IsProjective X} : P + ~P.
@@ -123,16 +129,17 @@ Section k_fin_projective_lem.
     pose (k := projective p idmap _).
     unfold hexists in k.
     simple refine (Trunc_rec _ k); clear k; intros [g Hg].
-    destruct (dec (g (b P) = g (c P))) as [Hℵ | Hℵ].
+    destruct (dec (g (TR_zero _) = g (TR_one _))) as [Hℵ | Hℵ].
     - left.
-      assert (b P = c P) as Hbc.
+      assert (TR_zero (BuildhProp P) = TR_one _) as Hbc.
       { pose (ap p Hℵ) as Hα.
-        rewrite (ap (fun h => h (b P)) Hg) in Hα.
-        rewrite (ap (fun h => h (c P)) Hg) in Hα.
+        rewrite (ap (fun h => h (TR_zero _)) Hg) in Hα.
+        rewrite (ap (fun h => h (TR_one _)) Hg) in Hα.
         assumption. }
-      apply (encode _ (b P) (c P) Hbc).
+      refine (classes_eq_related _ _ _ Hbc).
     - right. intros HP.
       apply Hℵ.
-      apply (ap g (T.p HP)).
+      refine (ap g (related_classes_eq _ _)).
+      apply HP.
   Defined.
 End k_fin_projective_lem.

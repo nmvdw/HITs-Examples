@@ -74,20 +74,6 @@ Module Export FSet.
           | U y z => fun _ _ _ _ _ _ => uP y z (FSet_ind y) (FSet_ind z)
           end) H assocP commP nlP nrP idemP.
 
-    Axiom FSet_ind_beta_assoc : forall (x y z : FSet A),
-        apD FSet_ind (assoc x y z) =
-        (assocP x y z (FSet_ind x)  (FSet_ind y) (FSet_ind z)).
-
-    Axiom FSet_ind_beta_comm : forall (x y : FSet A),
-        apD FSet_ind (comm x y) = (commP x y (FSet_ind x) (FSet_ind y)).
-
-    Axiom FSet_ind_beta_nl : forall (x : FSet A),
-        apD FSet_ind (nl x) = (nlP x (FSet_ind x)).
-
-    Axiom FSet_ind_beta_nr : forall (x : FSet A),
-        apD FSet_ind (nr x) = (nrP x (FSet_ind x)).
-
-    Axiom FSet_ind_beta_idem : forall (x : A), apD FSet_ind (idem x) = idemP x.
   End FSet_induction.
 
   Section FSet_recursion.
@@ -116,66 +102,6 @@ Module Export FSet.
       - apply nlP.
       - apply nrP.
       - apply idemP.
-    Defined.
-
-    Definition FSet_rec_beta_assoc : forall (x y z : FSet A),
-        ap FSet_rec (assoc x y z)
-        =
-        assocP (FSet_rec x) (FSet_rec y) (FSet_rec z).
-    Proof.
-      intros.
-      unfold FSet_rec.
-      eapply (cancelL (transport_const (assoc x y z) _)).
-      simple refine ((apD_const _ _)^ @ _).
-      apply FSet_ind_beta_assoc.
-    Defined.
-
-    Definition FSet_rec_beta_comm : forall (x y : FSet A),
-        ap FSet_rec (comm x y)
-        =
-        commP (FSet_rec x) (FSet_rec y).
-    Proof.
-      intros.
-      unfold FSet_rec.
-      eapply (cancelL (transport_const (comm x y) _)).
-      simple refine ((apD_const _ _)^ @ _).
-      apply FSet_ind_beta_comm.
-    Defined.
-
-    Definition FSet_rec_beta_nl : forall (x : FSet A),
-        ap FSet_rec (nl x)
-        =
-        nlP (FSet_rec x).
-    Proof.
-      intros.
-      unfold FSet_rec.
-      eapply (cancelL (transport_const (nl x) _)).
-      simple refine ((apD_const _ _)^ @ _).
-      apply FSet_ind_beta_nl.
-    Defined.
-
-    Definition FSet_rec_beta_nr : forall (x : FSet A),
-        ap FSet_rec (nr x)
-        =
-        nrP (FSet_rec x).
-    Proof.
-      intros.
-      unfold FSet_rec.
-      eapply (cancelL (transport_const (nr x) _)).
-      simple refine ((apD_const _ _)^ @ _).
-      apply FSet_ind_beta_nr.
-    Defined.
-
-    Definition FSet_rec_beta_idem : forall (a : A),
-        ap FSet_rec (idem a)
-        =
-        idemP a.
-    Proof.
-      intros.
-      unfold FSet_rec.
-      eapply (cancelL (transport_const (idem a) _)).
-      simple refine ((apD_const _ _)^ @ _).
-      apply FSet_ind_beta_idem.
     Defined.
 
   End FSet_recursion.
