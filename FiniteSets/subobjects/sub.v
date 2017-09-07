@@ -1,5 +1,5 @@
 Require Import HoTT.
-Require Import disjunction lattice notation plumbing.
+Require Import set_names lattice_interface lattice_examples prelude.
 
 Section subobjects.
   Variable A : Type.
