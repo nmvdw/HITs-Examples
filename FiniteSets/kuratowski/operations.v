@@ -1,6 +1,6 @@
 (** Operations on the [FSet A] for an arbitrary [A] *)
 Require Import HoTT HitTactics.
-Require Import kuratowski_sets monad_interface.
+Require Import kuratowski_sets monad_interface extensionality.
 
 Section operations.
   (** Monad operations. *)
@@ -57,14 +57,7 @@ Section operations.
       + apply idem.
       + apply nl.
   Defined.
-
-  Definition isEmpty (A : Type) :
-    FSet A -> Bool.
-  Proof.
-    simple refine (FSet_rec _ _ _ true (fun _ => false) andb _ _ _ _ _)
-    ; try eauto with bool_lattice_hints typeclass_instances.
-  Defined.
-
+        
   Definition single_product {A B : Type} (a : A) : FSet B -> FSet (A * B).
   Proof.
     hrecursion.
@@ -94,6 +87,9 @@ Section operations.
     - apply nr.
     - intros ; apply union_idem.
   Defined.
+
+  Definition disjoint_sum {A B : Type} (X : FSet A) (Y : FSet B) : FSet (A + B) :=
+    (fset_fmap inl X) ∪ (fset_fmap inr Y).      
 
   Local Ltac remove_transport
     := intros ; apply path_forall ; intro Z ; rewrite transport_arrow
@@ -136,6 +132,37 @@ Section operations.
       rewrite <- (idem (Z (x; tr 1%path))).
       pointwise.
   Defined.
+
+  (** [FSet A] has decidable emptiness. *)  
+  Definition isEmpty {A : Type} (X : FSet A) : Decidable (X = ∅).
+  Proof.
+    hinduction X ; try (intros ; apply path_ishprop).
+    - apply (inl idpath).
+    - intros.
+      refine (inr (fun p => _)).
+      refine (transport (fun Z : hProp => Z) (ap (fun z => a ∈ z) p) _).
+      apply (tr idpath).
+    - intros X Y H1 H2.
+      destruct H1 as [p1 | p1], H2 as [p2 | p2].
+      * left.
+        rewrite p1, p2.
+        apply nl.
+      * right.
+        rewrite p1, nl.
+        apply p2.
+      * right.
+        rewrite p2, nr.
+        apply p1.
+      * right.
+        intros p.
+        apply p1.
+        apply fset_ext.
+        intros.
+        apply path_iff_hprop ; try contradiction.
+        intro H1.
+        refine (transport (fun z => a ∈ z) p _).
+        apply (tr(inl H1)).
+  Defined.  
 End operations.
 
 Section operations_decidable.
