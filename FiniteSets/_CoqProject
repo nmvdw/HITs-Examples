@@ -15,6 +15,7 @@ kuratowski/operations.v
 kuratowski/properties.v
 FSets.v
 interfaces/set_interface.v
+implementations/lists.v
 subobjects/sub.v
 subobjects/k_finite.v
 subobjects/enumerated.v
