@@ -1,51 +1,5 @@
+(** Classes for set operations, so they can be overloaded. *)
 Require Import HoTT.
-
-Section binary_operation.
-  Variable A : Type.
-  
-  Definition operation := A -> A -> A.
-End binary_operation.
-
-Section Defs.
-  Variable A : Type.
-  Variable f : A -> A -> A.
-
-  Class Commutative :=
-    commutative : forall x y, f x y = f y x.
-
-  Class Associative :=
-    associativity : forall x y z, f (f x y) z = f x (f y z).
-
-  Class Idempotent :=
-    idempotency : forall x, f x x = x.
-
-  Variable g : operation A.
-
-  Class Absorption :=
-    absorb : forall x y, f x (g x y) = x.
-
-  Variable n : A.
-
-  Class NeutralL :=
-    neutralityL : forall x, f n x = x.
-
-  Class NeutralR :=
-    neutralityR : forall x, f x n = x.
-
-End Defs.
-
-Arguments Commutative {_} _.
-Arguments Associative {_} _.
-Arguments Idempotent {_} _.
-Arguments NeutralL {_} _ _.
-Arguments NeutralR {_} _ _.
-Arguments Absorption {_} _ _.
-Arguments commutative {_} {_} {_} _ _.
-Arguments associativity {_} {_} {_} _ _ _.
-Arguments idempotency {_} {_} {_} _.
-Arguments neutralityL {_} {_} {_} {_} _.
-Arguments neutralityR {_} {_} {_} {_} _.
-Arguments absorb {_} {_} {_} {_} _ _.
 
 Section structure.
   Variable (T A : Type).

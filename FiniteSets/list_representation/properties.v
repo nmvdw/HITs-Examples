@@ -1,7 +1,6 @@
-(* Properties of the operations on [FSetC A] *)
+(** Properties of the operations on [FSetC A] *)
 Require Import HoTT HitTactics.
-Require Import representations.cons_repr.
-From fsets Require Import operations_cons_repr.
+Require Import list_representation list_representation.operations.
 
 Section properties.
   Context {A : Type}.
@@ -12,8 +11,8 @@ Section properties.
   Lemma append_nr : forall (x: FSetC A), x ∪ ∅ = x.
   Proof.
     hinduction; try (intros; apply set_path2).
-    -  reflexivity.
-    -  intros. apply (ap (fun y => a;;y) X).
+    - reflexivity.
+    - intros. apply (ap (fun y => a;;y) X).
   Defined.
 
   Lemma append_assoc {H: Funext}:
@@ -42,21 +41,18 @@ Section properties.
     forall (x1 x2: FSetC A), x1 ∪ x2 = x2 ∪ x1.
   Proof.
     hinduction ;  try (intros ; apply path_forall ; intro ; apply set_path2).
-    - intros. symmetry. apply append_nr.
+    - intros.
+      apply (append_nr _)^.
     - intros a x1 HR x2.
-      etransitivity.
-      apply (ap (fun y => a;;y) (HR x2)).
-      transitivity  ((x2 ∪ x1) ∪ (a;;∅)).
-      + apply append_singleton.
-      + etransitivity.
-    	* symmetry. apply append_assoc.
-    	* simple refine (ap (x2 ∪) (append_singleton _ _)^).
+      refine (ap (fun y => a;;y) (HR x2) @ _).
+      refine (append_singleton _ _ @ _).
+      refine ((append_assoc _ _ _)^ @ _).
+      refine (ap (x2 ∪) (append_singleton _ _)^).
   Defined.
 
   Lemma singleton_idem: forall (a: A),
       {|a|} ∪ {|a|} = {|a|}.
   Proof.
-    unfold singleton.
     intro.
     apply dupl.
   Defined.

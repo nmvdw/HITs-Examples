@@ -1,6 +1,6 @@
-(* Operations on [FSetC A] *)
+(** Operations on [FSetC A] *)
 Require Import HoTT HitTactics.
-Require Import representations.cons_repr.
+Require Import list_representation.
 
 Section operations.
   Global Instance fsetc_union : forall A, hasUnion (FSetC A).

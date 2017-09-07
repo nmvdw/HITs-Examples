@@ -1,6 +1,6 @@
 (** Extensionality of the FSets *)
 Require Import HoTT HitTactics.
-Require Import representations.definition fsets.operations.
+Require Import kuratowski.kuratowski_sets.
 
 Section ext.
   Context {A : Type}.

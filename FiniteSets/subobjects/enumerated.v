@@ -1,9 +1,8 @@
 (* Enumerated finite sets *)
 Require Import HoTT HitTactics.
-Require Import disjunction Sub.
-Require Import representations.cons_repr representations.definition.
-Require Import variations.k_finite.
-From fsets Require Import operations isomorphism properties_decidable operations_decidable.
+Require Import sub prelude FSets list_representation subobjects.k_finite
+        list_representation.isomorphism
+        lattice_interface lattice_examples.
 
 Fixpoint listExt {A} (ls : list A) : Sub A := fun x =>
   match ls with

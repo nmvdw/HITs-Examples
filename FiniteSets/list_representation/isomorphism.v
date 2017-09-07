@@ -1,15 +1,16 @@
 (* The representations [FSet A] and [FSetC A] are isomorphic for every A *)
 Require Import HoTT HitTactics.
-From representations Require Import cons_repr definition.
-From fsets Require Import operations_cons_repr properties_cons_repr.
+Require Import list_representation list_representation.operations
+        list_representation.properties.
+Require Import kuratowski.kuratowski_sets.
 
 Section Iso.
-
   Context {A : Type}.
   Context `{Univalence}.
 
   Definition dupl' (a : A) (X : FSet A) :
     {|a|} ∪ {|a|} ∪ X = {|a|} ∪ X := assoc _ _ _ @ ap (∪ X) (idem _).
+  
   Definition comm' (a b : A) (X : FSet A) :
     {|a|} ∪ {|b|} ∪ X = {|b|} ∪ {|a|} ∪ X :=
     assoc _ _ _ @ ap (∪ X) (comm _ _) @ (assoc _ _ _)^.
@@ -110,18 +111,18 @@ Section Iso.
     simple refine (FSetC_ind A (fun Z => P (FSetC_to_FSet Z)) _ _ _ _ _ (FSet_to_FSetC X)); simpl.
     - apply Pempt.
     - intros a Y HY. by apply Pcons.
-    - intros a Y PY. cbn.
+    - intros a Y PY.
       refine (_ @ (Pdupl _ _ _)).
       etransitivity.
       { apply (transport_compose _ FSetC_to_FSet (dupl a Y)). }
       refine (ap (fun z => transport P z _) _).
-      apply FSetC_rec_beta_dupl.
+      apply path_ishprop.
     - intros a b Y PY. cbn.
       refine (_ @ (Pcomm _ _ _ _)).
       etransitivity.
       { apply (transport_compose _ FSetC_to_FSet (FSetC.comm a b Y)). }
       refine (ap (fun z => transport P z _) _).
-      apply FSetC_rec_beta_comm.
+      apply path_ishprop.
   Defined.
 
   Theorem FSet_cons_ind_beta_empty (P : FSet A -> Type)
@@ -133,7 +134,9 @@ Section Iso.
     (Pcomm : forall (a b : A) (X : FSet A) (px : P X),
        transport P (comm' a b X) (Pcons a _ (Pcons b X px)) = Pcons b _ (Pcons a X px)) :
     FSet_cons_ind P Pset Pempt Pcons Pdupl Pcomm ∅ = Pempt.
-  Proof. by compute. Defined.
+  Proof.
+      by compute.
+  Defined.
 
   (* TODO *)
   (* Theorem FSet_cons_ind_beta_cons (P : FSet A -> Type)  *)

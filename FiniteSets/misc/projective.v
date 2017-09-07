@@ -1,7 +1,6 @@
 Require Import HoTT HitTactics.
-Require Import variations.k_finite variations.b_finite.
-Require Import FSets.
-Require Import representations.T.
+Require Import subobjects.k_finite subobjects.b_finite FSets.
+Require Import misc.T.
 
 Class IsProjective (X : Type) :=
   projective : forall {P Q : Type} (p : P -> Q) (f : X -> Q),

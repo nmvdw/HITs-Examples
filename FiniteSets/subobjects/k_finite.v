@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Import lattice representations.definition fsets.operations extensionality Sub fsets.properties fsets.monad.
+Require Import sub lattice_interface lattice_examples FSets.
 
 Section k_finite.
 
@@ -125,7 +125,7 @@ Section k_properties.
   Proof.
     intros HX. apply Kf_unfold. apply Kf_unfold in HX.
     destruct HX as [Xf HXf].
-    exists (ffmap f Xf).
+    exists (fmap FSet f Xf).
     intro y.
     pose (x' := center (merely (hfiber f y))).
     simple refine (@Trunc_rec (-1) (hfiber f y) _ _ _ x'). clear x'; intro x.
@@ -168,7 +168,7 @@ Section alternative_definition.
   Local Ltac help_solve :=
     repeat (let x := fresh in intro x ; destruct x) ; intros
     ; try (simple refine (path_sigma _ _ _ _ _)) ; try (apply path_ishprop) ; simpl
-    ; unfold union, Sub.sub_union, max_fun
+    ; unfold union, sub_union, max_fun
     ; apply path_forall
     ; intro z
     ; eauto with lattice_hints typeclass_instances.

@@ -1,6 +1,6 @@
 (* Implementation of [FSet A] using lists *)
 Require Import HoTT HitTactics.
-Require Import FSets implementations.interface.
+Require Import FSets set_interface.
 
 Section Operations.
   Context `{Univalence}.
