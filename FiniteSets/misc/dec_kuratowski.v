@@ -5,15 +5,11 @@ Require Import FSets.
 Section membership.
   Context {A : Type} `{Univalence}.
 
-  Theorem dec_membership
+  Definition dec_membership
           (H1 : forall (a : A) (X : FSet A), Decidable(a ∈ X))
           (a b : A)
-    : Decidable(merely(a = b)).
-  Proof.
-    destruct (H1 a {|b|}) as [t | t].
-    - apply (inl t).
-    - apply (inr(fun p => t p)).
-  Defined.
+    : Decidable(merely(a = b))
+  := H1 a {|b|}.
 End membership.
 
 Section intersection.
@@ -44,26 +40,20 @@ End intersection.
 Section subset.
   Context {A : Type} `{Univalence}.
 
-  Theorem dec_subset
+  Definition dec_subset
           (H1 : forall (X Y : FSet A), Decidable(X ⊆ Y))
           (a b : A)
-    : Decidable(merely(a = b)).
-  Proof.
-    destruct (dec ({|a|} ⊆ {|b|})) as [t | t].
-    - apply (inl t).
-    - apply (inr(fun p => t p)).
-  Defined.
+    : Decidable(merely(a = b))
+  := H1 {|a|} {|b|}.
 End subset.  
       
 Section decidable_equality.
   Context {A : Type} `{Univalence}.
 
-  Theorem dec_decidable_equality : DecidablePaths(FSet A)
-                                   -> forall (a b : A), Decidable(merely(a = b)).
+  Definition dec_decidable_equality (H1 : DecidablePaths(FSet A)) (a b : A)
+    : Decidable(merely(a = b)).
   Proof.
-    intros H1 a b.
-    specialize (H1 {|a|} {|b|}).
-    destruct H1 as [p | p].
+    destruct (H1 {|a|} {|b|}) as [p | p].
     - pose (transport (fun z => a ∈ z) p) as t.
       apply (inl (t (tr idpath))).
     - refine (inr (fun n => _)).
