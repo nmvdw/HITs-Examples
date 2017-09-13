@@ -24,3 +24,4 @@ misc/bad.v
 misc/dec_lem.v
 misc/ordered.v
 misc/projective.v
+misc/dec_kuratowski.v
