@@ -51,7 +51,7 @@ End BoolLattice.
 Create HintDb bool_lattice_hints.
 Hint Resolve associativity : bool_lattice_hints.
 Hint Resolve (associativity _ _ _)^ : bool_lattice_hints.
-Hint Resolve commutative : bool_lattice_hints.
+Hint Resolve commutativity : bool_lattice_hints.
 Hint Resolve absorb : bool_lattice_hints.
 Hint Resolve idempotency : bool_lattice_hints.
 Hint Resolve neutralityL : bool_lattice_hints.

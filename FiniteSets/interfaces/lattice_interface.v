@@ -8,7 +8,7 @@ Section binary_operation.
            (f : operation A).
 
   Class Commutative :=
-    commutative : forall x y, f x y = f y x.
+    commutativity : forall x y, f x y = f y x.
 
   Class Associative :=
     associativity : forall x y z, f (f x y) z = f x (f y z).
@@ -36,7 +36,7 @@ Arguments Idempotent {_} _.
 Arguments NeutralL {_} _ _.
 Arguments NeutralR {_} _ _.
 Arguments Absorption {_} _ _.
-Arguments commutative {_} {_} {_} _ _.
+Arguments commutativity {_} {_} {_} _ _.
 Arguments associativity {_} {_} {_} _ _ _.
 Arguments idempotency {_} {_} {_} _.
 Arguments neutralityL {_} {_} {_} {_} _.
@@ -79,7 +79,7 @@ Arguments JoinSemiLattice _ {_} {_}.
 Create HintDb joinsemilattice_hints.
 Hint Resolve associativity : joinsemilattice_hints.
 Hint Resolve (associativity _ _ _)^ : joinsemilattice_hints.
-Hint Resolve commutative : joinsemilattice_hints.
+Hint Resolve commutativity : joinsemilattice_hints.
 Hint Resolve idempotency : joinsemilattice_hints.
 Hint Resolve neutralityL : joinsemilattice_hints.
 Hint Resolve neutralityR : joinsemilattice_hints.
@@ -108,7 +108,7 @@ Arguments Lattice _ {_} {_} {_}.
 Create HintDb lattice_hints.
 Hint Resolve associativity : lattice_hints.
 Hint Resolve (associativity _ _ _)^ : lattice_hints.
-Hint Resolve commutative : lattice_hints.
+Hint Resolve commutativity : lattice_hints.
 Hint Resolve absorb : lattice_hints.
 Hint Resolve idempotency : lattice_hints.
 Hint Resolve neutralityL : lattice_hints.

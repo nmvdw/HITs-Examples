@@ -428,7 +428,7 @@ Section kfin_bfin.
         apply path_forall. intro a.
         unfold union, sub_union, max_fun.
         rewrite HX.
-        rewrite (commutative (X' a)).
+        rewrite (commutativity (X' a)).
         rewrite (associativity _ (X' a)).
         apply path_iff_hprop.
         * intros Ha.
