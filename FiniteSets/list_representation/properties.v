@@ -5,8 +5,8 @@ Require Import list_representation list_representation.operations.
 Section properties.
   Context {A : Type}.
 
-  Definition append_nl : forall (x: FSetC A), ∅ ∪ x = x
-    := fun _ => idpath.
+  Definition append_nl (x: FSetC A) : ∅ ∪ x = x
+    := idpath.
 
   Lemma append_nr : forall (x: FSetC A), x ∪ ∅ = x.
   Proof.
@@ -15,16 +15,16 @@ Section properties.
     - intros. apply (ap (fun y => a;;y) X).
   Defined.
 
-  Lemma append_assoc {H: Funext}:
+  Lemma append_assoc :
     forall (x y z: FSetC A), x ∪ (y ∪ z) = (x ∪ y) ∪ z.
   Proof.
-    hinduction
-    ; try (intros ; apply path_forall ; intro
-           ; apply path_forall ; intro ;  apply set_path2).
-    - reflexivity.
-    - intros a x HR y z.
-      specialize (HR y z).
-      apply (ap (fun y => a;;y) HR).
+    intros x y z.
+    hinduction x ; try (intros ; apply path_ishprop).
+    - cbn.
+      reflexivity.
+    - intros.
+      cbn.
+      f_ap.
   Defined.
 
   Lemma append_singleton: forall (a: A) (x: FSetC A),

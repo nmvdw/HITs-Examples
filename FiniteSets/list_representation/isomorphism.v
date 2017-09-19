@@ -5,15 +5,7 @@ Require Import list_representation list_representation.operations
 Require Import kuratowski.kuratowski_sets.
 
 Section Iso.
-  Context {A : Type}.
-  Context `{Univalence}.
-
-  Definition dupl' (a : A) (X : FSet A) :
-    {|a|} ∪ {|a|} ∪ X = {|a|} ∪ X := assoc _ _ _ @ ap (∪ X) (idem _).
-  
-  Definition comm' (a b : A) (X : FSet A) :
-    {|a|} ∪ {|b|} ∪ X = {|b|} ∪ {|a|} ∪ X :=
-    assoc _ _ _ @ ap (∪ X) (comm _ _) @ (assoc _ _ _)^.
+  Context {A : Type} `{Univalence}.
 
   Definition FSetC_to_FSet: FSetC A -> FSet A.
   Proof.
@@ -21,10 +13,10 @@ Section Iso.
     - apply E.
     - intros a x.
       apply ({|a|} ∪ x).
-    - intros. cbn.
-      apply dupl'.
-    - intros. cbn.
-      apply comm'.
+    - intros a X.
+      apply (assoc _ _ _ @ ap (∪ X) (idem _)).
+    - intros a X Y.
+      apply (assoc _ _ _ @ ap (∪ Y) (comm _ _) @ (assoc _ _ _)^).
   Defined.
 
   Definition FSet_to_FSetC: FSet A -> FSetC A.
