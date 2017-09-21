@@ -10,7 +10,7 @@ Section operations.
     - apply y.
     - apply Cns.
     - apply dupl.
-    - apply comm.
+    - apply comm_s.
   Defined.
 
   Global Instance fsetc_singleton : forall A, hasSingleton (FSetC A) A := fun A a => a;;∅.

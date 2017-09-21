@@ -13,6 +13,7 @@ list_representation/properties.v
 list_representation/isomorphism.v
 kuratowski/operations.v
 kuratowski/properties.v
+kuratowski/length.v
 FSets.v
 interfaces/set_interface.v
 implementations/lists.v

@@ -1,6 +1,7 @@
 (** Classes for set operations, so they can be overloaded. *)
 Require Import HoTT.
 
+(** The operations on sets for which we add names. *)
 Section structure.
   Variable (T A : Type).
   

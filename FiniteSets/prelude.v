@@ -23,3 +23,16 @@ Proof.
   intros [x | nx] [y | ny] ; try f_ap ; try (apply Ttrunc) ; try contradiction.
   - apply equiv_hprop_allpath. apply _.
 Defined.
+
+Class MerelyDecidablePaths A :=
+  m_dec_path : forall (a b : A), Decidable(Trunc (-1) (a = b)).
+
+Global Instance DecidableToMerely A (H : DecidablePaths A) : MerelyDecidablePaths A.
+Proof.
+  intros x y.
+  destruct (dec (x = y)).
+  - apply (inl(tr p)).
+  - refine (inr(fun p => _)).
+    strip_truncations.
+    apply (n p).
+Defined.

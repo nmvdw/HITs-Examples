@@ -18,7 +18,7 @@ Module Export FSetC.
     Axiom dupl : forall (a : A) (x : FSetC A),
         a ;; a ;; x = a ;; x.
 
-    Axiom comm : forall (a b : A) (x : FSetC A),
+    Axiom comm_s : forall (a b : A) (x : FSetC A),
         a ;; b ;; x = b ;; a ;; x.
 
     Axiom trunc : IsHSet (FSetC A).
@@ -26,7 +26,7 @@ Module Export FSetC.
 
   Arguments Cns {_} _ _.
   Arguments dupl {_} _ _.
-  Arguments comm {_} _ _ _.
+  Arguments comm_s {_} _ _ _.
 
   Infix ";;" := Cns (at level 8, right associativity).
 
@@ -39,7 +39,7 @@ Module Export FSetC.
              (duplP : forall (a: A) (x: FSetC A) (px : P x),
 	         dupl a x # cnsP a (a;;x) (cnsP a x px) = cnsP a x px)
              (commP : forall (a b: A) (x: FSetC A) (px: P x),
-		 comm a b x # cnsP a (b;;x) (cnsP b x px) =
+		 comm_s a b x # cnsP a (b;;x) (cnsP b x px) =
 		 cnsP b (a;;x) (cnsP a x px)).
 
     (* Induction principle *)

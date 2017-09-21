@@ -1,6 +1,7 @@
 (** Operations on the [FSet A] for an arbitrary [A] *)
-Require Import HoTT HitTactics.
-Require Import kuratowski_sets monad_interface extensionality.
+Require Import HoTT HitTactics prelude.
+Require Import kuratowski_sets monad_interface extensionality
+        list_representation.isomorphism list_representation.list_representation.
 
 Section operations.
   (** Monad operations. *)
@@ -167,7 +168,7 @@ End operations.
 
 Section operations_decidable.
   Context {A : Type}.
-  Context {A_deceq : DecidablePaths A}.
+  Context `{MerelyDecidablePaths A}.
   Context `{Univalence}.
 
   Global Instance isIn_decidable (a : A) : forall (X : FSet A),
@@ -175,12 +176,7 @@ Section operations_decidable.
   Proof.
     hinduction ; try (intros ; apply path_ishprop).
     - apply _.
-    - intros b.
-      destruct (dec (a = b)) as [p | np].
-      * apply (inl (tr p)).
-      * refine (inr(fun p => _)).
-        strip_truncations.
-        contradiction.
+    - apply (m_dec_path _).
     - apply _. 
   Defined.
 
@@ -208,3 +204,34 @@ Section operations_decidable.
   Global Instance fset_intersection : hasIntersection (FSet A)
     := fun X Y => {|X & (fun a => a ∈_d Y)|}.
 End operations_decidable.
+
+Section FSet_cons_rec.
+  Context `{A : Type}.
+  
+  Variable (P : Type)
+           (Pset : IsHSet P)
+           (Pe : P)
+           (Pcons : A -> FSet A -> P -> P)
+           (Pdupl : forall X a p, Pcons a ({|a|} ∪ X) (Pcons a X p) = Pcons a X p)
+           (Pcomm : forall X a b p, Pcons a ({|b|} ∪ X) (Pcons b X p)
+                                           = Pcons b ({|a|} ∪ X) (Pcons a X p)).
+  
+  Definition FSet_cons_rec (X : FSet A) : P.
+  Proof.
+    simple refine (FSetC_ind A (fun _ => P) _ Pe _ _ _ (FSet_to_FSetC X)) ; simpl.
+    - intros a Y p.
+      apply (Pcons a (FSetC_to_FSet Y) p).
+    - intros.
+      refine (transport_const _ _ @ _).
+      apply Pdupl.
+    - intros.
+      refine (transport_const _ _ @ _).
+      apply Pcomm.
+  Defined.
+
+  Definition FSet_cons_beta_empty : FSet_cons_rec ∅ = Pe := idpath.
+  
+  Definition FSet_cons_beta_cons (a : A) (X : FSet A)
+    : FSet_cons_rec ({|a|} ∪ X) = Pcons a X (FSet_cons_rec X)
+    := ap (fun z => Pcons a z _) (repr_iso_id_l _).
+End FSet_cons_rec.

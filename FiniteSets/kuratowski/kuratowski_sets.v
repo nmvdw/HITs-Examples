@@ -1,4 +1,6 @@
-(** Definitions of the Kuratowski-finite sets via a HIT *)
+(** Definitions of the Kuratowski-finite sets via a HIT.
+    We do not need the computation rules in the development, so they are not present here.
+*)
 Require Import HoTT HitTactics.
 Require Export set_names lattice_examples.
 

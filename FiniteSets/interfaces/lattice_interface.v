@@ -1,6 +1,7 @@
 (** Interface for lattices and join semilattices. *)
 Require Import HoTT.
 
+(** Some preliminary notions to define lattices. *)
 Section binary_operation.
   Definition operation (A : Type) := A -> A -> A.
   
@@ -43,6 +44,7 @@ Arguments neutralityL {_} {_} {_} {_} _.
 Arguments neutralityR {_} {_} {_} {_} _.
 Arguments absorb {_} {_} {_} {_} _ _.
 
+(** The operations in a lattice. *)
 Section lattice_operations.
   Variable (A : Type).
 
@@ -60,6 +62,7 @@ Arguments max_L {_} {_} _.
 Arguments min_L {_} {_} _.
 Arguments empty {_}.
 
+(** Join semilattices as a typeclass. They only have a join operator. *)
 Section JoinSemiLattice.
   Variable A : Type.
   Context {max_L : maximum A} {empty_L : bottom A}.
@@ -84,6 +87,7 @@ Hint Resolve idempotency : joinsemilattice_hints.
 Hint Resolve neutralityL : joinsemilattice_hints.
 Hint Resolve neutralityR : joinsemilattice_hints.
 
+(** Lattices as a typeclass which have both a join and a meet. *)
 Section Lattice.
   Variable A : Type.
   Context {max_L : maximum A} {min_L : minimum A} {empty_L : bottom A}.

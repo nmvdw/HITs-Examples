@@ -1,4 +1,4 @@
-Require Import HoTT HitTactics.
+Require Import HoTT HitTactics prelude.
 Require Import kuratowski.extensionality kuratowski.operations kuratowski_sets.
 Require Import lattice_interface lattice_examples monad_interface.
 
@@ -251,7 +251,7 @@ End fset_join_semilattice.
 
 (* Lemmas relating operations to the membership predicate *)
 Section properties_membership_decidable.
-  Context {A : Type} `{DecidablePaths A} `{Univalence}.
+  Context {A : Type} `{MerelyDecidablePaths A} `{Univalence}.
 
   Lemma ext : forall (S T : FSet A), (forall a, a ∈_d S = a ∈_d T) -> S = T.
   Proof.
@@ -267,17 +267,7 @@ Section properties_membership_decidable.
     - apply path_iff_hprop ; intro ; contradiction.
   Defined.
 
-  Lemma empty_isIn_d (a : A) :
-    a ∈_d ∅ = false.
-  Proof.
-    reflexivity.
-  Defined.
-
-  Lemma singleton_isIn_d (a b : A) :
-    a ∈ {|b|} -> a = b.
-  Proof.
-    intros. strip_truncations. assumption.
-  Defined.
+  Definition empty_isIn_d (a : A) : a ∈_d ∅ = false := idpath.
 
   Lemma singleton_isIn_d_true (a b : A) (p : a = b) :
     a ∈_d {|b|} = true.
@@ -329,6 +319,14 @@ Section properties_membership_decidable.
   Proof.
     apply comprehension_isIn_d.
   Defined.
+  
+  Lemma singleton_isIn_d `{DecidablePaths A} (a b : A) :
+    a ∈ {|b|} -> a = b.
+  Proof.
+    intros.
+    strip_truncations.
+    assumption.
+  Defined.
 End properties_membership_decidable.
 
 (* Some suporting tactics *)
@@ -346,7 +344,7 @@ Ltac toBool :=
 (** If `A` has decidable equality, then `FSet A` is a lattice *) 
 Section set_lattice.
   Context {A : Type}.
-  Context {A_deceq : DecidablePaths A}.
+  Context `{MerelyDecidablePaths A}.
   Context `{Univalence}.
 
   Instance fset_max : maximum (FSet A).

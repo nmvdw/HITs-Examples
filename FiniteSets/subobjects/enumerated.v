@@ -254,15 +254,13 @@ Section fset_dec_enumerated.
     forall (X : FSet A),
     hexists (fun (ls : list A) => forall a, a ∈ X = listExt ls a).
   Proof.
-    simple refine (FSet_cons_ind _ _ _ _ _ _); simpl.
+    simple refine (FSet_cons_ind _ _ _ _ _ _) ; try (intros ; apply path_ishprop).
     - apply tr. exists nil. simpl. done.
     - intros a X Hls.
       strip_truncations. apply tr.
       destruct Hls as [ls Hls].
       exists (cons a ls). intros b. cbn.
       apply (ap (fun z => _ ∨ z) (Hls b)).
-    - intros. apply path_ishprop.
-    - intros. apply path_ishprop.
   Defined.
 
   Definition Kf_enumerated : Kf A -> enumerated A.

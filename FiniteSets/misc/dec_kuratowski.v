@@ -7,9 +7,8 @@ Section membership.
 
   Definition dec_membership
           (H1 : forall (a : A) (X : FSet A), Decidable(a ∈ X))
-          (a b : A)
-    : Decidable(merely(a = b))
-  := H1 a {|b|}.
+    : MerelyDecidablePaths A
+  := fun a b => H1 a {|b|}.
 End membership.
 
 Section intersection.
@@ -19,8 +18,9 @@ Section intersection.
            (int_member : forall (a : A) (X Y : FSet A),
                a ∈ (int X Y) = BuildhProp(a ∈ X * a ∈ Y)).
 
-  Theorem dec_intersection (a b : A) : Decidable(merely(a = b)).
+  Theorem dec_intersection : MerelyDecidablePaths A.
   Proof.
+    intros a b.
     destruct (merely_choice (int {|a|} {|b|})) as [p | p].
     - refine (inr(fun X => _)).
       strip_truncations.
@@ -42,24 +42,23 @@ Section subset.
 
   Definition dec_subset
           (H1 : forall (X Y : FSet A), Decidable(X ⊆ Y))
-          (a b : A)
-    : Decidable(merely(a = b))
-  := H1 {|a|} {|b|}.
+    : MerelyDecidablePaths A
+  := fun a b => H1 {|a|} {|b|}.
 End subset.  
       
 Section decidable_equality.
   Context {A : Type} `{Univalence}.
 
-  Definition dec_decidable_equality (H1 : DecidablePaths(FSet A)) (a b : A)
-    : Decidable(merely(a = b)).
+  Definition dec_decidable_equality (H1 : DecidablePaths(FSet A))
+    : MerelyDecidablePaths A.
   Proof.
-    destruct (H1 {|a|} {|b|}) as [p | p].
+    intros a b.
+    destruct (H1 {|a|} {|b|}) as [p | n].
     - pose (transport (fun z => a ∈ z) p) as t.
       apply (inl (t (tr idpath))).
-    - refine (inr (fun n => _)).
+    - refine (inr (fun p => _)).
       strip_truncations.
-      pose (transport (fun z => {|a|} = {|z|}) n) as t.
-      apply (p (t idpath)).
+      apply (n (transport (fun z => {|z|} = {|b|}) p^ idpath)).
   Defined.
 End decidable_equality.
 

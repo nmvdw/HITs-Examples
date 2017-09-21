@@ -2,6 +2,10 @@
 Require Import HoTT HitTactics.
 Require Import kuratowski.kuratowski_sets.
 
+(** We prove extensionality via a chain of equivalences.
+    We end with proving that equality can be defined with the subset relation.
+    From that we can conclude that [FSet A] has decidable equality if [A] has.
+*)
 Section ext.
   Context {A : Type}.
   Context `{Univalence}.
