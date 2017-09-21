@@ -203,6 +203,8 @@ Section operations_decidable.
 
   Global Instance fset_intersection : hasIntersection (FSet A)
     := fun X Y => {|X & (fun a => a ∈_d Y)|}.
+
+  Definition difference := fun X Y => {|X & (fun a => negb a ∈_d Y)|}.
 End operations_decidable.
 
 Section FSet_cons_rec.

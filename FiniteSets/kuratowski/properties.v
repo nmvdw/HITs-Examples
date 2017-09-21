@@ -315,7 +315,13 @@ Section properties_membership_decidable.
   Defined.
 
   Lemma intersection_isIn_d (X Y: FSet A) (a : A) :
-    a ∈_d (intersection X Y) = andb (a ∈_d X) (a ∈_d Y).
+    a ∈_d (X ∩ Y) = andb (a ∈_d X) (a ∈_d Y).
+  Proof.
+    apply comprehension_isIn_d.
+  Defined.
+
+  Lemma difference_isIn_d (X Y: FSet A) (a : A) :
+    a ∈_d (difference X Y) = andb (a ∈_d X) (negb (a ∈_d Y)).
   Proof.
     apply comprehension_isIn_d.
   Defined.
