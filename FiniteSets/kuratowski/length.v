@@ -81,13 +81,9 @@ Section Length.
     simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _ X)
     ; try (intros ; apply path_ishprop) ; simpl.
     - intros.
-      rewrite nl.
-      reflexivity.
+      apply (ap length (nl _)).
     - intros a X1 HX1 HX1Y.
-      rewrite <- assoc.
-      rewrite ?length_compute.
-      rewrite ?union_isIn_d in *.
-      unfold disjoint in HX1Y.
+      rewrite <- assoc, ?length_compute, ?union_isIn_d in *.
       pose (ap (fun Z => a ∈_d Z) HX1Y) as p.
       simpl in p.
       rewrite intersection_isIn_d, union_isIn_d, singleton_isIn_d_aa, empty_isIn_d in p.
@@ -96,10 +92,8 @@ Section Length.
         contradiction true_ne_false.
       }
       rewrite ?HaY, HX1.
-      destruct (a ∈_d X1).
-      * reflexivity.
-      * reflexivity.
-      * apply (disjoint_sub a X1 Y HX1Y).
+      destruct (a ∈_d X1) ; try reflexivity.
+      apply (disjoint_sub a X1 Y HX1Y).
   Defined.
 
   Lemma set_as_difference X Y : X = (difference X Y) ∪ (X ∩ Y).
