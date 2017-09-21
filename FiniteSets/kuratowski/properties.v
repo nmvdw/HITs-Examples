@@ -320,7 +320,7 @@ Section properties_membership_decidable.
     apply comprehension_isIn_d.
   Defined.
   
-  Lemma singleton_isIn_d `{DecidablePaths A} (a b : A) :
+  Lemma singleton_isIn_d `{IsHSet A} (a b : A) :
     a ∈ {|b|} -> a = b.
   Proof.
     intros.
