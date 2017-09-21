@@ -1,7 +1,7 @@
 Require Import HoTT HitTactics prelude interfaces.lattice_interface interfaces.lattice_examples.
 Require Import kuratowski.operations kuratowski.properties kuratowski.kuratowski_sets isomorphism.
 
-Section Length.
+Section length.
   Context {A : Type} `{MerelyDecidablePaths A} `{Univalence}.
   
   Definition length : FSet A -> nat.
@@ -148,5 +148,83 @@ Section Length.
     rewrite plus_assoc.
     reflexivity.
   Defined.
+End length.
+
+Section length_product.
+  Context {A B : Type} `{MerelyDecidablePaths A} `{MerelyDecidablePaths B} `{Univalence}.
   
-End Length.
+  Theorem length_singleproduct (a : A) (X : FSet B)
+    : length (single_product a X) = length X.
+  Proof.
+    simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _ X)
+    ; try (intros ; apply path_ishprop) ; simpl.
+    - reflexivity.
+    - intros b X1 HX1.
+      rewrite ?length_compute, ?HX1.
+      enough(b ∈_d X1 = (a, b) ∈_d (single_product a X1)) as HE.
+      { rewrite HE ; reflexivity. }
+      rewrite singleproduct_isIn_d_aa ; try reflexivity.
+  Defined.  
+
+  Open Scope nat.
+
+  Lemma single_product_disjoint (a : A) (X1 : FSet A) (Y : FSet B)
+        : sum (prod (a ∈_d X1 = true)
+                        ((single_product a Y) ∪ (product X1 Y) = (product X1 Y)))
+                  (prod (a ∈_d X1 = false)
+                        (disjoint (single_product a Y) (product X1 Y))).
+  Proof.
+    pose (b := a ∈_d X1).
+    assert (a ∈_d X1 = b) as HaX1.
+    { reflexivity. }
+    destruct b.
+    * refine (inl(HaX1,_)).
+      apply ext.
+      intros [a1 b1].
+      rewrite ?union_isIn_d.
+      unfold member_dec, fset_member_bool in *.
+      destruct (dec ((a1, b1) ∈ (single_product a Y))) as [t | t]
+      ; destruct (dec ((a1, b1) ∈ (product X1 Y))) as [p | p]
+      ; try reflexivity.
+      rewrite singleproduct_isIn in t.
+      destruct t as [t1 t2].
+      rewrite product_isIn in p.
+      strip_truncations.
+      rewrite <- t1 in HaX1.
+      destruct (dec (a1 ∈ X1)) ; try (contradiction false_ne_true).
+      contradiction (p(t,t2)).
+    * refine (inr(HaX1,_)).
+      apply ext.
+      intros [a1 b1].
+      rewrite intersection_isIn_d, empty_isIn_d.
+      unfold member_dec, fset_member_bool in *.
+      destruct (dec ((a1, b1) ∈ (single_product a Y))) as [t | t]
+      ; destruct (dec ((a1, b1) ∈ (product X1 Y))) as [p | p]
+      ; try reflexivity.
+      rewrite singleproduct_isIn in t ; destruct t as [t1 t2].
+      rewrite product_isIn in p ; destruct p as [p1 p2].
+      strip_truncations.
+      rewrite t1 in p1.
+      destruct (dec (a ∈ X1)).
+      ** contradiction true_ne_false.
+      ** contradiction (n p1).
+  Defined.
+    
+  Theorem length_product (X : FSet A) (Y : FSet B)
+    : length (product X Y) = length X * length Y.
+  Proof.
+    simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _ X)
+    ; try (intros ; apply path_ishprop) ; simpl.
+    - reflexivity.
+    - intros a X1 HX1.
+      rewrite length_compute.
+      destruct (single_product_disjoint a X1 Y) as [[p1 p2] | [p1 p2]].
+      * rewrite p2.
+        destruct (a ∈_d X1).
+        ** apply HX1.
+        ** contradiction false_ne_true.
+      * rewrite p1, length_disjoint, HX1 ; try assumption.
+        rewrite length_singleproduct.
+        reflexivity.
+  Defined.
+End length_product.

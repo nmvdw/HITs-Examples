@@ -52,7 +52,7 @@ Section properties_membership.
 
   Context {B : Type}.
 
-  Lemma isIn_singleproduct (a : A) (b : B) (c : A) : forall (Y : FSet B),
+  Lemma singleproduct_isIn (a : A) (b : B) (c : A) : forall (Y : FSet B),
       (a, b) ∈ (single_product c Y) = land (BuildhProp (Trunc (-1) (a = c))) (b ∈ Y).
   Proof.
     hinduction ; try (intros ; apply path_ishprop).
@@ -91,13 +91,13 @@ Section properties_membership.
            split ; try (apply (tr H1)) ; try (apply Hb2).
   Defined.
 
-  Definition isIn_product (a : A) (b : B) (X : FSet A) (Y : FSet B) :
+  Definition product_isIn (a : A) (b : B) (X : FSet A) (Y : FSet B) :
     (a,b) ∈ (product X Y) = land (a ∈ X) (b ∈ Y).
   Proof.
     hinduction X ; try (intros ; apply path_ishprop).
     - apply path_hprop ; symmetry ; apply prod_empty_l.
     - intros.
-      apply isIn_singleproduct.
+      apply singleproduct_isIn.
     - intros X1 X2 HX1 HX2.
       cbn.
       rewrite HX1, HX2.
@@ -324,7 +324,7 @@ Section properties_membership_decidable.
     a ∈_d (difference X Y) = andb (a ∈_d X) (negb (a ∈_d Y)).
   Proof.
     apply comprehension_isIn_d.
-  Defined.
+  Defined.  
   
   Lemma singleton_isIn_d `{IsHSet A} (a b : A) :
     a ∈ {|b|} -> a = b.
@@ -335,6 +335,53 @@ Section properties_membership_decidable.
   Defined.
 End properties_membership_decidable.
 
+Section product_membership.
+  Context {A B : Type} `{MerelyDecidablePaths A} `{MerelyDecidablePaths B} `{Univalence}.
+  
+  Lemma singleproduct_isIn_d_aa (a : A) (b : B) (c : A) (p : c = a) (Y : FSet B) :
+      (a, b) ∈_d (single_product c Y) = b ∈_d Y.
+  Proof.
+    unfold member_dec, fset_member_bool, dec ; simpl.
+    destruct (isIn_decidable (a, b) (single_product c Y)) as [t | t]
+    ; destruct (isIn_decidable b Y) as [n | n]
+    ; try reflexivity.
+    * rewrite singleproduct_isIn in t.
+      destruct t as [t1 t2].
+      contradiction (n t2).
+    * rewrite singleproduct_isIn in t.
+      contradiction (t (tr(p^),n)).
+  Defined.
+
+  Lemma singleproduct_isIn_d_false (a : A) (b : B) (c : A) (p : c = a -> Empty) (Y : FSet B) :
+    (a, b) ∈_d (single_product c Y) = false.
+  Proof.
+    unfold member_dec, fset_member_bool, dec ; simpl.
+    destruct (isIn_decidable (a, b) (single_product c Y)) as [t | t]
+    ; destruct (isIn_decidable b Y) as [n | n]
+    ; try reflexivity.
+    * rewrite singleproduct_isIn in t.
+      destruct t as [t1 t2].
+      strip_truncations.
+      contradiction (p t1^).
+    * rewrite singleproduct_isIn in t.
+      contradiction (n (snd t)).
+  Defined.
+
+  Lemma product_isIn_d (a : A) (b : B) (X : FSet A) (Y : FSet B) :
+    (a, b) ∈_d (product X Y) = andb (a ∈_d X) (b ∈_d Y).
+  Proof.
+    unfold member_dec, fset_member_bool, dec ; simpl.
+    destruct (isIn_decidable (a, b) (product X Y)) as [t | t]
+    ; destruct (isIn_decidable a X) as [n1 | n1]
+    ; destruct (isIn_decidable b Y) as [n2 | n2]
+    ; try reflexivity
+    ; rewrite ?product_isIn in t
+    ; try (destruct t as [t1 t2]
+           ; contradiction (n1 t1) || contradiction (n2 t2)).
+    contradiction (t (n1, n2)).
+  Defined.
+End product_membership.  
+  
 (* Some suporting tactics *)
 Ltac simplify_isIn_d :=
   repeat (rewrite union_isIn_d

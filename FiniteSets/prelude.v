@@ -36,3 +36,28 @@ Proof.
     strip_truncations.
     apply (n p).
 Defined.
+
+Global Instance merely_decidable_paths_prod (A B : Type)
+       `{MerelyDecidablePaths A} `{MerelyDecidablePaths B}
+  : MerelyDecidablePaths(A * B).
+Proof.
+  intros x y.
+  destruct (m_dec_path (fst x) (fst y)) as [p1 | n1],
+                                           (m_dec_path (snd x) (snd y)) as [p2 | n2].
+  - apply inl.
+    strip_truncations.
+    apply tr.
+    apply path_prod ; assumption.
+  - apply inr.
+    intros pp.
+    strip_truncations.
+    apply (n2 (tr (ap snd pp))).
+  - apply inr.
+    intros pp.
+    strip_truncations.
+    apply (n1 (tr (ap fst pp))).
+  - apply inr.
+    intros pp.
+    strip_truncations.
+    apply (n1 (tr (ap fst pp))).
+Defined.  
