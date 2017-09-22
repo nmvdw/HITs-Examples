@@ -180,11 +180,12 @@ Section operations_decidable.
     - apply _. 
   Defined.
 
-  Global Instance fset_member_bool : hasMembership_decidable (FSet A) A.
-  Proof.
-    intros a X.
-    refine (if (dec a ∈ X) then true else false).
-  Defined.
+  Global Instance fset_member_bool : hasMembership_decidable (FSet A) A :=
+    fun a X =>
+      match (dec a ∈ X) with
+      | inl _ => true
+      | inr _ => false
+      end.
 
   Global Instance subset_decidable : forall (X Y : FSet A), Decidable (X ⊆ Y).
   Proof.

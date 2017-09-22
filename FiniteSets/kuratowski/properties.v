@@ -2,6 +2,69 @@ Require Import HoTT HitTactics prelude.
 Require Import kuratowski.extensionality kuratowski.operations kuratowski_sets.
 Require Import lattice_interface lattice_examples monad_interface.
 
+(** [FSet] is a (strong and stable) finite powerset monad *)
+Section monad_fset.
+  Context `{Funext}.
+
+  Global Instance fset_functorish : Functorish FSet.
+  Proof.
+    simple refine (Build_Functorish _ _ _).
+    - intros ? ? f.
+      apply (fset_fmap f).
+    - intros A.
+      apply path_forall.
+      intro x.
+      hinduction x
+      ; try (intros ; f_ap)
+      ; try (intros ; apply path_ishprop).
+  Defined.
+
+  Global Instance fset_functor : Functor FSet.
+  Proof.
+    split.
+    intros.
+    apply path_forall.
+    intro x.
+    hrecursion x
+    ; try (intros ; f_ap)
+    ; try (intros ; apply path_ishprop).
+  Defined.
+
+  Global Instance fset_monad : Monad FSet.
+  Proof.
+    split.
+    - intros.
+      apply path_forall.
+      intro X.
+      hrecursion X ; try (intros; f_ap) ;
+        try (intros; apply path_ishprop).
+    - intros.
+      apply path_forall.
+      intro X.
+      hrecursion X ; try (intros; f_ap) ;
+        try (intros; apply path_ishprop).
+    - intros.
+      apply path_forall.
+      intro X.
+      hrecursion X ; try (intros; f_ap) ;
+        try (intros; apply path_ishprop).
+  Defined.
+
+  Lemma fmap_isIn `{Univalence} {A B : Type} (f : A -> B) (a : A) (X : FSet A) :
+    a ∈ X -> (f a) ∈ (fmap FSet f X).
+  Proof.
+    hinduction X; try (intros; apply path_ishprop).
+    - apply idmap.
+    - intros b Hab; strip_truncations.
+      apply (tr (ap f Hab)).
+    - intros X0 X1 HX0 HX1 Ha.
+      strip_truncations. apply tr.
+      destruct Ha as [Ha | Ha].
+      + left. by apply HX0.
+      + right. by apply HX1.
+  Defined.
+End monad_fset.
+
 (** Lemmas relating operations to the membership predicate *)
 Section properties_membership.
   Context {A : Type} `{Univalence}.
@@ -206,6 +269,31 @@ Section properties_membership.
            repeat f_ap.
            apply path_ishprop.
   Defined.
+
+  Lemma fmap_isIn_inj (f : A -> B) (a : A) (X : FSet A) {f_inj : IsEmbedding f} :
+    a ∈ X = (f a) ∈ (fmap FSet f X).
+  Proof.
+    hinduction X; try (intros; apply path_ishprop).
+    - reflexivity.
+    - intros b.
+      apply path_iff_hprop.
+      * intros Ha.
+        strip_truncations.
+        apply (tr (ap f Ha)).
+      * intros Hfa.
+        strip_truncations.
+        apply tr.
+        unfold IsEmbedding, hfiber in *.
+        specialize (f_inj (f a)).
+        pose ((a;idpath (f a)) : {x : A & f x = f a}) as p1.
+        pose ((b;Hfa^) : {x : A & f x = f a}) as p2.
+        assert (p1 = p2) as Hp1p2.
+        { apply f_inj. }
+        apply (ap (fun x => x.1) Hp1p2).
+    - intros X0 X1 HX0 HX1.
+      rewrite ?union_isIn, HX0, HX1.
+      reflexivity.
+  Defined.
 End properties_membership.
 
 Ltac simplify_isIn :=
@@ -325,6 +413,20 @@ Section properties_membership_decidable.
   Proof.
     apply comprehension_isIn_d.
   Defined.  
+
+  Context (B : Type) `{MerelyDecidablePaths A} `{MerelyDecidablePaths B}.
+
+  Lemma fmap_isIn_d_inj (f : A -> B) (a : A) (X : FSet A) {f_inj : IsEmbedding f} :
+    a ∈_d X = (f a) ∈_d (fmap FSet f X).
+  Proof.
+    unfold member_dec, fset_member_bool, dec.
+    destruct (isIn_decidable a X) as [t | t], (isIn_decidable (f a) (fmap FSet f X)) as [n | n]
+    ; try reflexivity.
+    - rewrite <- fmap_isIn_inj in n ; try (apply _).
+      contradiction (n t).
+    - rewrite <- fmap_isIn_inj in n ; try (apply _).
+      contradiction (t n).
+  Defined.
   
   Lemma singleton_isIn_d `{IsHSet A} (a b : A) :
     a ∈ {|b|} -> a = b.
@@ -435,69 +537,6 @@ Section dec_eq.
     apply decidable_prod.
   Defined.
 End dec_eq.
-
-(** [FSet] is a (strong and stable) finite powerset monad *)
-Section monad_fset.
-  Context `{Funext}.
-
-  Global Instance fset_functorish : Functorish FSet.
-  Proof.
-    simple refine (Build_Functorish _ _ _).
-    - intros ? ? f.
-      apply (fset_fmap f).
-    - intros A.
-      apply path_forall.
-      intro x.
-      hinduction x
-      ; try (intros ; f_ap)
-      ; try (intros ; apply path_ishprop).
-  Defined.
-
-  Global Instance fset_functor : Functor FSet.
-  Proof.
-    split.
-    intros.
-    apply path_forall.
-    intro x.
-    hrecursion x
-    ; try (intros ; f_ap)
-    ; try (intros ; apply path_ishprop).
-  Defined.
-
-  Global Instance fset_monad : Monad FSet.
-  Proof.
-    split.
-    - intros.
-      apply path_forall.
-      intro X.
-      hrecursion X ; try (intros; f_ap) ;
-        try (intros; apply path_ishprop).
-    - intros.
-      apply path_forall.
-      intro X.
-      hrecursion X ; try (intros; f_ap) ;
-        try (intros; apply path_ishprop).
-    - intros.
-      apply path_forall.
-      intro X.
-      hrecursion X ; try (intros; f_ap) ;
-        try (intros; apply path_ishprop).
-  Defined.
-
-  Lemma fmap_isIn `{Univalence} {A B : Type} (f : A -> B) (a : A) (X : FSet A) :
-    a ∈ X -> (f a) ∈ (fmap FSet f X).
-  Proof.
-    hinduction X; try (intros; apply path_ishprop).
-    - apply idmap.
-    - intros b Hab; strip_truncations.
-      apply (tr (ap f Hab)).
-    - intros X0 X1 HX0 HX1 Ha.
-      strip_truncations. apply tr.
-      destruct Ha as [Ha | Ha].
-      + left. by apply HX0.
-      + right. by apply HX1.
-  Defined.
-End monad_fset.
 
 (** comprehension properties *)
 Section comprehension_properties.

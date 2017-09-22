@@ -228,3 +228,65 @@ Section length_product.
         reflexivity.
   Defined.
 End length_product.
+
+Section length_sum.
+  Context `{Univalence}.
+  Lemma length_fmap_inj
+        {A B : Type} `{MerelyDecidablePaths A} `{MerelyDecidablePaths B}
+        (X : FSet A) (f : A -> B) `{IsEmbedding f}
+    : length (fset_fmap f X) = length X.
+  Proof.
+    simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _ X)
+    ; try (intros ; apply path_ishprop) ; simpl.
+    - reflexivity.
+    - intros a Y HX.
+      rewrite ?length_compute, HX, (fmap_isIn_d_inj _ f)
+      ; auto.
+  Defined.
+
+  Context {A B : Type} `{MerelyDecidablePaths A} `{MerelyDecidablePaths B}.
+
+  Lemma fmap_inl X a : (inl a) ∈_d (fset_fmap (@inr A B) X) = false.
+  Proof.
+    hinduction X ; try (intros ; apply path_ishprop).
+    - reflexivity.
+    - intros b.
+      rewrite singleton_isIn_d_false.
+      * reflexivity.
+      * apply inl_ne_inr.
+    - intros X1 X2 HX1 HX2.
+      rewrite union_isIn_d, HX1, HX2.
+      reflexivity.
+  Defined.
+  
+  Lemma fmap_inr X a : (inr a) ∈_d (fset_fmap (@inl A B) X) = false.
+  Proof.
+    hinduction X ; try (intros ; apply path_ishprop).
+    - reflexivity.
+    - intros b.
+      rewrite singleton_isIn_d_false.
+      * reflexivity.
+      * apply inr_ne_inl.
+    - intros X1 X2 HX1 HX2.
+      rewrite union_isIn_d, HX1, HX2.
+      reflexivity.
+  Defined.
+  
+  Lemma disjoint_summants X Y : disjoint (fset_fmap (@inl A B) X) (fset_fmap inr Y).
+  Proof.
+    apply ext.
+    intros [x1 | x2] ; rewrite empty_isIn_d, intersection_isIn_d, ?fmap_inl, ?fmap_inr
+    ; simpl ; try reflexivity.
+    destruct ((inl x1) ∈_d (fset_fmap inl X)) ; reflexivity.
+  Defined.
+
+  Open Scope nat.
+  
+  Theorem length_disjoint_sum (X : FSet A) (Y : FSet B)
+    : length (disjoint_sum X Y) = length X + length Y.
+  Proof.
+    rewrite (length_disjoint _ _ (disjoint_summants _ _)).
+    rewrite ?(length_fmap_inj _ _).
+    reflexivity.
+  Defined.
+End length_sum.
