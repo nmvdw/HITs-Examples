@@ -1,6 +1,20 @@
 (** Some general prerequisities in homotopy type theory. *)
 Require Import HoTT.
 
+Definition squash (A : Type) `{Decidable A} : Type :=
+  match dec A with
+  | inl _ => Unit
+  | inr _ => Empty
+  end.
+
+Definition from_squash (A : Type) `{Decidable A} {x : squash A} : A.
+Proof.
+  unfold squash in *.
+  destruct (dec A).
+  - apply a.
+  - contradiction.
+Defined.
+
 Lemma ap_inl_path_sum_inl {A B} (x y : A) (p : inl x = inl y) :
   ap inl (path_sum_inl B p) = p.
 Proof.

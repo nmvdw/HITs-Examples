@@ -117,3 +117,17 @@ Section quantifiers.
     hinduction ; try (apply _) ; try (intros ; apply path_ishprop).
   Defined.
 End quantifiers.
+
+Section simple_example.
+  Context `{Univalence}.
+
+  Definition P : nat -> hProp := fun n => BuildhProp(n = n).
+  Definition X : FSet nat := {|0|} ∪ {|1|}.
+
+  Definition simple_example : all P X.
+  Proof.
+    refine (from_squash (all P X)).
+    compute.
+    apply tt.
+  Defined.
+End simple_example.
