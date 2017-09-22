@@ -131,3 +131,102 @@ Section simple_example.
     apply tt.
   Defined.
 End simple_example.
+
+Require Import k_finite.
+
+Section pauli.
+
+  Inductive Pauli : Type :=
+  | XP : Pauli
+  | YP : Pauli
+  | ZP : Pauli
+  | IP : Pauli.
+
+  Definition Pauli_mult (x y : Pauli) : Pauli :=
+    match x, y with
+    | XP, XP => IP
+    | XP, YP => ZP
+    | XP, ZP => YP
+    | YP, XP => ZP
+    | YP, YP => IP
+    | YP, ZP => XP
+    | ZP, XP => YP
+    | ZP, YP => XP
+    | ZP, ZP => IP
+    | IP, x => x
+    | x, IP => x
+    end.
+
+  Definition not_XP (x : Pauli) :=
+    match x with
+    | XP => Empty
+    | x => Unit
+    end.
+
+  Definition not_YP (x : Pauli) :=
+    match x with
+    | YP => Empty
+    | x => Unit
+    end.
+
+  Definition not_ZP (x : Pauli) :=
+    match x with
+    | ZP => Empty
+    | x => Unit
+    end.
+
+  Definition not_IP (x : Pauli) :=
+    match x with
+    | IP => Empty
+    | x => Unit
+    end.
+  
+  Global Instance decidable_eq_pauli : DecidablePaths Pauli.
+  Proof.
+    intros [ | | |] [ | | | ] ; try (apply (inl idpath)) ; try (refine (inr (fun p => _)))
+    ; (refine (transport not_XP p tt) || refine (transport not_YP p tt)
+    || refine (transport not_ZP p tt) || refine (transport not_IP p tt)).
+  Defined.
+
+  Global Instance Pauli_set : IsHSet Pauli.
+  Proof.
+    apply _.
+  Defined.  
+  
+  Context `{Univalence}.
+
+  Definition Pauli_list : FSet Pauli := {|XP|} ∪ {|YP|} ∪ {|ZP|} ∪ {|IP|}.
+  
+  Theorem Pauli_finite : Kf Pauli.
+  Proof.
+    unfold Kf, Kf_sub, Kf_sub_intern.
+    exists Pauli_list.
+    apply path_forall.
+    unfold map.
+    intros [ | | | ] ; rewrite ?union_isIn ; apply path_iff_hprop ; try constructor ; intros [].
+    - apply (tr(inl(tr idpath))).
+    - apply (tr(inr(tr(inl(tr idpath))))).
+    - apply (tr(inr(tr(inr(tr(inl(tr idpath))))))).
+    - refine (tr(inr(tr(inr(tr(inr(tr idpath))))))).
+  Defined.
+
+  Theorem Pauli_all (P : Pauli -> hProp) : all P Pauli_list -> forall (x : Pauli), P x.
+  Proof.
+    intros HP x.
+    refine (all_elim P Pauli_list x HP _).
+    destruct x ; rewrite ?union_isIn ; try constructor.
+    - apply (tr(inl(tr idpath))).
+    - apply (tr(inr(tr(inl(tr idpath))))).
+    - apply (tr(inr(tr(inr(tr(inl(tr idpath))))))).
+    - refine (tr(inr(tr(inr(tr(inr(tr idpath))))))).
+  Defined.
+
+  Definition comm x y : hProp := BuildhProp(Pauli_mult x y = Pauli_mult y x).
+
+  Theorem Pauli_mult_comm : all (fun x => all (fun y => comm x y) Pauli_list) Pauli_list.
+  Proof.
+    refine (from_squash (all _ _)).
+    compute.
+    apply tt.
+  Defined.
+End pauli.  
