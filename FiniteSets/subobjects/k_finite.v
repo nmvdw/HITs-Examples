@@ -65,6 +65,14 @@ End k_finite.
 
 Arguments map {_} {_} _.
 
+Ltac kf_unfold :=
+  repeat match goal with
+  | [ H : Kf ?t |- _ ] => apply Kf_unfold in H
+  | [ H : @trunctype_type _ (Kf ?t) |- _ ] => apply Kf_unfold in H
+  | [ |- Kf ?t ] => apply Kf_unfold
+  | [ |- @trunctype_type _ (Kf _) ] => apply Kf_unfold
+  end.
+
 Section structure_k_finite.
   Context (A : Type).
   Context `{Univalence}.
@@ -119,6 +127,72 @@ End structure_k_finite.
 
 Section k_properties.
   Context `{Univalence}.
+
+  (* Some closure properties *)
+  (* https://ncatlab.org/nlab/show/finite+object#closure_of_finite_objects *)
+  Lemma Kf_Empty : Kf Empty.
+  Proof.
+    kf_unfold.
+    exists ∅. done.
+  Defined.
+
+  Lemma Kf_Unit : Kf Unit.
+  Proof.
+    kf_unfold.
+    exists {|tt|}.
+    intros []. simpl.
+    apply (tr (idpath)).
+  Defined.
+
+  Lemma Kf_sum {A B : Type} : Kf A -> Kf B -> Kf (A + B).
+  Proof.
+    intros HA HB.
+    kf_unfold.
+    destruct HA as [X HX].
+    destruct HB as [Y HY].
+    exists ((fset_fmap inl X) ∪ (fset_fmap inr Y)).
+    intros [a | b]; simpl; apply tr; [ left | right ];
+      apply fmap_isIn.
+    + apply (HX a).
+    + apply (HY b).
+  Defined.
+
+  Lemma Kf_subterm (A : hProp) : Decidable A <~> Kf A.
+  Proof.
+    apply equiv_iff_hprop.
+    { intros Hdec.
+      kf_unfold.
+      destruct Hdec as [HA | HA].
+      - exists {|HA|}. simpl.
+        intros a. apply tr.
+        apply A.
+      - exists ∅. intros a.
+        apply (HA a). }
+    { intros HA.
+      kf_unfold.
+      destruct HA as [X HX].
+      destruct (merely_choice X) as [HX2 | HX2].
+      + rewrite HX2 in HX.
+        right. unfold not.
+        apply HX.
+      + strip_truncations.
+        destruct HX2 as [a ?].
+        left. apply a. }
+  Defined.
+
+  Lemma Kf_prod {A B : Type} : Kf A -> Kf B -> Kf (A * B).
+  Proof.
+    intros HA HB.
+    kf_unfold.
+    destruct HA as [X HA].
+    destruct HB as [Y HB].
+    exists (product X Y).
+    intros [a b]. unfold map.
+    rewrite product_isIn.
+    split.
+    - apply (HA a).
+    - apply (HB b).
+  Defined.
 
   Lemma Kf_surjection {X Y : Type} (f : X -> Y) `{IsSurjection f} :
     Kf X -> Kf Y.
