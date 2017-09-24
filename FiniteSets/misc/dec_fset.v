@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Export FSets lattice_examples.
+Require Export FSets lattice_examples k_finite.
 
 Section quantifiers.
   Context {A : Type} `{Univalence}.
@@ -132,9 +132,8 @@ Section simple_example.
   Defined.
 End simple_example.
 
-Require Import k_finite.
-
 Section pauli.
+  Context `{Univalence}.
 
   Inductive Pauli : Type :=
   | XP : Pauli
@@ -192,33 +191,26 @@ Section pauli.
   Proof.
     apply _.
   Defined.  
-  
-  Context `{Univalence}.
 
   Definition Pauli_list : FSet Pauli := {|XP|} ∪ {|YP|} ∪ {|ZP|} ∪ {|IP|}.
   
+  Ltac solve_in_list :=
+    apply tr; try apply idpath;
+    first [ apply inl ; solve_in_list | apply inr ; solve_in_list ].
+
   Theorem Pauli_finite : Kf Pauli.
   Proof.
-    unfold Kf, Kf_sub, Kf_sub_intern.
+    apply Kf_unfold.
     exists Pauli_list.
-    apply path_forall.
     unfold map.
-    intros [ | | | ] ; rewrite ?union_isIn ; apply path_iff_hprop ; try constructor ; intros [].
-    - apply (tr(inl(tr idpath))).
-    - apply (tr(inr(tr(inl(tr idpath))))).
-    - apply (tr(inr(tr(inr(tr(inl(tr idpath))))))).
-    - refine (tr(inr(tr(inr(tr(inr(tr idpath))))))).
+    intros [ | | | ]; rewrite !union_isIn; solve_in_list.
   Defined.
 
   Theorem Pauli_all (P : Pauli -> hProp) : all P Pauli_list -> forall (x : Pauli), P x.
   Proof.
     intros HP x.
     refine (all_elim P Pauli_list x HP _).
-    destruct x ; rewrite ?union_isIn ; try constructor.
-    - apply (tr(inl(tr idpath))).
-    - apply (tr(inr(tr(inl(tr idpath))))).
-    - apply (tr(inr(tr(inr(tr(inl(tr idpath))))))).
-    - refine (tr(inr(tr(inr(tr(inr(tr idpath))))))).
+    destruct x ; rewrite ?union_isIn; solve_in_list.
   Defined.
 
   Definition comm x y : hProp := BuildhProp(Pauli_mult x y = Pauli_mult y x).
