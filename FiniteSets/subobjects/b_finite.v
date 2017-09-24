@@ -401,7 +401,7 @@ Section kfin_bfin.
           { reflexivity. }
           destruct (dec (b = b)); [ reflexivity | contradiction ]. }
   Defined.    
-    
+
   Theorem bfin_union : @closedUnion A Bfin.
   Proof.
     intros X Y HX HY.
@@ -409,16 +409,9 @@ Section kfin_bfin.
     strip_truncations.
     revert fX. revert X.
     induction n; intros X fX.
-    - destruct HY as [m fY]. strip_truncations.
-      exists m. apply tr.
-      transitivity {a : A & a ∈ Y}; [ | assumption ].
-      apply equiv_functor_sigma_id.
-      intros a.
-      apply equiv_iff_hprop.
-      * intros Ha. strip_truncations.
-        destruct Ha as [Ha | Ha]; [ | apply Ha ].
-        contradiction (fX (a;Ha)).
-      * intros Ha. apply tr. by right.
+    - rewrite (X_empty _ X fX).
+      rewrite (neutralL_max (Sub A)).
+      apply HY.
     - destruct (split X n fX) as
         (X' & b & HX' & HX).
       assert (Bfin (X'∪ Y)) by (by apply IHn).

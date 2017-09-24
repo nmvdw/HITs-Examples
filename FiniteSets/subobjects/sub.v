@@ -24,7 +24,7 @@ Section sub_classes.
   Variable C : (A -> hProp) -> hProp.
   Context `{Univalence}.
 
-  Instance subobject_lattice : Lattice (Sub A).
+  Global Instance subobject_lattice : Lattice (Sub A).
   Proof.
     apply _.
   Defined.  
