@@ -449,11 +449,7 @@ Section kfin_bfin.
           reflexivity. }
         cbn[Fin].
         etransitivity. apply (notIn_ext_union_singleton b _ HX'Yb).
-        (* TODO: rewrite fw does not work *)
-        apply equiv_path.
-        f_ap.
-        apply (equiv_path _ _)^-1.
-        apply fw.
+        by rewrite ((equiv_path _ _)^-1 fw).
   Defined.
 
   Definition FSet_to_Bfin : forall (X : FSet A), Bfin (map X).
