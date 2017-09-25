@@ -63,6 +63,28 @@ Section monad_fset.
       + left. by apply HX0.
       + right. by apply HX1.
   Defined.
+
+  Lemma bind_isIn `{Univalence} {A : Type} (X : FSet (FSet A)) (a : A) :
+    (exists x, x ∈ X * a ∈ x) -> a ∈ (bind _ X).
+  Proof.
+    hinduction X;
+      try (intros; apply path_forall; intro; apply path_ishprop).
+    - simpl. intros [x [[] ?]].
+    - intros x [y [Hx Hy]].
+      strip_truncations.
+      rewrite <- Hx.
+      apply Hy.
+    - intros x x' IHx IHx'.
+      intros [z [Hz Ha]].
+      strip_truncations.
+      apply tr.
+      destruct Hz as [Hz | Hz]; [ left | right ].
+      + apply IHx.
+        exists z. split; assumption.
+      + apply IHx'.
+        exists z. split; assumption.
+  Defined.
+
 End monad_fset.
 
 (** Lemmas relating operations to the membership predicate *)

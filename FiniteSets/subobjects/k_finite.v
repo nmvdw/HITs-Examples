@@ -1,5 +1,5 @@
 Require Import HoTT HitTactics.
-Require Import sub lattice_interface lattice_examples FSets.
+Require Import sub lattice_interface monad_interface lattice_examples FSets.
 
 Section k_finite.
 
@@ -169,6 +169,23 @@ Section k_properties.
       apply fmap_isIn.
     + apply (HX a).
     + apply (HY b).
+  Defined.
+
+  Lemma Kf_sum_inv {A B : Type} : Kf (A + B) -> Kf A.
+  Proof.
+    intros HAB. kf_unfold.
+    destruct HAB as [X HX].
+    pose (f := fun z => match (z : A + B) with
+                     | inl a => ({|a|} : FSet A)
+                     | inr b => ∅
+                     end).
+    exists (bind _ (fset_fmap f X)).
+    intro a.
+    apply bind_isIn.
+    specialize (HX (inl a)).
+    exists {|a|}. split; [ | apply tr; reflexivity ].
+    apply (fmap_isIn f (inl a) X).
+    apply HX.
   Defined.
 
   Lemma Kf_subterm (A : hProp) : Decidable A <~> Kf A.
