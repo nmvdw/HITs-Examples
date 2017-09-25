@@ -144,13 +144,27 @@ Section k_properties.
     apply (tr (idpath)).
   Defined.
 
+  Lemma Kf_surjection {X Y : Type} (f : X -> Y) `{IsSurjection f} :
+    Kf X -> Kf Y.
+  Proof.
+    intros HX. apply Kf_unfold. apply Kf_unfold in HX.
+    destruct HX as [Xf HXf].
+    exists (fmap FSet f Xf).
+    intro y.
+    pose (x' := center (merely (hfiber f y))).
+    simple refine (@Trunc_rec (-1) (hfiber f y) _ _ _ x'). clear x'; intro x.
+    destruct x as [x Hfx]. rewrite <- Hfx.
+    apply fmap_isIn.
+    apply (HXf x).
+  Defined.
+
   Lemma Kf_sum {A B : Type} : Kf A -> Kf B -> Kf (A + B).
   Proof.
     intros HA HB.
     kf_unfold.
     destruct HA as [X HX].
     destruct HB as [Y HY].
-    exists ((fset_fmap inl X) ∪ (fset_fmap inr Y)).
+    exists (disjoint_sum X Y).
     intros [a | b]; simpl; apply tr; [ left | right ];
       apply fmap_isIn.
     + apply (HX a).
@@ -192,20 +206,6 @@ Section k_properties.
     split.
     - apply (HA a).
     - apply (HB b).
-  Defined.
-
-  Lemma Kf_surjection {X Y : Type} (f : X -> Y) `{IsSurjection f} :
-    Kf X -> Kf Y.
-  Proof.
-    intros HX. apply Kf_unfold. apply Kf_unfold in HX.
-    destruct HX as [Xf HXf].
-    exists (fmap FSet f Xf).
-    intro y.
-    pose (x' := center (merely (hfiber f y))).
-    simple refine (@Trunc_rec (-1) (hfiber f y) _ _ _ x'). clear x'; intro x.
-    destruct x as [x Hfx]. rewrite <- Hfx.
-    apply fmap_isIn.
-    apply (HXf x).
   Defined.
 
   Lemma S1_Kfinite : Kf S1.
