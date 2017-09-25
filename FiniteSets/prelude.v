@@ -57,6 +57,55 @@ Defined.
 Class MerelyDecidablePaths A :=
   m_dec_path : forall (a b : A), Decidable(Trunc (-1) (a = b)).
 
+Definition S1_merely_decidable_equality `{Univalence} : MerelyDecidablePaths S1.
+Proof.
+  simple refine (S1_ind _ _ _) ; simpl.
+  - simple refine (S1_ind _ _ _) ; simpl.
+    * apply (inl (tr idpath)).
+    * apply path_ishprop.      
+  - apply path_forall.
+    intro z.
+    rewrite transport_forall, transport_sum.
+    destruct
+      (transportD (fun _ : S1 => S1)
+                  (fun x y : S1 => Decidable (Trunc (-1) (x = y)))
+                  loop
+                  (transport (fun _ : S1 => S1) loop^ z)
+                  (S1_ind
+                     (fun x : S1 => Decidable (Trunc (-1) (base = x)))
+                     (inl (tr 1%path))
+                     (transport_sum loop (inl (tr 1))
+                                    @
+                                    ap inl
+                                    (path_ishprop
+                                       (transport
+                                          (fun a : S1 => Trunc (-1) (base = a))
+                                          loop
+                                          (tr 1))
+                                       (tr 1)
+                                    )
+                     )
+                     (transport (fun _ : S1 => S1) loop^ z)
+                  )
+      )
+      as [t | n].
+    ** revert t.
+       revert z.
+       simple refine (S1_ind (fun _ => _) _ _) ; simpl.
+       *** intros.
+           apply path_ishprop.
+       *** apply path_forall.
+           intro z.
+           rewrite transport_forall, transport_paths_FlFr, ap_const.
+           hott_simpl.
+           apply set_path2.
+    ** contradiction n.
+       rewrite ?transport_const.
+       simple refine (S1_ind (fun q => Trunc (-1) (base = q)) _ _ z) ; simpl.
+       *** apply (tr idpath).
+       *** apply path_ishprop.
+Defined.
+
 Global Instance DecidableToMerely A (H : DecidablePaths A) : MerelyDecidablePaths A.
 Proof.
   intros x y.
