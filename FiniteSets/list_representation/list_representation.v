@@ -79,6 +79,27 @@ Module Export FSetC.
       indTy := _; recTy := _;
       H_inductor := FSetC_ind A; H_recursor := FSetC_rec A
     }.
+
+  Section FSetC_prim_recursion.
+    Variable (A : Type)
+             (P : Type)
+             (H : IsHSet P)
+             (nil : P)
+             (cns :  A -> FSetC A -> P -> P)
+             (duplP : forall (a : A) (X : FSetC A) (x : P),
+                 cns a (a ;; X) (cns a X x) = (cns a X x))
+             (commP : forall (a b: A) (X : FSetC A) (x: P),
+                 cns a (b ;; X) (cns b X x) = cns b (a ;; X) (cns a X x)).
+
+    (* Recursion principle *)
+    Definition FSetC_prim_rec : FSetC A -> P.
+    Proof.
+      simple refine (FSetC_ind A (fun _ => P) (fun _ => H) nil cns _ _ );
+        try (intros; simple refine ((transport_const _ _) @ _ ));  cbn.
+      - apply duplP.
+      - apply commP.
+    Defined.
+  End FSetC_prim_recursion.
 End FSetC.
 
 Infix ";;" := Cns (at level 8, right associativity).

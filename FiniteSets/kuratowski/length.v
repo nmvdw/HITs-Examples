@@ -11,15 +11,17 @@ Section length.
       apply (if a ∈_d X then n else (S n)).
     - intros X a n.
       simpl.
-      simplify_isIn_d.
-      destruct (dec (a ∈ X)) ; reflexivity.
+      rewrite ?union_isIn_d, singleton_isIn_d_aa.
+      reflexivity.
     - intros X a b n.
       simpl.
-      simplify_isIn_d.
+      rewrite ?union_isIn_d.
       destruct (m_dec_path a b) as [Hab | Hab].
       + strip_truncations.
-        rewrite Hab. simplify_isIn_d. reflexivity.
-      + rewrite ?singleton_isIn_d_false; auto.
+        rewrite Hab.
+        rewrite ?singleton_isIn_d_aa.
+        reflexivity.
+      + rewrite ?singleton_isIn_d_false.
         ++ simpl. 
            destruct (a ∈_d X), (b ∈_d X) ; reflexivity.
         ++ intro p. contradiction (Hab (tr p^)).

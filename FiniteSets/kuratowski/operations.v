@@ -219,18 +219,12 @@ Section FSet_cons_rec.
            (Pcomm : forall X a b p, Pcons a ({|b|} ∪ X) (Pcons b X p)
                                            = Pcons b ({|a|} ∪ X) (Pcons a X p)).
   
-  Definition FSet_cons_rec (X : FSet A) : P.
-  Proof.
-    simple refine (FSetC_ind A (fun _ => P) _ Pe _ _ _ (FSet_to_FSetC X)) ; simpl.
-    - intros a Y p.
-      apply (Pcons a (FSetC_to_FSet Y) p).
-    - intros.
-      refine (transport_const _ _ @ _).
-      apply Pdupl.
-    - intros.
-      refine (transport_const _ _ @ _).
-      apply Pcomm.
-  Defined.
+  Definition FSet_cons_rec (X : FSet A) : P :=
+    FSetC_prim_rec A P Pset Pe
+                   (fun a Y p => Pcons a (FSetC_to_FSet Y) p)
+                   (fun _ _ => Pdupl _ _)
+                   (fun _ _ _ => Pcomm _ _ _)
+                   (FSet_to_FSetC X).
 
   Definition FSet_cons_beta_empty : FSet_cons_rec ∅ = Pe := idpath.
   
