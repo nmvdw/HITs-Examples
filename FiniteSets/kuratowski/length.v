@@ -19,7 +19,6 @@ Section length.
       destruct (m_dec_path a b) as [Hab | Hab].
       + strip_truncations.
         rewrite Hab.
-        rewrite ?singleton_isIn_d_aa.
         reflexivity.
       + rewrite ?singleton_isIn_d_false.
         ++ simpl. 
