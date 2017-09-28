@@ -77,17 +77,31 @@ Section ListToSet.
     nr {|a|}.
 
   Lemma append_union (l1 l2 : list A) :
-    list_to_set A (union l1 l2) = (list_to_set A l1) ∪ (list_to_set A l2).
+    list_to_set A (list_union _ l1 l2) = (list_to_set A l1) ∪ (list_to_set A l2).
   Proof.
-    induction l1 ; induction l2 ; cbn.
+    induction l1 ; simpl.
     - apply (nl _)^.
-    - apply (nl _)^.
-    - rewrite IHl1.
-      apply assoc.
-    - rewrite IHl1.
-      cbn.
-      apply assoc.
+    - rewrite IHl1, assoc.
+      reflexivity.
   Defined.
+
+  Fixpoint reverse (l : list A) : list A :=
+    match l with
+    | nil => nil
+    | cons a l => list_union _ (reverse l) {|a|}
+    end.
+
+  Lemma reverse_set (l : list A) :
+    list_to_set A l = list_to_set A (reverse l).
+  Proof.
+    induction l ; simpl.
+    - reflexivity.
+    - rewrite append_union, ?IHl.
+      simpl.
+      rewrite nr.
+      apply comm.
+  Defined.
+    
 End ListToSet.
 
 Section lists_are_sets.
