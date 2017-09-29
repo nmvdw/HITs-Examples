@@ -88,7 +88,7 @@ Section ListToSet.
   Fixpoint reverse (l : list A) : list A :=
     match l with
     | nil => nil
-    | cons a l => list_union _ (reverse l) {|a|}
+    | cons a l => {|a|} ∪ (reverse l) ∪ {|a|}
     end.
 
   Lemma reverse_set (l : list A) :
@@ -98,7 +98,8 @@ Section ListToSet.
     - reflexivity.
     - rewrite append_union, ?IHl.
       simpl.
-      rewrite nr.
+      symmetry.
+      rewrite nr, comm, <- assoc, idem.
       apply comm.
   Defined.
     

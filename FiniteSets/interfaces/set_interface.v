@@ -255,7 +255,6 @@ End quotient_properties.
 Arguments set_eq {_} _ {_} _ _.
 
 Section properties.
-  Context `{Univalence}.
   Variable (T : Type -> Type) (f : forall A, T A -> FSet A).
   Context `{sets T f}.
 
@@ -294,6 +293,27 @@ Section properties.
     refine (same_class _ _ _ _ _ _) ; assumption.
   Defined.
 
+  Global Instance test (A : Type) (X Y : T A)
+    : IsHProp  (forall a : A, a ∈ X = a ∈ Y).
+  Proof.
+    apply _.
+  Defined.  
+
+  Lemma f_eq_ext (A : Type) (X Y : T A) :
+    (forall a : A, a ∈ X = a ∈ Y) <~> set_eq f X Y.
+  Proof.
+    eapply equiv_iff_hprop_uncurried ; split.
+    - intros HX.
+      unfold set_eq, f_eq.
+      apply fset_ext.
+      intros a.
+      rewrite <- ?(f_member T _).
+      apply HX.
+    - intros HX a.
+      rewrite ?(f_member T _).
+      f_ap.
+  Defined.
+    
   Ltac via_quotient := intros ; apply reflect_f_eq ; simpl
                        ; rewrite <- ?(well_defined_union T _), <- ?(well_defined_empty T _)
                        ; eauto with lattice_hints typeclass_instances.  
