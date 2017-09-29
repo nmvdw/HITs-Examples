@@ -64,6 +64,29 @@ Section monad_fset.
       + right. by apply HX1.
   Defined.
 
+  Instance fmap_Surjection `{Univalence} {A B : Type} (f : A -> B)
+    {Hsurj : IsSurjection f} : IsSurjection (fmap FSet f).
+  Proof.
+    apply BuildIsSurjection.
+    hinduction; try (intros; apply path_ishprop).
+    - apply tr. exists ∅. reflexivity.
+    - intro b.
+      specialize (Hsurj b).
+      cbv in Hsurj.
+      destruct Hsurj as [Hsurj _].
+      strip_truncations.
+      destruct Hsurj as [a Ha].
+      apply tr.
+      exists {|a|}. simpl. f_ap.
+    - intros X Y HX HY.
+      strip_truncations.
+      apply tr.
+      destruct HY as [Y' HY].
+      destruct HX as [X' HX].
+      exists (X' ∪ Y'). simpl.
+      f_ap.
+  Defined.
+
   Lemma bind_isIn `{Univalence} {A : Type} (X : FSet (FSet A)) (a : A) :
     (exists x, x ∈ X * a ∈ x) -> a ∈ (bind _ X).
   Proof.
@@ -85,6 +108,134 @@ Section monad_fset.
         exists z. split; assumption.
   Defined.
 
+  (* So other properties of FSet(-) as acting on objects *)
+  (* Elephant D Cor 5.4.5 *)
+  Definition FSet_Unit_2 : FSet Unit -> Unit + Unit.
+  Proof.
+    hinduction.
+    - left. apply tt.
+    - intros []. right. apply tt.
+    - intros A B.
+      destruct A.
+      + destruct B.
+        * left. apply tt.
+        * right. apply tt.
+      + right. apply tt.
+    - intros [[] | []] [[] | []] [[] | []]; reflexivity.
+    - intros [[] | []] [[] | []]; reflexivity.
+    - intros [[] | []]; reflexivity.
+    - intros [[] | []]; reflexivity.
+    - intros []; reflexivity.
+  Defined.
+
+  Definition Two_FSet_Unit : Unit + Unit -> FSet Unit.
+  Proof.
+    intros [[] | []].
+    - exact ∅.
+    - exact {|tt|}.
+  Defined.
+
+  Lemma FSet_Unit `{Funext} : FSet Unit <~> Unit + Unit.
+  Proof.
+    apply BuildEquiv with FSet_Unit_2.
+    apply equiv_biinv_isequiv.
+    split; exists Two_FSet_Unit.
+    - intro x. hrecursion x.
+      + reflexivity.
+      + intros []. reflexivity.
+      + intros X Y HX HY.
+        destruct (FSet_Unit_2 X) as [[] | []], (FSet_Unit_2 Y) as [[] | []];
+          rewrite <- HX; rewrite <- HY; simpl.
+        * apply (union_idem _)^.
+        * apply (nl _)^.
+        * apply (nr _)^.
+        * apply (union_idem _)^.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+    - intros [[] | []]; simpl; reflexivity.
+  Defined.
+  
+  Definition fsum1 {A B : Type} : FSet (A + B) -> FSet A * FSet B.
+  Proof.
+    hrecursion.
+    - exact (∅, ∅).
+    - intros [a | b].
+      + exact ({|a|}, ∅).
+      + exact (∅, {|b|}).
+    - intros [X Y] [X' Y'].
+      exact (X ∪ X', Y ∪ Y').
+    - intros [X X'] [Y Y'] [Z Z'].
+      rewrite !assoc.
+      reflexivity.
+    - intros [X X'] [Y Y'].
+      rewrite (comm Y X).
+      rewrite (comm Y' X').
+      reflexivity.
+    - intros [X X'].
+      rewrite !nl.
+      reflexivity.
+    - intros [X X'].
+      rewrite !nr.
+      reflexivity.
+    - intros [a | b]; simpl; rewrite !union_idem; reflexivity.
+  Defined.
+  Definition fsum2 {A B : Type} : FSet A * FSet B -> FSet (A + B).
+  Proof.
+    intros [X Y].
+    exact ((fset_fmap inl X) ∪ (fset_fmap inr Y)).
+  Defined.
+  Lemma fsum1_inl {A B : Type} (X : FSet A) :
+    fsum1 (fset_fmap inl X) = (X, ∅ : FSet B).
+  Proof.
+    hinduction X; try reflexivity; try (intros; apply path_ishprop).
+    intros X Y HX HY.
+    rewrite HX, HY. simpl.
+    rewrite nl.
+    reflexivity.
+  Defined.
+  Lemma fsum1_inr {A B : Type} (Y : FSet B) :
+    fsum1 (fset_fmap inr Y) = (∅ : FSet A, Y).
+  Proof.
+    hinduction Y; try reflexivity; try (intros; apply path_ishprop).
+    intros X Y HX HY.
+    rewrite HX, HY. simpl.
+    rewrite nl.
+    reflexivity.
+  Defined.
+  
+  Lemma FSet_sum `{Funext} {A B : Type}: FSet (A + B) <~> FSet A * FSet B.
+  Proof.
+    apply BuildEquiv with fsum1.
+    apply equiv_biinv_isequiv.
+    split; exists fsum2.
+    - intros X. hrecursion X; unfold fsum2; simpl.
+      + apply nl.
+      + intros [a | b]; simpl; [apply nr | apply nl].
+      + intros X Y HX HY.
+        destruct (fsum1 X) as [X1 X2].
+        destruct (fsum1 Y) as [Y1 Y2].
+        rewrite (comm _ (fset_fmap inr Y2)).
+        rewrite <-assoc.
+        rewrite (assoc (fset_fmap inl Y1)).
+        rewrite HY.
+        rewrite (comm Y).
+        rewrite assoc.
+        rewrite HX.
+        reflexivity.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+      + intros. apply path_ishprop.
+    - intros [X Y]. simpl.
+      rewrite !fsum1_inl, !fsum1_inr.
+      simpl.
+      rewrite nl, nr.
+      reflexivity.
+  Defined.
 End monad_fset.
 
 (** Lemmas relating operations to the membership predicate *)
