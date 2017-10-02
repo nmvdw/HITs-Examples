@@ -67,13 +67,16 @@ Section length.
 
   Variable (length : FSet A -> nat)
            (length_singleton : forall (a : A), length {|a|} = 1)
-           (length_one : forall (X : FSet A), length X = 1 -> {a : A & X = {|a|}}).
+           (length_one : forall (X : FSet A), length X = 1 -> hexists (fun a => X = {|a|})).
 
   Theorem dec_length (a b : A) : Decidable(merely(a = b)).
   Proof.
     destruct (dec (length ({|a|} ∪ {|b|}) = 1)).
-    - destruct (length_one _ p) as [c Xc].
-      refine (inl _).
+    - refine (inl _).
+      pose (length_one _ p) as Hp.
+      simple refine (Trunc_rec _ Hp).
+      clear Hp ; intro Hp.
+      destruct Hp as [c Xc].
       assert (merely(a = c) * merely(b = c)).
       { split.
         * pose (transport (fun z => a ∈ z) Xc) as t.

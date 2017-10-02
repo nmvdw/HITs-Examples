@@ -135,7 +135,7 @@ Section monad_fset.
     - exact {|tt|}.
   Defined.
 
-  Lemma FSet_Unit `{Funext} : FSet Unit <~> Unit + Unit.
+  Lemma FSet_Unit : FSet Unit <~> Unit + Unit.
   Proof.
     apply BuildEquiv with FSet_Unit_2.
     apply equiv_biinv_isequiv.
@@ -182,11 +182,13 @@ Section monad_fset.
       reflexivity.
     - intros [a | b]; simpl; rewrite !union_idem; reflexivity.
   Defined.
+  
   Definition fsum2 {A B : Type} : FSet A * FSet B -> FSet (A + B).
   Proof.
     intros [X Y].
     exact ((fset_fmap inl X) ∪ (fset_fmap inr Y)).
   Defined.
+  
   Lemma fsum1_inl {A B : Type} (X : FSet A) :
     fsum1 (fset_fmap inl X) = (X, ∅ : FSet B).
   Proof.
@@ -196,6 +198,7 @@ Section monad_fset.
     rewrite nl.
     reflexivity.
   Defined.
+  
   Lemma fsum1_inr {A B : Type} (Y : FSet B) :
     fsum1 (fset_fmap inr Y) = (∅ : FSet A, Y).
   Proof.
@@ -206,7 +209,7 @@ Section monad_fset.
     reflexivity.
   Defined.
   
-  Lemma FSet_sum `{Funext} {A B : Type}: FSet (A + B) <~> FSet A * FSet B.
+  Lemma FSet_sum {A B : Type}: FSet (A + B) <~> FSet A * FSet B.
   Proof.
     apply BuildEquiv with fsum1.
     apply equiv_biinv_isequiv.
@@ -579,6 +582,20 @@ Section properties_membership_decidable.
     a ∈_d (X ∩ Y) = andb (a ∈_d X) (a ∈_d Y).
   Proof.
     apply comprehension_isIn_d.
+  Defined.
+
+  Lemma intersection_isIn (X Y: FSet A) (a : A) :
+    a ∈ (X ∩ Y) = BuildhProp ((a ∈ X) * (a ∈ Y)).
+  Proof.
+    unfold intersection, fset_intersection.
+    rewrite comprehension_isIn.
+    unfold member_dec, fset_member_bool.
+    destruct (dec (a ∈ Y)) as [? | n].
+    - apply path_iff_hprop ; intros X0
+      ; try split ; try (destruct X0) ; try assumption.
+    - apply path_iff_hprop ; try contradiction.
+      intros [? p].
+      apply (n p).
   Defined.
 
   Lemma difference_isIn_d (X Y: FSet A) (a : A) :

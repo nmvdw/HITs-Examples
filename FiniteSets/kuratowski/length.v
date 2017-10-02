@@ -291,3 +291,64 @@ Section length_sum.
     reflexivity.
   Defined.
 End length_sum.
+
+Section length_zero_one.
+  Context {A : Type} `{Univalence} `{MerelyDecidablePaths A}.
+
+  Lemma Z_not_S n : S n = 0 -> Empty.
+  Proof.
+    refine (@equiv_path_nat (n.+1) 0)^-1.
+  Defined.
+
+  Lemma remove_S n m : S n = S m -> n = m.
+  Proof.
+    intros X.
+    enough (n.+1 =n m.+1) as X0.
+    {
+      simpl in X0.
+      apply (equiv_path_nat X0).
+    }
+    apply ((equiv_path_nat)^-1 X).
+  Defined.
+  
+  Theorem length_zero : forall (X : FSet A) (HX : length X = 0), X = ∅.
+  Proof.
+    simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _)
+    ; try (intros ; apply path_ishprop) ; simpl.
+    - reflexivity.
+    - intros a X HX HaX.
+      rewrite length_compute in HaX.
+      unfold member_dec, fset_member_bool in HaX.
+      destruct (dec (a ∈ X)).
+      * pose (HX HaX) as XE.
+        pose (transport (fun Z => a ∈ Z) XE t) as Nonsense.
+        contradiction Nonsense.        
+      * contradiction (Z_not_S _ HaX).
+  Defined.  
+
+  Theorem length_one : forall (X : FSet A) (HX : length X = 1), hexists (fun a => X = {|a|}).
+  Proof.
+    simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _)
+    ; try (intros ; apply path_ishprop) ; simpl.
+    - intros.
+      contradiction (Z_not_S _ (HX^)).
+    - intros a X HX HaX.
+      refine (tr(a;_)).
+      rewrite length_compute in HaX.
+      unfold member_dec, fset_member_bool in HaX.
+      destruct (dec (a ∈ X)).
+      * specialize (HX HaX).
+        strip_truncations.
+        destruct HX as [b HX].
+        assert (({|a|} : FSet A) = {|b|}) as p.
+        {
+          rewrite HX in t.
+          strip_truncations.
+          f_ap.
+        }
+        rewrite HX, p.
+        apply union_idem.
+      * rewrite (length_zero _ (remove_S _ _ HaX)).
+        apply nr.
+  Defined.
+End length_zero_one.
