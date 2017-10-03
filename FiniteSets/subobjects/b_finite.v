@@ -359,16 +359,8 @@ Section bfin_kfin.
     - apply Kf_unfold.
       exists ∅. intros [].
     - intros B [n f] IH.
-      strip_truncations.
-      apply Kf_unfold in IH.
-      destruct IH as [X HX].
-      apply Kf_unfold.
-      exists ((fmap FSet inl X) ∪ {|inr tt|}); simpl.
-      intros [a | []]; apply tr.
-      + left.
-        apply fmap_isIn.
-        apply (HX a).
-      + right. apply (tr idpath).
+      apply Kf_sum ; try assumption.
+      apply Kf_Unit.
   Defined.
 
   Definition bfin_to_kfin_sub A : forall (P : Sub A), Bfin P -> Kf_sub _ P.
