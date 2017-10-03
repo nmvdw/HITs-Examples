@@ -131,8 +131,51 @@ Section finite_hott.
         ** refine (px @ _ @ py^). auto.
         ** refine (px @ _ @ py^). symmetry. auto.
         ** apply (px @ py^).
-  Defined.
+  Defined.      
 End finite_hott.
+
+Section singleton_set.
+  Variable (A : Type).
+  Context `{Univalence}.
+
+  Definition el x : {b : A & b ∈ {|x|}} := (x;tr idpath).
+  
+  Theorem single_bfin_set (HA : forall a, {b : A & b ∈ {|a|}} <~> Fin 1)
+    : forall (x : A) (p : x = x), p = idpath.
+  Proof.
+    intros x p.
+    specialize (HA x).
+    pose (el x) as X.
+    pose (ap HA^-1 (ap HA (path_sigma _ X X p (path_ishprop _ _)))) as q.
+    assert (p = ap (fun z => z.1) ((eissect HA X)^ @ q @ eissect HA X)) as H1.
+    {
+      unfold q.
+      rewrite <- ap_compose.
+      enough(forall r,
+                (eissect HA X)^
+                @ ap (fun x0 : {b : A & b ∈ {|x|}} => HA^-1 (HA x0)) r
+                  @ eissect HA X = r
+            ) as H2.
+      {
+        rewrite H2.
+        refine (@pr1_path_sigma _ _ X X p _)^.
+      }
+      induction r.
+      hott_simpl.
+    }
+    assert (idpath = ap (fun z => z.1) ((eissect HA X)^ @ idpath @ eissect HA X)) as H2.
+    { hott_simpl. }
+    rewrite H1, H2.
+    repeat f_ap.
+    unfold q.
+    enough (ap HA (path_sigma (fun b : A => b ∈ {|x|}) X X p (path_ishprop _ _)) = idpath) as H3.
+    {
+      rewrite H3.
+      reflexivity.
+    }
+    apply path_ishprop.
+  Defined.
+End singleton_set.
 
 Section empty.
   Variable (A : Type).
