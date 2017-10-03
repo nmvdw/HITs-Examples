@@ -64,9 +64,9 @@ Section finite_hott.
   Lemma no_union `{IsHSet A}
         (f : forall (X Y : Sub A),
             Bfin X -> Bfin Y -> Bfin (X ∪ Y))
-        (a b : A) :
-      hor (a = b) (a = b -> Empty).
+    : MerelyDecidablePaths A.
   Proof.
+    intros a b.
     specialize (f {|a|} {|b|} (singleton a) (singleton b)).
     unfold Bfin in f.
     destruct f as [n pn].
@@ -78,7 +78,7 @@ Section finite_hott.
       exists a. apply (tr(inl(tr idpath))).
     - destruct n as [|n].
       + (* If the size of the union is 1, then (a = b) *)
-        refine (tr (inl _)).
+        refine (inl (tr _)).
         pose (s1 := (a;tr(inl(tr idpath)))
                : {c : A & Trunc (-1) (Trunc (-1) (c = a) + Trunc (-1) (c = b))}).
         pose (s2 := (b;tr(inr(tr idpath)))
@@ -88,8 +88,8 @@ Section finite_hott.
         { by apply path_ishprop. }
         refine (ap (fun x => (g x).1) fs_eq).
       + (* Otherwise, ¬(a = b) *)
-        refine (tr (inr _)).
-        intros p.
+        refine (inr (fun p => _)).
+        strip_truncations.
         pose (s1 := inl (inr tt) : Fin n + Unit + Unit).
         pose (s2 := inr tt : Fin n + Unit + Unit).
         pose (gs1 := g s1).
@@ -99,37 +99,35 @@ Section finite_hott.
         assert (Hgs1 : gs1 = c) by reflexivity.
         assert (Hgs2 : gs2 = d) by reflexivity.
         destruct c as [x px'].
-        destruct d as [y py'].        
-        simple refine (Trunc_ind _ _ px') ; intros px.
-        simple refine (Trunc_ind _ _ py') ; intros py.
-        simpl.
+        destruct d as [y py'].
+        simple refine (Trunc_ind _ _ px') ; intros px
+        ; simple refine (Trunc_ind _ _ py') ; intros py ; simpl.
         cut (x = y).
         {
           enough (s1 = s2) as X.
           {
-            intros. 
             unfold s1, s2 in X.
-            refine (not_is_inl_and_inr' (inl(inr tt)) _ _).
-            + apply tt.
-            + rewrite X ; apply tt.
+            contradiction (inl_ne_inr _ _ X).
           }
-          transitivity (f gs1).
-          { apply (fg s1)^. }
-          symmetry ; transitivity (f gs2).
-          { apply (fg s2)^. }
+          unfold gs1, gs2 in *.
+          refine ((fg s1)^ @ _ @ fg s2).
           rewrite Hgs1, Hgs2.
           f_ap.
           simple refine (path_sigma _ _ _ _ _); [ | apply path_ishprop ]; simpl.
-          destruct px as [p1 | p1] ; destruct py as [p2 | p2] ; strip_truncations.
-          * apply (p2 @ p1^).
-          * refine (p2 @ _^ @ p1^). auto.
-          * refine (p2 @ _ @ p1^). auto.
-          * apply (p2 @ p1^).
+          destruct px as [px | px] ; destruct py as [py | py]
+          ; refine (Trunc_rec _ px) ; clear px ; intro px
+          ; refine (Trunc_rec _ py) ; clear py ; intro py.
+          * apply (px @ py^).
+          * refine (px @ _ @ py^). auto.
+          * refine (px @ _^ @ py^). auto.
+          * apply (px @ py^).
         }
-        destruct px as [px | px] ; destruct py as [py | py]; strip_truncations.
+        destruct px as [px | px] ; destruct py as [py | py]
+        ; refine (Trunc_rec _ px) ; clear px ; intro px
+        ; refine (Trunc_rec _ py) ; clear py ; intro py.
         ** apply (px @ py^).
         ** refine (px @ _ @ py^). auto.
-        ** refine (px @ _ @ py^). symmetry. auto.
+        ** refine (px @ _^ @ py^). auto.
         ** apply (px @ py^).
   Defined.      
 End finite_hott.
