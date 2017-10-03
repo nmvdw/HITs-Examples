@@ -492,21 +492,10 @@ Section kfin_bfin.
       simple refine (BuildEquiv _ _ _ _).
       destruct 1 as [? []].
     - intros a.
-      exists 1. apply tr. simpl.
-      transitivity Unit; [ | symmetry; apply sum_empty_l ].
-      unshelve esplit.
-      + exact (fun _ => tt).
-      + apply isequiv_biinv. split.
-        * exists (fun _ => (a; tr(idpath))).
-          intros [b Hb]. strip_truncations.
-          apply path_sigma' with Hb^.
-          apply path_ishprop.
-        * exists (fun _ => (a; tr(idpath))).
-          intros []. reflexivity.
+      apply _.
     - intros Y1 Y2 HY1 HY2.
       apply bfin_union; auto.
   Defined.
-
 End kfin_bfin.
 
 Instance Kf_to_Bf (X : Type) `{Univalence} `{DecidablePaths X} (Hfin : Kf X) : Finite X.
