@@ -64,7 +64,7 @@ Section finite_hott.
   Lemma no_union `{IsHSet A}
         (f : forall (X Y : Sub A),
             Bfin X -> Bfin Y -> Bfin (X ∪ Y))
-    : MerelyDecidablePaths A.
+    : DecidablePaths A.
   Proof.
     intros a b.
     specialize (f {|a|} {|b|} (singleton a) (singleton b)).
@@ -78,7 +78,7 @@ Section finite_hott.
       exists a. apply (tr(inl(tr idpath))).
     - destruct n as [|n].
       + (* If the size of the union is 1, then (a = b) *)
-        refine (inl (tr _)).
+        refine (inl _).
         pose (s1 := (a;tr(inl(tr idpath)))
                : {c : A & Trunc (-1) (Trunc (-1) (c = a) + Trunc (-1) (c = b))}).
         pose (s2 := (b;tr(inr(tr idpath)))
@@ -89,7 +89,6 @@ Section finite_hott.
         refine (ap (fun x => (g x).1) fs_eq).
       + (* Otherwise, ¬(a = b) *)
         refine (inr (fun p => _)).
-        strip_truncations.
         pose (s1 := inl (inr tt) : Fin n + Unit + Unit).
         pose (s2 := inr tt : Fin n + Unit + Unit).
         pose (gs1 := g s1).
