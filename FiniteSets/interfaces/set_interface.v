@@ -349,3 +349,31 @@ Section properties.
   Defined.
   
 End properties.
+
+Section refinement.
+  Variable (T S : Type -> Type).
+  Variable (f : forall {A : Type}, T A -> FSet A).
+  Variable (g : forall {A : Type}, S A -> FSet A).
+  Context `{sets T f} `{sets S g}.
+
+  Theorem transfer
+          (A B : Type)
+          `{IsHSet B}
+          (h : T A -> B)
+          (hresp : forall x y : T A, set_eq f x y -> h x = h y)
+    : S A -> B.
+  Proof.
+    intros X.
+    simple refine (@quotient_rec (T A) (set_eq f) _ _ _ h hresp _).
+    pose (quotient_iso (f A))^-1.
+    apply q.
+    apply (quotient_iso (g A) (class_of _ X)).
+  Defined.
+
+  Definition refine
+          (A B : Type)
+          `{IsHSet B}
+          (h : FSet A -> B)
+    : T A -> B
+  := fun X => h(quotient_iso (f A) (class_of _ X)).
+End refinement.
