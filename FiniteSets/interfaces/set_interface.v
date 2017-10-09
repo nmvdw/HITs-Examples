@@ -357,7 +357,7 @@ Section refinement.
   Context `{sets T f} `{sets S g}.
 
   Theorem transfer
-          (A B : Type)
+          {A B : Type}
           `{IsHSet B}
           (h : T A -> B)
           (hresp : forall x y : T A, set_eq f x y -> h x = h y)
@@ -370,8 +370,8 @@ Section refinement.
     apply (quotient_iso (g A) (class_of _ X)).
   Defined.
 
-  Definition refine
-          (A B : Type)
+  Definition refinement
+          {A B : Type}
           `{IsHSet B}
           (h : FSet A -> B)
     : T A -> B

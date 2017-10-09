@@ -1,6 +1,6 @@
 (* Implementation of [FSet A] using lists *)
 Require Import HoTT HitTactics.
-Require Import FSets set_interface.
+Require Import FSets set_interface kuratowski.length prelude dec_fset.
 
 Section Operations.
   Context `{Univalence}.
@@ -96,7 +96,7 @@ Section ListToSet.
   Proof.
     induction l ; simpl.
     - reflexivity.
-    - rewrite append_union, ?IHl.
+    - rewrite IHl, append_union.
       simpl.
       symmetry.
       rewrite nr, comm, <- assoc, idem.
@@ -108,7 +108,7 @@ End ListToSet.
 Section lists_are_sets.
   Context `{Univalence}.
 
-  Instance lists_sets : sets list list_to_set.
+  Global Instance lists_sets : sets list list_to_set.
   Proof.
     split ; intros.
     - apply empty_empty.
@@ -118,3 +118,126 @@ Section lists_are_sets.
     - apply member_isIn.
   Defined.
 End lists_are_sets.
+
+Section refinement_examples.
+  Context `{Univalence}.
+  Context {A : Type}.
+
+  Definition list_all (ϕ : A -> hProp) : list A -> hProp
+    := refinement list list_to_set (all ϕ).
+
+  Lemma list_all_set (ϕ : A -> hProp) (X : list A)
+    : list_all ϕ X = all ϕ (list_to_set A X).
+  Proof.
+    induction X ; try reflexivity.
+  Defined.
+
+  Lemma list_all_intro (X : list A) (ϕ : A -> hProp)
+    : forall (HX : forall a, a ∈ X -> ϕ a), list_all ϕ X.
+  Proof.
+    rewrite list_all_set.
+    intros H1.
+    assert (forall (a : A), a ∈ (list_to_set A X) -> ϕ a) as H2.
+    {
+      intros a H3.
+      rewrite <- (member_isIn A a X) in H3.
+      apply (H1 a H3).
+    }
+    apply (all_intro _ _ H2).
+  Defined.
+
+  Lemma list_all_elim (X : list A) (ϕ : A -> hProp) a
+    : list_all ϕ X -> (a ∈ X) -> ϕ a.
+  Proof.
+    rewrite list_all_set, (member_isIn A a X).
+    apply all_elim.
+  Defined.
+
+  Definition list_exist (ϕ : A -> hProp) : list A -> hProp
+    := refinement list list_to_set (exist ϕ).
+  
+  Lemma list_exist_set (ϕ : A -> hProp) (X : list A)
+    : list_exist ϕ X = exist ϕ (list_to_set A X).
+  Proof.
+    induction X ; try reflexivity.
+  Defined.
+
+  Lemma listexist_intro (X : list A) (ϕ : A -> hProp) a
+    : a ∈ X -> ϕ a -> list_exist ϕ X.
+  Proof.
+    rewrite list_exist_set, (member_isIn A a X).
+    apply exist_intro.
+  Defined.
+
+  Lemma exist_elim (X : list A) (ϕ : A -> hProp)
+    : list_exist ϕ X -> hexists (fun a => a ∈ X * ϕ a).
+  Proof.
+    rewrite list_exist_set.
+    assert (hexists (fun a : A => a ∈ (list_to_set A X) * ϕ a)
+            -> hexists (fun a : A => a ∈ X * ϕ a))
+      as H2.
+    {
+      intros H1.
+      strip_truncations.
+      destruct H1 as [a H1].
+      rewrite <- (member_isIn A a X) in H1.
+      refine (tr(a;H1)).
+    }
+    intros H1.
+    apply (H2 (exist_elim _ _ H1)).
+  Defined.
+
+  Context `{MerelyDecidablePaths A}.
+
+  Global Instance dec_memb a (l : list A) : Decidable (a ∈ l).
+  Proof.
+    induction l as [ | a0 l] ; simpl.
+    - apply _.
+    - unfold Decidable.
+      destruct IHl as [t | p].
+      * apply (inl(tr(inr t))).
+      * destruct (H0 a a0) as [t | p'].
+        ** left.
+           strip_truncations.
+           apply (tr(inl t)).
+        ** refine (inr(fun n => _)).
+           strip_truncations.
+           destruct n as [n1 | n2].
+           *** apply (p' (tr n1)).
+           *** apply (p n2).
+  Defined.
+  
+  Global Instance dec_memb_list : hasMembership_decidable (list A) A.
+  Proof.
+    intros a l.
+    destruct (dec (a ∈ l)).
+    - apply true.
+    - apply false.
+  Defined.
+
+  Lemma fset_list_memb a (l : list A) : a ∈_d (list_to_set A l) = a ∈_d l.
+  Proof.
+    unfold member_dec, dec_memb_list, fset_member_bool.
+    destruct (dec a ∈ (list_to_set A l)), (dec a ∈ l) ; try reflexivity.
+    - contradiction n.
+      rewrite <- (f_member _ list_to_set) in t.
+      apply t.
+    - contradiction n.
+      rewrite (f_member _ list_to_set) in t.
+      apply t.
+  Defined.
+        
+  Definition set_length : list A -> nat
+    := refinement list list_to_set length.
+
+  Definition set_length_nil : set_length nil = 0 := idpath.
+
+  Definition set_length_cons a l
+    : set_length (cons a l) = if (a ∈_d l) then set_length l else S(set_length l).
+  Proof.
+    unfold set_length, refinement.
+    simpl.
+    rewrite length_compute, fset_list_memb.
+    reflexivity.
+  Defined.
+End refinement_examples.

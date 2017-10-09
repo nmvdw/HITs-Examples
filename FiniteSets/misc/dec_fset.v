@@ -223,9 +223,9 @@ Section pauli.
     destruct x ; rewrite ?union_isIn; solve_in_list.
   Defined.
 
-  Definition comm x y : hProp := BuildhProp(Pauli_mult x y = Pauli_mult y x).
+  Definition pauli_comm x y : hProp := BuildhProp(Pauli_mult x y = Pauli_mult y x).
 
-  Theorem Pauli_mult_comm : all (fun x => all (fun y => comm x y) Pauli_list) Pauli_list.
+  Theorem Pauli_mult_comm : all (fun x => all (fun y => pauli_comm x y) Pauli_list) Pauli_list.
   Proof.
     refine (from_squash (all _ _)).
     compute.

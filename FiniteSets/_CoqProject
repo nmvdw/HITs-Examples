@@ -16,7 +16,6 @@ kuratowski/properties.v
 kuratowski/length.v
 FSets.v
 interfaces/set_interface.v
-implementations/lists.v
 subobjects/sub.v
 subobjects/k_finite.v
 subobjects/enumerated.v
@@ -27,3 +26,4 @@ misc/ordered.v
 misc/projective.v
 misc/dec_kuratowski.v
 misc/dec_fset.v
+implementations/lists.v
