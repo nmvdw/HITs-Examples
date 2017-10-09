@@ -118,6 +118,16 @@ Section quantifiers.
   Defined.
 End quantifiers.
 
+Section exists_isIn.
+  Context {A : Type} `{Univalence}.
+
+  Theorem exist_isIn (a : A) (X : FSet A)
+    : a ∈ X = exist (fun b => BuildhProp(Trunc (-1) (a = b))) X.
+  Proof.
+    hinduction X ; try (intros ; apply path_ishprop) ; cbn ; try reflexivity.
+  Defined.
+End exists_isIn.  
+
 Section simple_example.
   Context `{Univalence}.
 
