@@ -2,7 +2,6 @@ Require Import FSets list_representation.
 Require Import kuratowski.length misc.dec_kuratowski.
 From interfaces Require Import lattice_interface.
 From subobjects Require Import sub b_finite enumerated k_finite.
-(* we need so many imports :( *)
 
 (** * Definitions *)
 Definition definition_2_1 := FSet.
@@ -113,7 +112,7 @@ Definition definition_5_2 `{Univalence} := sets.
 Definition proposition_5_3 `{Univalence} := f_surjective.
 Definition proposition_5_4 `{Univalence} (T : Type -> Type)
   (f : forall A, T A -> FSet A) `{sets T f} (A : Type) := quotient_iso (f A).
-(* TODO: Definition proposition_5_5 *)
+Definition proposition_5_5 `{Univalence} := same_class.
 Definition theorem_5_6 := transfer.
 Definition corollary_5_7 := refinement.
 (** ** Application *)
@@ -133,5 +132,5 @@ Qed.
 ming with Finite Sets" *)
 (** The Pauli group example *)
 Definition misc_1 `{Univalence} := Pauli_mult_comm.
-(** Decidility of prediates on finite sets is preserved by quantifiers *)
+(** Decidability of prediates on finite sets is preserved by quantifiers *)
 Definition misc_2 `{Univalence} {A : Type} (P : A -> hProp) `{forall a, Decidable (P a)} := all_decidable P.
