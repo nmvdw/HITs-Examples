@@ -411,9 +411,9 @@ Section kfin_bfin.
         destruct (dec (a = b)) as [Hb | Hb]; cbn.
         * refine (Empty_rec _).
           rewrite Hb in Ha.
-          contradiction.            
+          apply (HYb Ha).
         * reflexivity.
-        * destruct (dec (b = b)); [ reflexivity | contradiction ].    
+        * destruct (dec (b = b)) ; [ reflexivity | contradiction ].    
   Defined.    
 
   Theorem bfin_union : @closedUnion A Bfin.
