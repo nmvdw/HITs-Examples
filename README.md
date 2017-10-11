@@ -2,6 +2,8 @@
 
 Needed: https://github.com/HoTT/HoTT
 
+The Finite Sets library of the 'Finite Sets in Homotopy Type Theory' is in the directory 'Finite Sets'.
+
 The only part of the project that is buildable is the `FiniteSets` library.
 
 # Building
