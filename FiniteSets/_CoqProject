@@ -1,5 +1,5 @@
 -R . "" COQC = hoqc COQDEP = hoqdep
--R ../prelude ""
+HitTactics.v
 prelude.v
 interfaces/lattice_interface.v
 interfaces/lattice_examples.v
