@@ -54,9 +54,7 @@ Section operations.
     - apply nl.
     - apply nr.
     - intros; simpl.
-      destruct (P x).
-      + apply idem.
-      + apply nl.
+      apply union_idem.
   Defined.
         
   Definition single_product {A B : Type} (a : A) : FSet B -> FSet (A * B).
