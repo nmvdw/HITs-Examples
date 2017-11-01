@@ -155,6 +155,7 @@ Section min_set.
   Context `{TotalOrder A}.
   Context `{Univalence} `{IsHSet A}.
 
+  (* The reason why we put an additional element on top, is so that we can take the minimum of two results when considering union *)
   Definition min_set : FSet A -> Topped A.
   Proof.
     hrecursion.
