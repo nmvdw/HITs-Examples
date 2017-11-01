@@ -8,9 +8,9 @@ Section finite_hott.
   Context `{Univalence}.
 
   (* A subobject is B-finite if its extension is B-finite as a type *)
-  Definition Bfin (X : Sub A) : hProp := BuildhProp (Finite {a : A & a ∈ X}).
+  Definition Bfin (X : Sub A) : hProp := BuildhProp (Finite {a : A | a ∈ X}).
 
-  Global Instance singleton_contr a `{IsHSet A} : Contr {b : A & b ∈ {|a|}}.
+  Global Instance singleton_contr a `{IsHSet A} : Contr {b : A | b ∈ {|a|}}.
   Proof.
     exists (a; tr idpath).
     intros [b p].
@@ -20,7 +20,7 @@ Section finite_hott.
     apply p^.
   Defined.
   
-  Definition singleton_fin_equiv' a : Fin 1 -> {b : A & b ∈ {|a|}}.
+  Definition singleton_fin_equiv' a : Fin 1 -> {b : A | b ∈ {|a|}}.
   Proof.  
     intros _. apply (a; tr idpath).
   Defined.
@@ -66,7 +66,8 @@ Section finite_hott.
     : DecidablePaths A.
   Proof.
     intros a b.
-    destruct (U {|a|} {|b|} (singleton a) (singleton b)) as [n pn].
+    specialize (U {|a|} {|b|} (singleton a) (singleton b)).
+    destruct U as [n pn].
     strip_truncations.
     unfold Sect in *.
     destruct pn as [f [g fg gf _]], n as [ | [ | n]].
@@ -75,9 +76,9 @@ Section finite_hott.
       apply (tr(inl(tr idpath))).
     - refine (inl _).
       pose (s1 := (a;tr(inl(tr idpath)))
-                  : {c : A & Trunc (-1) (Trunc (-1) (c = a) + Trunc (-1) (c = b))}).
+                  : {c : A | Trunc (-1) (Trunc (-1) (c = a) + Trunc (-1) (c = b))}).
       pose (s2 := (b;tr(inr(tr idpath)))
-                  : {c : A & Trunc (-1) (Trunc (-1) (c = a) + Trunc (-1) (c = b))}).
+                  : {c : A | Trunc (-1) (Trunc (-1) (c = a) + Trunc (-1) (c = b))}).
       refine (ap (fun x => x.1) (gf s1)^ @ _ @ (ap (fun x => x.1) (gf s2))).
       assert (fs_eq : f s1 = f s2).
       { by apply path_ishprop. }
@@ -116,9 +117,9 @@ Section singleton_set.
   Variable (A : Type).
   Context `{Univalence}.
 
-  Variable (HA : forall a, {b : A & b ∈ {|a|}} <~> Fin 1).
+  Variable (HA : forall a, {b : A | b ∈ {|a|}} <~> Fin 1).
 
-  Definition el x : {b : A & b ∈ {|x|}} := (x;tr idpath).
+  Definition el x : {b : A | b ∈ {|x|}} := (x;tr idpath).
   
   Theorem single_bfin_set : forall (x : A) (p : x = x), p = idpath.
   Proof.
@@ -132,7 +133,7 @@ Section singleton_set.
       rewrite <- ap_compose.
       enough(forall r,
                 (eissect HA X)^
-                @ ap (fun x0 : {b : A & b ∈ {|x|}} => HA^-1 (HA x0)) r
+                @ ap (fun x0 : {b : A | b ∈ {|x|}} => HA^-1 (HA x0)) r
                   @ eissect HA X = r
             ) as H2.
       {
@@ -166,7 +167,7 @@ End singleton_set.
 Section empty.
   Variable (A : Type).
   Variable (X : A -> hProp)
-           (Xequiv : {a : A & a ∈ X} <~> Fin 0).
+           (Xequiv : {a : A | a ∈ X} <~> Fin 0).
   Context `{Univalence}.
 
   Lemma X_empty : X = ∅.
@@ -185,10 +186,10 @@ Section split.
   Variable (A : Type).
   Variable (P : A -> hProp)
            (n : nat)
-           (f : {a : A & P a } <~> Fin n + Unit).
+           (f : {a : A | P a } <~> Fin n + Unit).
 
   Definition split : exists P' : Sub A, exists b : A,
-        ({a : A & P' a} <~> Fin n) * (forall x, P x = (P' x ∨ merely (x = b))).
+    prod ({a : A | P' a} <~> Fin n) (forall x, P x = (P' x ∨ merely (x = b))).
   Proof.
     pose (fun x : A => sig (fun y : Fin n => x = (f^-1 (inl y)).1)) as P'.
     assert (forall x, IsHProp (P' x)).
@@ -267,7 +268,7 @@ Arguments Bfin {_} _.
 Arguments split {_} {_} _ _ _.
 
 Section Bfin_no_singletons.
-  Definition S1toSig (x : S1) : {x : S1 & merely(x = base)}.
+  Definition S1toSig (x : S1) : {x : S1 | merely(x = base)}.
   Proof.
     exists x.
     simple refine (S1_ind (fun z => merely(z = base)) (tr idpath) _ x).
@@ -382,7 +383,7 @@ Section kfin_bfin.
 
   Lemma notIn_ext_union_singleton (b : A) (Y : Sub A) :
     ~ (b ∈ Y) ->
-    {a : A & a ∈ ({|b|} ∪ Y)} <~> {a : A & a ∈ Y} + Unit.
+    {a : A | a ∈ ({|b|} ∪ Y)} <~> {a : A | a ∈ Y} + Unit.
   Proof.
     intros HYb.
     unshelve eapply BuildEquiv.
@@ -422,7 +423,7 @@ Section kfin_bfin.
     strip_truncations.
     revert fX. revert X.
     induction n; intros X fX.
-    - rewrite (X_empty _ X fX), (neutralL_max (Sub A)).
+    - rewrite (X_empty _ X fX). rewrite left_identity.
       apply HY.
     - destruct (split X n fX) as
         (X' & b & HX' & HX).
@@ -431,10 +432,10 @@ Section kfin_bfin.
       + cut (X ∪ Y = X' ∪ Y).
         { intros HXY. rewrite HXY. assumption. }
         apply path_forall. intro a.
-        unfold union, sub_union, max_fun.
+        unfold union, sub_union, join, join_fun.
         rewrite HX.
         rewrite (commutativity (X' a)).
-        rewrite (associativity _ (X' a)).
+        rewrite <- (associativity _ (X' a)).
         apply path_iff_hprop.
         * intros Ha.
           strip_truncations.
@@ -448,15 +449,14 @@ Section kfin_bfin.
         strip_truncations.
         exists (n'.+1).
         apply tr.
-        transitivity ({a : A & a ∈ (fun a => merely (a = b)) ∪ (X' ∪ Y)}).
+        transitivity ({a : A | a ∈ (fun a => merely (a = b)) ∪ (X' ∪ Y)}).
         * apply equiv_functor_sigma_id.
           intro a.
-          rewrite <- (associative_max (Sub A)).
+          rewrite (associativity (fun a => merely (a = b)) X' Y).
           assert (X = X' ∪ (fun a => merely (a = b))) as HX_.
           ** apply path_forall. intros ?.
-             unfold union, sub_union, max_fun.
              apply HX.
-          ** rewrite HX_, <- (commutative_max (Sub A) X').
+          ** rewrite HX_, <- (commutativity X').
              reflexivity.
         * etransitivity.
           { apply (notIn_ext_union_singleton b _ HX'Yb). }
@@ -466,7 +466,7 @@ Section kfin_bfin.
   Definition FSet_to_Bfin : forall (X : FSet A), Bfin (map X).
   Proof.
     hinduction; try (intros; apply path_ishprop).
-    - exists 0.
+    - exists 0%nat.
       apply tr.
       simple refine (BuildEquiv _ _ _ _).
       destruct 1 as [? []].

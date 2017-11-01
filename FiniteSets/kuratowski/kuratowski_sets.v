@@ -139,11 +139,17 @@ Section relations.
     - apply False_hp.
     - apply (fun a' => merely(a = a')).
     - apply lor.
+      (* TODO *)
     - eauto with lattice_hints typeclass_instances.
+      apply associativity.
     - eauto with lattice_hints typeclass_instances.
+      apply commutativity.
     - eauto with lattice_hints typeclass_instances.
+      apply left_identity.
     - eauto with lattice_hints typeclass_instances.
+      apply right_identity.
     - eauto with lattice_hints typeclass_instances.
+      intros. simpl. apply binary_idempotent.
   Defined.
 
   (** Subset relation of finite sets. *)
@@ -153,15 +159,15 @@ Section relations.
     hrecursion X.
     - apply Unit_hp.
     - apply (fun a => a ∈ Y).
-    - intros X1 X2.
-      exists (prod X1 X2).
-      exact _.
+    - apply land.
+      (* TODO *)
     - eauto with lattice_hints typeclass_instances. 
+      apply associativity.
     - eauto with lattice_hints typeclass_instances.
-    - intros.
-      apply path_trunctype ; apply prod_unit_l.
-    - intros.
-      apply path_trunctype ; apply prod_unit_r.
+      apply commutativity.
+    - apply left_identity.
+    - apply right_identity.
     - eauto with lattice_hints typeclass_instances.
+      intros. apply binary_idempotent.
   Defined.
 End relations.

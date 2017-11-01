@@ -300,7 +300,7 @@ Section subobjects.
     simpl. apply path_ishprop.
   Defined.
 
-  Fixpoint weaken_list_r (P Q : Sub A) (ls : list (sigT Q)) : list (sigT (max_L P Q)).
+  Fixpoint weaken_list_r (P Q : Sub A) (ls : list (sigT Q)) : list (sigT (P ⊔ Q)).
   Proof.
     destruct ls as [|[x Hx] ls].
     - exact nil.
@@ -323,7 +323,7 @@ Section subobjects.
   Defined.
 
   Fixpoint concatD {P Q : Sub A}
-    (ls : list (sigT P)) (ls' : list (sigT Q)) : list (sigT (max_L P Q)).
+    (ls : list (sigT P)) (ls' : list (sigT Q)) : list (sigT (P ⊔ Q)).
   Proof.
     destruct ls as [|[y Hy] ls].
     - apply weaken_list_r. exact ls'.
@@ -356,7 +356,7 @@ Section subobjects.
   Defined.
 
   Lemma enumeratedS_union (P Q : Sub A) :
-    enumeratedS P -> enumeratedS Q -> enumeratedS (max_L P Q).
+    enumeratedS P -> enumeratedS Q -> enumeratedS (P ⊔ Q).
   Proof.
     intros HP HQ.
     strip_truncations; apply tr.
@@ -388,7 +388,7 @@ Section subobjects.
   Transparent enumeratedS.
 
   Instance hprop_sub_fset (P : Sub A) :
-    IsHProp {X : FSet A & k_finite.map X = P}.
+    IsHProp {X : FSet A | k_finite.map X = P}.
   Proof.
     apply hprop_allpath. intros [X HX] [Y HY].
     assert (X = Y) as HXY.
@@ -433,7 +433,7 @@ Section subobjects.
 
   Definition enumeratedS_to_FSet :
     forall (P : Sub A), enumeratedS P ->
-    {X : FSet A & k_finite.map X = P}.
+    {X : FSet A | k_finite.map X = P}.
   Proof.
     intros P HP.
     strip_truncations.

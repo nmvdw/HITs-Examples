@@ -6,7 +6,7 @@ Section length.
   
   Definition length : FSet A -> nat.
     simple refine (FSet_cons_rec _ _ _ _ _ _).
-    - apply 0.
+    - apply 0%nat.
     - intros a X n.
       apply (if a ∈_d X then n else (S n)).
     - intros X a n.
@@ -295,7 +295,7 @@ End length_sum.
 Section length_zero_one.
   Context {A : Type} `{Univalence} `{MerelyDecidablePaths A}.
 
-  Lemma Z_not_S n : S n = 0 -> Empty.
+  Lemma Z_not_S n : S n = 0%nat -> Empty.
   Proof.
     refine (@equiv_path_nat (n.+1) 0)^-1.
   Defined.
@@ -311,7 +311,7 @@ Section length_zero_one.
     apply ((equiv_path_nat)^-1 X).
   Defined.
   
-  Theorem length_zero : forall (X : FSet A) (HX : length X = 0), X = ∅.
+  Theorem length_zero : forall (X : FSet A) (HX : length X = 0%nat), X = ∅.
   Proof.
     simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _)
     ; try (intros ; apply path_ishprop) ; simpl.
@@ -326,7 +326,7 @@ Section length_zero_one.
       * contradiction (Z_not_S _ HaX).
   Defined.  
 
-  Theorem length_one : forall (X : FSet A) (HX : length X = 1), hexists (fun a => X = {|a|}).
+  Theorem length_one : forall (X : FSet A) (HX : length X = 1%nat), hexists (fun a => X = {|a|}).
   Proof.
     simple refine (FSet_cons_ind (fun Z => _) _ _ _ _ _)
     ; try (intros ; apply path_ishprop) ; simpl.

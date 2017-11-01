@@ -16,7 +16,7 @@ Section interface.
       f_empty : forall A, f A ∅ = ∅ ;
       f_singleton : forall A a, f A (singleton a) = {|a|};
       f_union : forall A X Y, f A (union X Y) = (f A X) ∪ (f A Y);
-      f_filter : forall A φ X, f A (filter φ X) = {| f A X & φ |};
+      f_filter : forall A φ X, f A (filter φ X) = {| f A X | φ |};
       f_member : forall A a X, member a X = a ∈ (f A X)
     }.
 
@@ -175,12 +175,12 @@ Section quotient_properties.
   Proof.
     intros ϕ X.
     apply (quotient_iso _)^-1.
-    simple refine ({|_ & ϕ|}).
+    simple refine ({|_ | ϕ|}).
     apply (quotient_iso (f A) X).
   Defined.
 
   Definition well_defined_filter (A : Type) (ϕ : A -> Bool) (X : T A) :
-    {|class_of _ X & ϕ|} = class_of _ {|X & ϕ|}.
+    {|class_of _ X | ϕ|} = class_of _ {|X | ϕ|}.
   Proof.
     rewrite <- (eissect (quotient_iso _)).
     simpl.
@@ -224,30 +224,35 @@ Section quotient_properties.
       apply (ap _ HXY).
   Defined.
 
-  Instance View_max A : maximum (View A).
+  Instance join_view A : Join (View A).
   Proof.
     apply view_union.
   Defined.
 
-  Hint Unfold Commutative Associative Idempotent NeutralL NeutralR View_max view_union.
+  Local Hint Unfold Commutative Associative HeteroAssociative Idempotent BinaryIdempotent LeftIdentity RightIdentity join_view view_union sg_op join_is_sg_op meet_is_sg_op.
 
-  Instance bottom_view A : bottom (View A).
+  Instance bottom_view A : Bottom (View A).
   Proof.
     apply View_empty.
   Defined.
 
-  Ltac sq1 := autounfold ; intros ; try f_ap
-                         ; rewrite ?(eisretr (quotient_iso _))
-                         ; eauto with lattice_hints typeclass_instances.
+  Ltac sq1 := autounfold; intros;
+              unfold view_union; try f_ap;
+              rewrite ?(eisretr (quotient_iso _)).
+    
+  Ltac sq2 := autounfold; intros;
+              unfold view_union;
+              rewrite <- (eissect (quotient_iso _)), ?(eisretr (quotient_iso _));
+              f_ap; simpl.
 
-  Ltac sq2 := autounfold ; intros
-              ; rewrite <- (eissect (quotient_iso _)), ?(eisretr (quotient_iso _))
-              ; f_ap ; simpl
-              ; reduce T ; eauto with lattice_hints typeclass_instances.
-
-  Global Instance view_lattice A : JoinSemiLattice (View A).
+  Global Instance view_lattice A : BoundedJoinSemiLattice (View A).
   Proof.
-    split ; try sq1 ; try sq2.
+    repeat split; try apply _.
+    - sq1. apply associativity.
+    - sq2. apply left_identity.
+    - sq2. apply right_identity.
+    - sq1. apply commutativity.
+    - sq2. apply binary_idempotent.
   Defined.
 
 End quotient_properties.
@@ -316,7 +321,8 @@ Section properties.
     
   Ltac via_quotient := intros ; apply reflect_f_eq ; simpl
                        ; rewrite <- ?(well_defined_union T _), <- ?(well_defined_empty T _)
-                       ; eauto with lattice_hints typeclass_instances.  
+                       ; try (apply commutativity || apply associativity || apply binary_idempotent || apply left_identity || apply right_identity).
+                       (* TODO ; eauto with lattice_hints typeclass_instances. *)
 
   Lemma union_comm : forall A (X Y : T A),
       set_eq f (X ∪ Y) (Y ∪ X).
@@ -328,6 +334,7 @@ Section properties.
     set_eq f ((X ∪ Y) ∪ Z) (X ∪ (Y ∪ Z)).
   Proof.
     via_quotient.
+    symmetry. apply associativity.
   Defined.
 
   Lemma union_idem : forall A (X : T A),

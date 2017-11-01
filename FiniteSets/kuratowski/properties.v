@@ -6,7 +6,7 @@ Require Import lattice_interface lattice_examples monad_interface.
 Section monad_fset.
   Context `{Funext}.
 
-  Global Instance fset_functorish : Functorish FSet.
+  Global Instance functorish_fset : Functorish FSet.
   Proof.
     simple refine (Build_Functorish _ _ _).
     - intros ? ? f.
@@ -19,7 +19,7 @@ Section monad_fset.
       ; try (intros ; apply path_ishprop).
   Defined.
 
-  Global Instance fset_functor : Functor FSet.
+  Global Instance functor_fset : Functor FSet.
   Proof.
     split.
     intros.
@@ -30,24 +30,18 @@ Section monad_fset.
     ; try (intros ; apply path_ishprop).
   Defined.
 
-  Global Instance fset_monad : Monad FSet.
+  Global Instance monad_fset : Monad FSet.
   Proof.
     split.
-    - intros.
-      apply path_forall.
-      intro X.
-      hrecursion X ; try (intros; f_ap) ;
-        try (intros; apply path_ishprop).
-    - intros.
-      apply path_forall.
-      intro X.
-      hrecursion X ; try (intros; f_ap) ;
-        try (intros; apply path_ishprop).
-    - intros.
-      apply path_forall.
-      intro X.
-      hrecursion X ; try (intros; f_ap) ;
-        try (intros; apply path_ishprop).
+    - intros. reflexivity.
+    - intros A X.
+      hrecursion X;
+        try (intros; compute[bind ret bind_fset return_fset]; simpl; f_ap);
+        try (intros; apply path_ishprop); try reflexivity.
+    - intros A B C X f g.
+      hrecursion X;
+        try (intros; compute[bind ret bind_fset return_fset]; simpl; f_ap);
+        try (intros; apply path_ishprop); try reflexivity.
   Defined.
 
   Lemma fmap_isIn `{Univalence} {A B : Type} (f : A -> B) (a : A) (X : FSet A) :
@@ -64,7 +58,7 @@ Section monad_fset.
       + right. by apply HX1.
   Defined.
 
-  Instance fmap_Surjection `{Univalence} {A B : Type} (f : A -> B)
+  Instance surjection_fmap `{Univalence} {A B : Type} (f : A -> B)
     {Hsurj : IsSurjection f} : IsSurjection (fmap FSet f).
   Proof.
     apply BuildIsSurjection.
@@ -87,8 +81,8 @@ Section monad_fset.
       f_ap.
   Defined.
 
-  Lemma bind_isIn `{Univalence} {A : Type} (X : FSet (FSet A)) (a : A) :
-    (exists x, x ∈ X * a ∈ x) -> a ∈ (bind _ X).
+  Lemma mjoin_isIn `{Univalence} {A : Type} (X : FSet (FSet A)) (a : A) :
+    (exists x, prod (x ∈ X) (a ∈ x)) -> a ∈ (mjoin X).
   Proof.
     hinduction X;
       try (intros; apply path_forall; intro; apply path_ishprop).
@@ -253,13 +247,13 @@ Section properties_membership.
     : a ∈ X ∪ Y = a ∈ X ∨ a ∈ Y := idpath.
 
   Lemma comprehension_union (ϕ : A -> Bool) : forall X Y : FSet A,
-      {|X ∪ Y & ϕ|} = {|X & ϕ|} ∪ {|Y & ϕ|}.
+      {| (X ∪ Y) | ϕ|} = {|X | ϕ|} ∪ {|Y | ϕ|}.
   Proof.
     reflexivity.
   Defined.
 
   Lemma comprehension_isIn (ϕ : A -> Bool) (a : A) : forall X : FSet A,
-      a ∈ {|X & ϕ|} = if ϕ a then a ∈ X else False_hp.
+      a ∈ {|X | ϕ|} = if ϕ a then a ∈ X else False_hp.
   Proof.
     hinduction ; try (intros ; apply set_path2).
     - destruct (ϕ a) ; reflexivity.
@@ -386,8 +380,8 @@ Section properties_membership.
         ** apply p.
         ** apply path_ishprop.
     - intros X1 X2 HX1 HX2 f b.
-      pose (fX1 := fun Z : {a : A & a ∈ X1} => f (pr1 Z;tr (inl (pr2 Z)))).
-      pose (fX2 := fun Z : {a : A & a ∈ X2} => f (pr1 Z;tr (inr (pr2 Z)))).
+      pose (fX1 := fun Z : {a : A | a ∈ X1} => f (pr1 Z;tr (inl (pr2 Z)))).
+      pose (fX2 := fun Z : {a : A | a ∈ X2} => f (pr1 Z;tr (inr (pr2 Z)))).
       specialize (HX1 fX1 b).
       specialize (HX2 fX2 b).
       apply path_iff_hprop.
@@ -461,8 +455,8 @@ Section properties_membership.
         apply tr.
         unfold IsEmbedding, hfiber in *.
         specialize (f_inj (f a)).
-        pose ((a;idpath (f a)) : {x : A & f x = f a}) as p1.
-        pose ((b;Hfa^) : {x : A & f x = f a}) as p2.
+        pose ((a;idpath (f a)) : {x : A | f x = f a}) as p1.
+        pose ((b;Hfa^) : {x : A | f x = f a}) as p2.
         assert (p1 = p2) as Hp1p2.
         { apply f_inj. }
         apply (ap (fun x => x.1) Hp1p2).
@@ -485,32 +479,19 @@ Ltac toHProp :=
 Section fset_join_semilattice.
   Context {A : Type}.
 
-  Instance: bottom(FSet A).
-  Proof.
-    unfold bottom.
-    apply ∅.
-  Defined.
+  Global Instance bottom_fset : Bottom (FSet A) := ∅.
 
-  Instance: maximum(FSet A).
-  Proof.
-    intros x y.
-    apply (x ∪ y).
-  Defined.
+  Global Instance join_fset : Join (FSet A) := fun x y => x ∪ y.
 
-  Global Instance joinsemilattice_fset : JoinSemiLattice (FSet A).
+  Global Instance boundedjoinsemilattice_fset : BoundedJoinSemiLattice (FSet A).
   Proof.
-    split.
-    - intros ? ?.
-      apply comm.
-    - intros ? ? ?.
-      apply (assoc _ _ _)^.
-    - intros ?.
-      apply union_idem.
-    - intros x.
-      apply nl.
-    - intros ?.
-      apply nr.
-  Defined.
+    repeat split; try apply _; cbv.
+    - apply assoc.
+    - apply nl.
+    - apply nr.
+    - apply comm.
+    - apply union_idem.
+  Defined.  
 End fset_join_semilattice.
 
 (* Lemmas relating operations to the membership predicate *)
@@ -569,10 +550,10 @@ Section properties_membership_decidable.
   Defined.
 
   Lemma comprehension_isIn_d (Y : FSet A) (ϕ : A -> Bool) (a : A) :
-    a ∈_d {|Y & ϕ|} = andb (a ∈_d Y) (ϕ a).
+    a ∈_d {|Y | ϕ|} = andb (a ∈_d Y) (ϕ a).
   Proof.
     unfold member_dec, fset_member_bool, dec ; simpl.
-    destruct (isIn_decidable a {|Y & ϕ|}) as [t | t]
+    destruct (isIn_decidable a {|Y | ϕ|}) as [t | t]
     ; destruct (isIn_decidable a Y) as [n | n] ; rewrite comprehension_isIn in t
     ; destruct (ϕ a) ; try reflexivity ; try contradiction
     ; try (contradiction (n t)) ; contradiction (t n).
@@ -692,27 +673,14 @@ Section set_lattice.
   Context `{MerelyDecidablePaths A}.
   Context `{Univalence}.
 
-  Instance fset_max : maximum (FSet A).
-  Proof.
-    intros x y.
-    apply (x ∪ y).
-  Defined.
+  Global Instance meet_fset : Meet (FSet A) := intersection.
 
-  Instance fset_min : minimum (FSet A).
+  Global Instance lattice_fset : Lattice (FSet A).
   Proof.
-    intros x y.
-    apply (x ∩ y).
-  Defined.
-
-  Instance fset_bot : bottom (FSet A).
-  Proof.
-    unfold bottom.
-    apply ∅.
-  Defined.
-
-  Instance lattice_fset : Lattice (FSet A).
-  Proof.
-    split ; toBool.
+    repeat split; try apply _;
+      compute[sg_op meet_is_sg_op meet_fset];
+      toBool.
+    apply associativity.
   Defined.
 End set_lattice.
 
@@ -720,7 +688,7 @@ End set_lattice.
 Section dec_eq.
   Context {A : Type} `{DecidablePaths A} `{Univalence}.
 
-  Instance fsets_dec_eq : DecidablePaths (FSet A).
+  Global Instance dec_eq_fset : DecidablePaths (FSet A).
   Proof.
     intros X Y.
     apply (decidable_equiv' ((Y ⊆ X) * (X ⊆ Y)) (eq_subset X Y)^-1).
@@ -732,29 +700,32 @@ End dec_eq.
 Section comprehension_properties.
   Context {A : Type} `{Univalence}.
 
-  Lemma comprehension_false : forall (X : FSet A), {|X & fun _ => false|} = ∅.
+  Lemma comprehension_false : forall (X : FSet A), {|X | fun _ => false|} = ∅.
   Proof.
     toHProp.
   Defined.
 
   Lemma comprehension_subset : forall ϕ (X : FSet A),
-      {|X & ϕ|} ∪ X = X.
+      {|X | ϕ|} ∪ X = X.
   Proof.
     toHProp.
     destruct (ϕ a) ; eauto with lattice_hints typeclass_instances.
+    - apply binary_idempotent.
+    - apply left_identity.
   Defined.
 
   Lemma comprehension_or : forall ϕ ψ (X : FSet A),
-      {|X & (fun a => orb (ϕ a) (ψ a))|}
-      = {|X & ϕ|} ∪ {|X & ψ|}.
+      {|X | (fun a => orb (ϕ a) (ψ a))|}
+      = {|X | ϕ|} ∪ {|X | ψ|}.
   Proof.
     toHProp.
     symmetry ; destruct (ϕ a) ; destruct (ψ a)
-    ; eauto with lattice_hints typeclass_instances.
+    (* ; eauto with lattice_hints typeclass_instances; *)
+    ; simpl; (apply binary_idempotent || apply left_identity || apply right_identity).
   Defined.
 
   Lemma comprehension_all : forall (X : FSet A),
-      {|X & fun _ => true|} = X.
+      {|X | fun _ => true|} = X.
   Proof.
     toHProp.
   Defined.

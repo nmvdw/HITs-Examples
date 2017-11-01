@@ -62,7 +62,7 @@ Section ListToSet.
   Definition empty_empty : list_to_set A ∅ = ∅ := idpath.
 
   Lemma filter_comprehension (ϕ : A -> Bool) (l : list A)  :
-    list_to_set A (filter ϕ l) =  {| list_to_set A l & ϕ |}.
+    list_to_set A (filter ϕ l) =  {| list_to_set A l | ϕ |}.
   Proof.
     induction l ; cbn in *.
     - reflexivity.
@@ -170,11 +170,11 @@ Section refinement_examples.
   Defined.
 
   Lemma exist_elim (X : list A) (ϕ : A -> hProp)
-    : list_exist ϕ X -> hexists (fun a => a ∈ X * ϕ a).
+    : list_exist ϕ X -> hexists (fun a => a ∈ X * ϕ a)%type.
   Proof.
     rewrite list_exist_set.
     assert (hexists (fun a : A => a ∈ (list_to_set A X) * ϕ a)
-            -> hexists (fun a : A => a ∈ X * ϕ a))
+            -> hexists (fun a : A => a ∈ X * ϕ a))%type
       as H2.
     {
       intros H1.

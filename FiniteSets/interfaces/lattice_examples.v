@@ -1,5 +1,5 @@
 (** Some examples of lattices. *)
-Require Import HoTT lattice_interface.
+Require Export HoTT lattice_interface.
 
 (** [Bool] is a lattice. *)
 Section BoolLattice.
@@ -10,14 +10,18 @@ Section BoolLattice.
     ; auto
     ; try contradiction.
 
-  Instance maximum_bool : maximum Bool := orb.
-  Instance minimum_bool : minimum Bool := andb.
-  Instance bottom_bool : bottom Bool := false.
+  Instance maximum_bool : Join Bool := orb.
+  Instance minimum_bool : Meet Bool := andb.
+  Instance bottom_bool : Bottom Bool := false.
 
+  Global Instance boundedjoinsemilattice_bool : BoundedJoinSemiLattice Bool.
+  Proof. repeat (split ; (apply _ || solve_bool)). Defined.
+  Global Instance meetsemilattice_bool : MeetSemiLattice Bool.
+  Proof. repeat (split ; (apply _ || solve_bool)). Defined.
+  Global Instance boundedmeetsemilattice_bool : @BoundedSemiLattice Bool (⊓) true.
+  Proof. repeat (split ; (apply _ || solve_bool)). Defined.
   Global Instance lattice_bool : Lattice Bool.
-  Proof.
-    split ; solve_bool.
-  Defined.
+  Proof. split ; (apply _ || solve_bool). Defined.
 
   Definition and_true : forall b, andb b true = b.
   Proof.
@@ -50,12 +54,12 @@ End BoolLattice.
 
 Create HintDb bool_lattice_hints.
 Hint Resolve associativity : bool_lattice_hints.
-Hint Resolve (associativity _ _ _)^ : bool_lattice_hints.
+(* Hint Resolve (associativity _ _ _)^ : bool_lattice_hints. *)
 Hint Resolve commutativity : bool_lattice_hints.
-Hint Resolve absorb : bool_lattice_hints.
+Hint Resolve absorption : bool_lattice_hints.
 Hint Resolve idempotency : bool_lattice_hints.
-Hint Resolve neutralityL : bool_lattice_hints.
-Hint Resolve neutralityR : bool_lattice_hints.
+Hint Resolve left_identity : bool_lattice_hints.
+Hint Resolve right_identity : bool_lattice_hints.
 
 Hint Resolve
      associativity
@@ -66,25 +70,51 @@ Hint Resolve
 (** If [B] is a lattice, then [A -> B] is a lattice. *)
 Section fun_lattice.
   Context {A B : Type}.
-  Context `{Lattice B}.
+  Context `{BJoin : Join B}.
+  Context `{BMeet : Meet B}.
+  Context `{@Lattice B BJoin BMeet}.
   Context `{Funext}.
+  Context `{BBottom : Bottom B}.
 
-  Global Instance max_fun : maximum (A -> B) :=
-    fun (f g : A -> B) (a : A) => max_L0 (f a) (g a).
+  Global Instance bot_fun : Bottom (A -> B)
+    := fun _ => ⊥.
 
-  Global Instance min_fun : minimum (A -> B) :=
-    fun (f g : A -> B) (a : A) => min_L0 (f a) (g a).
+  Global Instance join_fun : Join (A -> B) :=
+    fun (f g : A -> B) (a : A) => (f a) ⊔ (g a).
 
-  Global Instance bot_fun : bottom (A -> B)
-    := fun _ => empty_L.
+  Global Instance meet_fun : Meet (A -> B) :=
+    fun (f g : A -> B) (a : A) => (f a) ⊓ (g a).
 
   Ltac solve_fun :=
     compute ; intros ; apply path_forall ; intro ;
     eauto with lattice_hints typeclass_instances.
 
+  Create HintDb test1.
+  Lemma associativity_lat `{Lattice A} (x y z : A) :
+    x ⊓ (y ⊓ z) = x ⊓ y ⊓ z.
+  Proof. apply associativity. Defined.
+  Hint Resolve associativity : test1.
+  Hint Resolve associativity_lat : test1.
+
   Global Instance lattice_fun : Lattice (A -> B).
   Proof.
-    split ; solve_fun.
+    repeat (split; try (apply _)).
+    eauto with test1.
+    (* TODO *)
+    all: solve_fun.
+    apply associativity.
+    apply commutativity.
+    apply idempotency. apply _.
+    apply associativity.
+    apply commutativity.
+    apply idempotency. apply _.    
+  Defined.
+
+  Global Instance boundedjoinsemilattice_fun
+   `{@BoundedJoinSemiLattice B BJoin BBottom} :
+    BoundedJoinSemiLattice (A -> B).
+  Proof.
+    repeat split; try apply _; try solve_fun.
   Defined.
 End fun_lattice.
 
@@ -92,24 +122,26 @@ End fun_lattice.
 Section sub_lattice.
   Context {A : Type} {P : A -> hProp}.
   Context `{Lattice A}.
-  Context {Hmax : forall x y, P x -> P y -> P (max_L0 x y)}.
-  Context {Hmin : forall x y, P x -> P y -> P (min_L0 x y)}.
-  Context {Hbot : P empty_L}.
+  Context `{Bottom A}.
+  Context {Hmax : forall x y, P x -> P y -> P (x ⊔ y)}.
+  Context {Hmin : forall x y, P x -> P y -> P (x ⊓ y)}.
+  Context {Hbot : P ⊥}.
 
   Definition AP : Type := sig P.
 
-  Instance botAP : bottom AP := (empty_L ; Hbot).
+  Instance botAP : Bottom AP.
+  Proof. refine (⊥ ↾ _). apply Hbot. Defined.
 
-  Instance maxAP : maximum AP :=
+  Instance maxAP : Join AP :=
     fun x y =>
       match x, y with
-      | (a ; pa), (b ; pb) => (max_L0 a b ; Hmax a b pa pb)
+      | (a ; pa), (b ; pb) => (a ⊔ b ; Hmax a b pa pb)
       end.
 
-  Instance minAP : minimum AP :=
+  Instance minAP : Meet AP :=
     fun x y =>
       match x, y with
-      | (a ; pa), (b ; pb) => (min_L0 a b ; Hmin a b pa pb)
+      | (a ; pa), (b ; pb) => (a ⊓ b ; Hmin a b pa pb)
       end.
 
   Instance hprop_sub : forall c, IsHProp (P c).
@@ -127,19 +159,25 @@ Section sub_lattice.
 
   Global Instance lattice_sub : Lattice AP.
   Proof.
-    split ; solve_sub.
+    repeat (split ; try (apply _ || solve_sub)).
+    apply associativity.
+    apply commutativity.
+    apply idempotency. apply _.
+    apply associativity.
+    apply commutativity.
+    apply idempotency. apply _.
   Defined.
 End sub_lattice.
 
-Instance lor : maximum hProp := fun X Y => BuildhProp (Trunc (-1) (sum X Y)).
+Instance lor : Join hProp := fun X Y => BuildhProp (Trunc (-1) (sum X Y)).
 
 Delimit Scope logic_scope with L.
 Notation "A ∨ B" := (lor A B) (at level 20, right associativity) : logic_scope.
 Arguments lor _%L _%L.
 Open Scope logic_scope.
 
-Instance land : minimum hProp := fun X Y => BuildhProp (prod X Y).
-Instance lfalse : bottom hProp := False_hp.
+Instance land : Meet hProp := fun X Y => BuildhProp (prod X Y).
+Instance lfalse : Bottom hProp := False_hp.
 
 Notation "A ∧ B" := (land A B) (at level 20, right associativity) : logic_scope.
 Arguments land _%L _%L.
@@ -181,17 +219,18 @@ Section hPropLattice.
     intros X Y Z.
     symmetry.
     apply path_hprop.
+    symmetry.
     apply equiv_prod_assoc.
   Defined.
 
-  Instance lor_idempotent : Idempotent lor.
+  Instance lor_idempotent : BinaryIdempotent lor.
   Proof.
     intros X.
     apply path_iff_hprop ; lor_intros
     ; try(refine (tr(inl _))) ; auto.
   Defined.
 
-  Instance land_idempotent : Idempotent land.
+  Instance land_idempotent : BinaryIdempotent land.
   Proof.
     intros X.
     apply path_iff_hprop ; cbn.
@@ -199,14 +238,14 @@ Section hPropLattice.
     - intros a ; apply (pair a a).
   Defined.
 
-  Instance lor_neutrall : NeutralL lor lfalse.
+  Instance lor_neutrall : LeftIdentity lor lfalse.
   Proof.
     intros X.
     apply path_iff_hprop ; lor_intros ; try contradiction
     ; try (refine (tr(inr _))) ; auto.
   Defined.
 
-  Instance lor_neutralr : NeutralR lor lfalse.
+  Instance lor_neutralr : RightIdentity lor lfalse.
   Proof.
     intros X.
     apply path_iff_hprop ; lor_intros ; try contradiction
@@ -235,16 +274,17 @@ Section hPropLattice.
       * apply (tr (inl X)).
   Defined.
 
-  Global Instance lattice_hprop : Lattice hProp :=
-    { commutative_min := _ ;
-      commutative_max := _ ;
-      associative_min := _ ;
-      associative_max := _ ;
-      idempotent_min := _ ;
-      idempotent_max := _ ;
-      neutralL_max := _ ;
-      neutralR_max := _ ;
-      absorption_min_max := _ ;
-      absorption_max_min := _
-  }.
+  Global Instance lattice_hprop : Lattice hProp.
+  Proof. repeat (split ; try apply _). Defined.
+
+  Global Instance bounded_jsl_hprop : BoundedJoinSemiLattice hProp.
+  Proof. repeat (split ; try apply _). Qed.
+
+  Global Instance top_hprop : Top hProp := Unit_hp.
+  Global Instance bounded_msl_hprop : @BoundedSemiLattice hProp (⊓) ⊤.
+  Proof.
+    repeat (split; try apply _); cbv.
+    - intros X. apply path_trunctype ; apply prod_unit_l.
+    - intros X. apply path_trunctype ; apply prod_unit_r.
+  Defined.
 End hPropLattice.

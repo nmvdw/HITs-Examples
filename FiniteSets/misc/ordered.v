@@ -1,84 +1,54 @@
 (** If [A] has a total order, then we can pick the minimum of finite sets. *)
 Require Import HoTT HitTactics.
+Require Import HoTT.Classes.interfaces.orders.
 Require Import kuratowski.kuratowski_sets kuratowski.operations kuratowski.properties.
-
-Definition relation A := A -> A -> Type.
-
-Section TotalOrder.
-  Class IsTop (A : Type) (R : relation A) (a : A) :=
-    top_max : forall x, R x a.
-  
-  Class LessThan (A : Type) :=
-    leq : relation A.
-  
-  Class Antisymmetric {A} (R : relation A) :=
-    antisymmetry : forall x y, R x y -> R y x -> x = y.
-  
-  Class Total {A} (R : relation A) :=
-    total : forall x y,  x = y \/ R x y \/ R y x. 
-  
-  Class TotalOrder (A : Type) {R : LessThan A} :=
-    { TotalOrder_Reflexive :> Reflexive R | 2 ;
-      TotalOrder_Antisymmetric :> Antisymmetric R | 2; 
-      TotalOrder_Transitive :> Transitive R | 2;
-      TotalOrder_Total :> Total R | 2; }.
-End TotalOrder.
 
 Section minimum.
   Context {A : Type}.
-  Context `{TotalOrder A}.
+  Context (Ale : Le A).
+  Context `{@TotalOrder A Ale}.
+
+  Class IsTop `{Top A} := is_top : forall (x : A), x ≤ ⊤.
 
   Definition min (x y : A) : A.
   Proof.
-    destruct (@total _ R _ x y).
+    destruct (total _ x y).
     - apply x.
-    - destruct s as [s | s].
-      * apply x.
-      * apply y.
+    - apply y.
   Defined.
 
-  Lemma min_spec1 x y : R (min x y) x.
+  Lemma min_spec1 x y : (min x y) ≤ x.
   Proof.
     unfold min.
-    destruct (total x y) ; simpl.
+    destruct (total _ x y) ; simpl.
     - reflexivity.
-    - destruct s as [ | t].
-      * reflexivity.
-      * apply t.
+    - assumption.
   Defined.
 
-  Lemma min_spec2 x y z : R z x -> R z y -> R z (min x y).
+  Lemma min_spec2 x y z : z ≤ x -> z ≤ y -> z ≤ (min x y).
   Proof.
     intros.
     unfold min.
-    destruct (total x y) as [ | s].
-    * assumption.
-    * try (destruct s) ; assumption.
+    destruct (total _ x y); simpl; assumption.
   Defined.
   
   Lemma min_comm x y : min x y = min y x.
   Proof.
     unfold min.
-    destruct (total x y) ; destruct (total y x) ; simpl.
-    - assumption.
-    - destruct s as [s | s] ; auto.
-    - destruct s as [s | s] ; symmetry ; auto.
-    - destruct s as [s | s] ; destruct s0 as [s0 | s0] ; try reflexivity.
-      * apply (@antisymmetry _ R _ _) ; assumption.
-      * apply (@antisymmetry _ R _ _) ; assumption.
+    destruct (total _ x y) ; destruct (total _ y x) ; simpl; try reflexivity.
+    + apply antisymmetry with (≤); [apply _|assumption..].
+    + apply antisymmetry with (≤); [apply _|assumption..].
   Defined.
 
   Lemma min_idem x : min x x = x.
   Proof.
     unfold min.
-    destruct (total x x) ; simpl.
-    - reflexivity.
-    - destruct s ; reflexivity.
+    destruct (total _ x x) ; simpl; reflexivity.
   Defined.
 
   Lemma min_assoc x y z : min (min x y) z = min x (min y z).
   Proof.
-    apply (@antisymmetry _ R _ _).
+    apply antisymmetry with (≤). apply _.
     - apply min_spec2.
       * etransitivity ; apply min_spec1.
       * apply min_spec2.
@@ -96,43 +66,36 @@ Section minimum.
         ; rewrite min_comm ; apply min_spec1.
   Defined.
   
-  Variable (top : A).
-  Context `{IsTop A R top}.
-
-  Lemma min_nr x : min x top = x.
+  Lemma min_nr `{IsTop} x : min x ⊤ = x.
   Proof.
     intros.
     unfold min.
-    destruct (total x top).
+    destruct (total _ x ⊤).
     - reflexivity.
-    - destruct s.
-      * reflexivity.
-      * apply (@antisymmetry _ R _ _).
-        ** assumption.
-        ** refine (top_max _). apply _.
+    - apply antisymmetry with (≤). apply _.
+      + assumption.
+      + apply is_top.
   Defined.
 
-  Lemma min_nl x : min top x = x.
+  Lemma min_nl `{IsTop} x : min ⊤ x = x.
   Proof.
     rewrite min_comm.
     apply min_nr.
   Defined.
 
-  Lemma min_top_l x y : min x y = top -> x = top.
+  Lemma min_top_l `{IsTop} x y : min x y = ⊤ -> x = ⊤.
   Proof.
     unfold min.
-    destruct (total x y).
+    destruct (total _ x y) as [?|s].
     - apply idmap.
-    - destruct s as [s | s].
-      * apply idmap.
-      * intros X.
-        rewrite X in s.
-        apply (@antisymmetry _ R _ _).
-        ** apply top_max.
-        ** assumption.
+    - intros X.
+      rewrite X in s.
+      apply antisymmetry with (≤). apply _.
+      * apply is_top.
+      * assumption.
   Defined.
   
-  Lemma min_top_r x y : min x y = top -> y = top.
+  Lemma min_top_r `{IsTop} x y : min x y = ⊤ -> y = ⊤.
   Proof.
     rewrite min_comm.
     apply min_top_l.
@@ -144,72 +107,60 @@ Section add_top.
   Variable (A : Type).
   Context `{TotalOrder A}.
 
-  Definition Top := A + Unit.
-  Definition top : Top := inr tt.
+  Definition Topped := (A + Unit)%type.
+  Global Instance top_topped : Top Topped := inr tt.
 
-  Global Instance RTop : LessThan Top.
+  Global Instance RTop : Le Topped.
   Proof.
-    unfold relation.
-    induction 1 as [a1 | ] ; induction 1 as [a2 | ].
-    - apply (R a1 a2).
+    intros [a1 | ?] [a2 | ?].
+    - apply (a1 ≤ a2).
     - apply Unit_hp.
     - apply False_hp.
     - apply Unit_hp.
   Defined.
 
-  Global Instance rtop_hprop :
-    is_mere_relation A R -> is_mere_relation Top RTop.
+  Instance rtop_hprop :
+    is_mere_relation A R -> is_mere_relation Topped RTop.
   Proof.
-    intros P a b.
-    destruct a ; destruct b ; apply _.
+    intros ? P a b.
+    destruct a ; destruct b ; simpl; apply _.
   Defined.
   
-  Global Instance RTopOrder : TotalOrder Top.
+  Global Instance RTopOrder : TotalOrder RTop.
   Proof.
-    split.
-    - intros x ; induction x ; unfold RTop ; simpl.
+    repeat split; try apply _.
+    - intros [?|?] ; cbv.
       * reflexivity.
       * apply tt.
-    - intros x y ; induction x as [a1 | ] ; induction y as [a2 | ] ; unfold RTop ; simpl
-      ; try contradiction.
-      * intros ; f_ap.
-        apply (@antisymmetry _ R _ _) ; assumption.
-      * intros ; induction b ; induction b0.
-        reflexivity.
-    - intros x y z ; induction x as [a1 | b1] ; induction y as [a2 | b2]
-      ; induction z as [a3 | b3] ; unfold RTop ; simpl
-      ; try contradiction ; intros ; try (apply tt).
-      transitivity a2 ; assumption.
-    - intros x y.
-      unfold RTop ; simpl.
-      induction x as [a1 | b1] ; induction y as [a2 | b2] ; try (apply (inl idpath)).
-      * destruct (TotalOrder_Total a1 a2).
-        ** left ; f_ap ; assumption.
-        ** right ; assumption.
-      * apply (inr(inl tt)).
-      * apply (inr(inr tt)).
-      * left ; induction b1 ; induction b2 ; reflexivity.
+    - intros [a1 | []] [a2 | []] [a3 | []]; cbv
+      ; try contradiction; try (by intros; apply tt).
+      apply transitivity.
+    - intros [a1 |[]] [a2 |[]]; cbv; try contradiction.
+      + intros. f_ap. apply antisymmetry with Ale; [apply _|assumption..].
+      + intros; reflexivity.
+    - intros [a1|[]] [a2|[]]; cbv.
+      * apply total. apply _.
+      * apply (inl tt).
+      * apply (inr tt).
+      * apply (inr tt).
   Defined.
 
-  Global Instance top_a_top : IsTop Top RTop top.
-  Proof.
-    intro x ; destruct x ; apply tt.
-  Defined.
-End add_top.  
+  Global Instance is_top_topped : IsTop RTop.
+  Proof. intros [?|?]; cbv; apply tt. Defined.
+End add_top.
 
 (** If [A] has a total order, then a nonempty finite set has a minimum element. *)
 Section min_set.
   Variable (A : Type).
   Context `{TotalOrder A}.
-  Context `{is_mere_relation A R}.
   Context `{Univalence} `{IsHSet A}.
 
-  Definition min_set : FSet A -> Top A.
+  Definition min_set : FSet A -> Topped A.
   Proof.
     hrecursion.
-    - apply (top A).
+    - apply ⊤.
     - apply inl.
-    - apply min.
+    - apply min with (RTop A). apply _.
     - intros ; symmetry ; apply min_assoc.
     - apply min_comm.
     - apply min_nl. apply _.
@@ -217,7 +168,7 @@ Section min_set.
     - intros ; apply min_idem.
   Defined.
 
-  Definition empty_min : forall (X : FSet A), min_set X = top A -> X = ∅.
+  Definition empty_min : forall (X : FSet A), min_set X = ⊤ -> X = ∅.
   Proof.
     simple refine (FSet_ind _ _ _ _ _ _ _ _ _ _ _)
     ; try (intros ; apply path_forall ; intro q ; apply set_path2)
@@ -230,21 +181,19 @@ Section min_set.
       refine (not_is_inl_and_inr' (inl a) _ _).
       * apply tt.
       * rewrite X ; apply tt.
-    - intros.
-      assert (min_set x = top A).
-      {
-        simple refine (min_top_l _ _ (min_set y) _) ; assumption.
-      }
+    - intros x y ? ? ?.
+      assert (min_set x = ⊤).
+      { simple refine (min_top_l _ _ (min_set y) _) ; assumption. }
       rewrite (X X2).
       rewrite nl.
-      assert (min_set y = top A).
+      assert (min_set y = ⊤).
       { simple refine (min_top_r _ (min_set x) _ _) ; assumption. }
       rewrite (X0 X3).
       reflexivity.
   Defined.
   
   Definition min_set_spec (a : A) : forall (X : FSet A),
-      a ∈ X -> RTop A (min_set X) (inl a).
+      a ∈ X -> min_set X ≤ inl a.
   Proof.
     simple refine (FSet_ind _ _ _ _ _ _ _ _ _ _ _)
     ; try (intros ; apply path_ishprop)
@@ -259,13 +208,13 @@ Section min_set.
       unfold member in X, X0.
       destruct X1.
       * specialize (X t).
-        assert (RTop A (min (min_set x) (min_set y)) (min_set x)) as X1.
+        assert (RTop A (min _ (min_set x) (min_set y)) (min_set x)) as X1.
         { apply min_spec1. }
         etransitivity.
         { apply X1. }
         assumption.
       * specialize (X0 t).
-        assert (RTop A (min (min_set x) (min_set y)) (min_set y)) as X1.
+        assert (RTop A (min _ (min_set x) (min_set y)) (min_set y)) as X1.
         { rewrite min_comm ; apply min_spec1. }
         etransitivity.
         { apply X1. }

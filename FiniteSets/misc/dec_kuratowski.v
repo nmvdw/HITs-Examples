@@ -66,12 +66,12 @@ Section length.
   Context {A : Type} `{Univalence}.
 
   Variable (length : FSet A -> nat)
-           (length_singleton : forall (a : A), length {|a|} = 1)
-           (length_one : forall (X : FSet A), length X = 1 -> hexists (fun a => X = {|a|})).
+           (length_singleton : forall (a : A), length {|a|} = 1%nat)
+           (length_one : forall (X : FSet A), length X = 1%nat -> hexists (fun a => X = {|a|})).
 
   Theorem dec_length (a b : A) : Decidable(merely(a = b)).
   Proof.
-    destruct (dec (length ({|a|} ∪ {|b|}) = 1)).
+    destruct (dec (length ({|a|} ∪ {|b|}) = 1%nat)).
     - refine (inl _).
       pose (length_one _ p) as Hp.
       simple refine (Trunc_rec _ Hp).

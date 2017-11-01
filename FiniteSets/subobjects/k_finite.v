@@ -33,7 +33,7 @@ Section k_finite.
 
   Definition Kf : hProp := Kf_sub (fun x => True).
 
-  Instance: IsHProp {X : FSet A & forall a : A, map X a}.
+  Instance: IsHProp {X : FSet A | forall a : A, map X a}.
   Proof.
     apply hprop_allpath.
     intros [X PX] [Y PY].
@@ -77,19 +77,16 @@ Section structure_k_finite.
   Context (A : Type).
   Context `{Univalence}.
 
-  Lemma map_union : forall X Y : FSet A, map (X ∪ Y) = max_fun (map X) (map Y).
+  Lemma map_union : forall X Y : FSet A, map (X ∪ Y) = (map X) ⊔ (map Y).
   Proof.
-    intros.
-    unfold map, max_fun.
-    reflexivity.
+    intros.     
+    reflexivity. 
   Defined.
 
   Lemma k_finite_union : closedUnion (Kf_sub A).
   Proof.
     unfold closedUnion, Kf_sub, Kf_sub_intern.
-    intros.
-    destruct X0 as [SX XP].
-    destruct X1 as [SY YP].
+    intros X Y [SX XP] [SY YP].
     exists (SX ∪ SY).
     rewrite map_union.
     rewrite XP, YP.
@@ -179,9 +176,9 @@ Section k_properties.
                      | inl a => ({|a|} : FSet A)
                      | inr b => ∅
                      end).
-    exists (bind _ (fset_fmap f X)).
+    exists (mjoin (fset_fmap f X)).
     intro a.
-    apply bind_isIn.
+    apply mjoin_isIn.
     specialize (HX (inl a)).
     exists {|a|}. split; [ | apply tr; reflexivity ].
     apply (fmap_isIn f (inl a) X).
@@ -259,33 +256,35 @@ Section alternative_definition.
   Local Ltac help_solve :=
     repeat (let x := fresh in intro x ; destruct x) ; intros
     ; try (simple refine (path_sigma _ _ _ _ _)) ; try (apply path_ishprop) ; simpl
-    ; unfold union, sub_union, max_fun
+    ; unfold union, sub_union, join, join_fun
     ; apply path_forall
     ; intro z
     ; eauto with lattice_hints typeclass_instances.
   
-  Definition fset_to_k : FSet A -> {P : A -> hProp & kf_sub P}.
+  Definition fset_to_k : FSet A -> {P : A -> hProp | kf_sub P}.
   Proof.
-    hinduction.
+    assert (IsHSet {P : A -> hProp | kf_sub P}) as Hs.
+    { apply trunc_sigma. }
+    simple refine (FSet_rec A {P : A -> hProp | kf_sub P} Hs _ _ _ _ _ _ _ _).
     - exists ∅.
-      auto.
+      simpl. auto.
     - intros a.
       exists {|a|}.
-      auto.
+      simpl. auto.
     - intros [P1 HP1] [P2 HP2].
       exists (P1 ∪ P2).
       intros ? ? ? HP.
       apply HP.
       * apply HP1 ; assumption.
       * apply HP2 ; assumption.
-    - help_solve.
-    - help_solve.
-    - help_solve.
-    - help_solve.
-    - help_solve.
+    - help_solve. (* TODO: eauto *) apply associativity.
+    - help_solve. apply commutativity.
+    - help_solve. apply left_identity.
+    - help_solve. apply right_identity.
+    - help_solve. apply binary_idempotent.
   Defined.
 
-  Definition k_to_fset : {P : A -> hProp & kf_sub P} -> FSet A.
+  Definition k_to_fset : {P : A -> hProp | kf_sub P} -> FSet A.
   Proof.
     intros [P HP].
     destruct (HP (Kf_sub _) (k_finite_empty _) (k_finite_singleton _) (k_finite_union _)).
@@ -299,7 +298,7 @@ Section alternative_definition.
     refine ((ap (fun z => _ ∪ z) HX2^)^ @ (ap (fun z => z ∪ X2) HX1^)^).
   Defined.
     
-  Lemma k_to_fset_to_k (X : {P : A -> hProp & kf_sub P}) : fset_to_k(k_to_fset X) = X.
+  Lemma k_to_fset_to_k (X : {P : A -> hProp | kf_sub P}) : fset_to_k(k_to_fset X) = X.
   Proof.
     simple refine (path_sigma _ _ _ _ _) ; try (apply path_ishprop).
     apply path_forall.

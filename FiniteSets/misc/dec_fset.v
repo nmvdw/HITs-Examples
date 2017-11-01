@@ -12,13 +12,17 @@ Section quantifiers.
     - apply P.
     - intros X Y.
       apply (BuildhProp (X * Y)).
-    - eauto with lattice_hints typeclass_instances. 
     - eauto with lattice_hints typeclass_instances.
+    (* TODO eauto hints *)
+      apply associativity.
+    - eauto with lattice_hints typeclass_instances.
+      apply commutativity.
     - intros.
       apply path_trunctype ; apply prod_unit_l.
     - intros.
       apply path_trunctype ; apply prod_unit_r.
     - eauto with lattice_hints typeclass_instances.
+      intros. apply binary_idempotent.
   Defined.
 
   Lemma all_intro X : forall (HX : forall x, x ∈ X -> P x), all X.
@@ -61,11 +65,17 @@ Section quantifiers.
     - apply False_hp.
     - apply P.
     - apply lor.
+    - eauto with lattice_hints typeclass_instances.
+    (* TODO eauto with .. *)
+      apply associativity.
+    - eauto with lattice_hints typeclass_instances.
+      apply commutativity.
+    - eauto with lattice_hints typeclass_instances.
+      apply left_identity.
     - eauto with lattice_hints typeclass_instances. 
+      apply right_identity.
     - eauto with lattice_hints typeclass_instances.
-    - eauto with lattice_hints typeclass_instances.
-    - eauto with lattice_hints typeclass_instances. 
-    - eauto with lattice_hints typeclass_instances.
+      intros. apply binary_idempotent.
   Defined.
 
   Lemma exist_intro X a : a ∈ X -> P a -> exist X.
@@ -84,7 +94,7 @@ Section quantifiers.
       * apply (inr (HX2 t Pa)).
   Defined.
 
-  Lemma exist_elim X : exist X -> hexists (fun a => a ∈ X * P a).
+  Lemma exist_elim X : exist X -> hexists (fun a => a ∈ X * P a)%type.
   Proof.
     hinduction X ; try (intros ; apply path_ishprop).
     - contradiction.
@@ -132,7 +142,7 @@ Section simple_example.
   Context `{Univalence}.
 
   Definition P : nat -> hProp := fun n => BuildhProp(n = n).
-  Definition X : FSet nat := {|0|} ∪ {|1|}.
+  Definition X : FSet nat := {|0%nat|} ∪ {|1%nat|}.
 
   Definition simple_example : all P X.
   Proof.

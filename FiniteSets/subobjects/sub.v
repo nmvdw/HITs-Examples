@@ -6,9 +6,9 @@ Section subobjects.
 
   Definition Sub := A -> hProp.
 
-  Global Instance sub_empty : hasEmpty Sub := fun _ => False_hp.
-  Global Instance sub_union : hasUnion Sub := max_fun.
-  Global Instance sub_intersection : hasIntersection Sub := min_fun.
+  Global Instance sub_empty : hasEmpty Sub := fun _ => ⊥.
+  Global Instance sub_union : hasUnion Sub := join.
+  Global Instance sub_intersection : hasIntersection Sub := meet.
   Global Instance sub_singleton : hasSingleton Sub A
     := fun a b => BuildhProp (Trunc (-1) (b = a)).
   Global Instance sub_membership : hasMembership Sub A := fun a X => X a.

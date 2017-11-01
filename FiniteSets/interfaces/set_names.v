@@ -53,7 +53,7 @@ Infix "∩" := intersection (at level 8, right associativity).
 Notation "( ∩ )" := intersection (only parsing).
 Notation "( X ∩ )" := (intersection X) (only parsing).
 Notation "( ∩ Y )" := (fun X => X ∩ Y) (only parsing).
-Notation "{| X & ϕ |}" := (filter ϕ X).
+Notation "{| X | ϕ |}" := (filter ϕ X).
 Infix "∈" := member (at level 9, right associativity).
 Infix  "⊆" := subset (at level 10, right associativity).
 Infix "∈_d" := member_dec (at level 9, right associativity).

@@ -19,25 +19,20 @@ Section operations.
     - apply (idem o f).
   Defined.
 
-  Global Instance fset_pure : hasPure FSet.
-  Proof.
-    split.
-    apply (fun _ a => {|a|}).
-  Defined.  
+  Global Instance return_fset : Return FSet := fun _ a => {|a|}.
 
-  Global Instance fset_bind : hasBind FSet.
+  Global Instance bind_fset : Bind FSet.
   Proof.
-    split.
-    intros A.
-    hrecursion.
+    intros A B m f.
+    hrecursion m.
     - exact ∅.
-    - exact idmap.
+    - exact f.
     - apply (∪).
     - apply assoc.
     - apply comm.
     - apply nl.
     - apply nr.
-    - apply union_idem.
+    - intros; apply union_idem.
   Defined.
 
   (** Set-theoretical operations. *)
@@ -110,8 +105,8 @@ Section operations.
     - intros a f.
       apply {|f (a; tr idpath)|}.
     - intros X1 X2 HX1 HX2 f.
-      pose (fX1 := fun Z : {a : A & a ∈ X1} => f (pr1 Z;tr (inl (pr2 Z)))).
-      pose (fX2 := fun Z : {a : A & a ∈ X2} => f (pr1 Z;tr (inr (pr2 Z)))).
+      pose (fX1 := fun Z : {a : A | a ∈ X1} => f (pr1 Z;tr (inl (pr2 Z)))).
+      pose (fX2 := fun Z : {a : A | a ∈ X2} => f (pr1 Z;tr (inr (pr2 Z)))).
       specialize (HX1 fX1).
       specialize (HX2 fX2).
       apply (HX1 ∪ HX2).
@@ -201,9 +196,9 @@ Section operations_decidable.
   Defined.
 
   Global Instance fset_intersection : hasIntersection (FSet A)
-    := fun X Y => {|X & (fun a => a ∈_d Y)|}.
+    := fun X Y => {|X | fun a => a ∈_d Y |}.
 
-  Definition difference := fun X Y => {|X & (fun a => negb a ∈_d Y)|}.
+  Definition difference := fun X Y => {|X | fun a => negb a ∈_d Y|}.
 End operations_decidable.
 
 Section FSet_cons_rec.
