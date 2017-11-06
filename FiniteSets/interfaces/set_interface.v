@@ -279,7 +279,7 @@ Section properties.
   Defined.
 
   Definition union_isIn : forall (A : Type) (a : A) (X Y : T A),
-    a ∈ (X ∪ Y) = lor (a ∈ X) (a ∈ Y).
+    a ∈ (X ∪ Y) = (a ∈ X) ⊔ (a ∈ Y).
   Proof.
     by (reduce T).
   Defined.

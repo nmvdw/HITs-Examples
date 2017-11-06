@@ -10,7 +10,7 @@ Section subobjects.
   Global Instance sub_union : hasUnion Sub := join.
   Global Instance sub_intersection : hasIntersection Sub := meet.
   Global Instance sub_singleton : hasSingleton Sub A
-    := fun a b => BuildhProp (Trunc (-1) (b = a)).
+    := fun a b => merely (b = a).
   Global Instance sub_membership : hasMembership Sub A := fun a X => X a.
   Global Instance sub_comprehension : hasComprehension Sub A
     := fun ϕ X a => BuildhProp (X a * (ϕ a = true)).

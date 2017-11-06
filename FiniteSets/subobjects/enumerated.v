@@ -7,7 +7,7 @@ Require Import sub prelude FSets list_representation subobjects.k_finite
 Fixpoint listExt {A} (ls : list A) : Sub A := fun x =>
   match ls with
   | nil => False_hp
-  | cons a ls' => BuildhProp (Trunc (-1) (x = a)) ∨ listExt ls' x
+  | cons a ls' => merely (x = a) ⊔ listExt ls' x
   end.
 
 Fixpoint map {A B} (f : A -> B) (ls : list A) : list B :=
@@ -260,7 +260,7 @@ Section fset_dec_enumerated.
       strip_truncations. apply tr.
       destruct Hls as [ls Hls].
       exists (cons a ls). intros b. cbn.
-      apply (ap (fun z => _ ∨ z) (Hls b)).
+      apply (ap (fun z => _ ⊔ z) (Hls b)).
   Defined.
 
   Definition Kf_enumerated : Kf A -> enumerated A.

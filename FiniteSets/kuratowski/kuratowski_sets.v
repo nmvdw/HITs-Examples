@@ -131,25 +131,19 @@ Defined.
 Section relations.
   Context `{Univalence}.
 
-  (** Membership of finite sets. *) 
+  (** Membership of finite sets. *)
   Global Instance fset_member : forall A, hasMembership (FSet A) A.
   Proof.
     intros A a.
     hrecursion.
-    - apply False_hp.
+    - apply ⊥.
     - apply (fun a' => merely(a = a')).
-    - apply lor.
-      (* TODO *)
-    - eauto with lattice_hints typeclass_instances.
-      apply associativity.
-    - eauto with lattice_hints typeclass_instances.
-      apply commutativity.
-    - eauto with lattice_hints typeclass_instances.
-      apply left_identity.
-    - eauto with lattice_hints typeclass_instances.
-      apply right_identity.
-    - eauto with lattice_hints typeclass_instances.
-      intros. simpl. apply binary_idempotent.
+    - apply (⊔).
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 8 with lattice_hints typeclass_instances.
   Defined.
 
   (** Subset relation of finite sets. *)
@@ -157,17 +151,13 @@ Section relations.
   Proof.
     intros A X Y.
     hrecursion X.
-    - apply Unit_hp.
+    - apply ⊤.
     - apply (fun a => a ∈ Y).
-    - apply land.
-      (* TODO *)
-    - eauto with lattice_hints typeclass_instances. 
-      apply associativity.
-    - eauto with lattice_hints typeclass_instances.
-      apply commutativity.
-    - apply left_identity.
-    - apply right_identity.
-    - eauto with lattice_hints typeclass_instances.
-      intros. apply binary_idempotent.
+    - apply (⊓).
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 10 with lattice_hints typeclass_instances.
+    - eauto 8 with lattice_hints typeclass_instances.
   Defined.
 End relations.

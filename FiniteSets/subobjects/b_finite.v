@@ -189,7 +189,7 @@ Section split.
            (f : {a : A | P a } <~> Fin n + Unit).
 
   Definition split : exists P' : Sub A, exists b : A,
-    prod ({a : A | P' a} <~> Fin n) (forall x, P x = (P' x ∨ merely (x = b))).
+    prod ({a : A | P' a} <~> Fin n) (forall x, P x = (P' x ⊔ merely (x = b))).
   Proof.
     pose (fun x : A => sig (fun y : Fin n => x = (f^-1 (inl y)).1)) as P'.
     assert (forall x, IsHProp (P' x)).

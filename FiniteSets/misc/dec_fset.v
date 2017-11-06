@@ -64,7 +64,7 @@ Section quantifiers.
     hinduction.
     - apply False_hp.
     - apply P.
-    - apply lor.
+    - apply (⊔).
     - eauto with lattice_hints typeclass_instances.
     (* TODO eauto with .. *)
       apply associativity.

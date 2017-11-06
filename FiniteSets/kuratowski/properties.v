@@ -244,7 +244,7 @@ Section properties_membership.
   Definition singleton_isIn (a b: A) : a ∈ {|b|} -> Trunc (-1) (a = b) := idmap.
 
   Definition union_isIn (X Y : FSet A) (a : A)
-    : a ∈ X ∪ Y = a ∈ X ∨ a ∈ Y := idpath.
+    : a ∈ X ∪ Y = a ∈ X ⊔ a ∈ Y := idpath.
 
   Lemma comprehension_union (ϕ : A -> Bool) : forall X Y : FSet A,
       {| (X ∪ Y) | ϕ|} = {|X | ϕ|} ∪ {|Y | ϕ|}.
@@ -261,7 +261,7 @@ Section properties_membership.
       assert (forall c d, ϕ a = c -> ϕ b = d ->
                           a ∈ (if ϕ b then {|b|} else ∅)
                           =
-                          (if ϕ a then BuildhProp (Trunc (-1) (a = b)) else False_hp)) as X.
+                          (if ϕ a then merely (a = b) else False_hp)) as X.
       {
         intros c d Hc Hd.
         destruct c ; destruct d ; rewrite Hc, Hd ; try reflexivity
@@ -286,7 +286,7 @@ Section properties_membership.
   Context {B : Type}.
 
   Lemma singleproduct_isIn (a : A) (b : B) (c : A) : forall (Y : FSet B),
-      (a, b) ∈ (single_product c Y) = land (BuildhProp (Trunc (-1) (a = c))) (b ∈ Y).
+      (a, b) ∈ (single_product c Y) = merely (a = c) ⊓ (b ∈ Y).
   Proof.
     hinduction ; try (intros ; apply path_ishprop).
     - apply path_hprop ; symmetry ; apply prod_empty_r.
@@ -325,7 +325,7 @@ Section properties_membership.
   Defined.
 
   Definition product_isIn (a : A) (b : B) (X : FSet A) (Y : FSet B) :
-    (a,b) ∈ (product X Y) = land (a ∈ X) (b ∈ Y).
+    (a,b) ∈ (product X Y) = (a ∈ X) ⊓ (b ∈ Y).
   Proof.
     hinduction X ; try (intros ; apply path_ishprop).
     - apply path_hprop ; symmetry ; apply prod_empty_l.
@@ -664,8 +664,9 @@ Ltac simplify_isIn_d :=
 
 Ltac toBool :=
   repeat intro;
-  apply ext ; intros ;
-  simplify_isIn_d ; eauto with bool_lattice_hints typeclass_instances.
+  apply ext; intros;
+  simplify_isIn_d;
+  eauto 10 with lattice_hints typeclass_instances.
 
 (** If `A` has decidable equality, then `FSet A` is a lattice *) 
 Section set_lattice.
@@ -680,7 +681,6 @@ Section set_lattice.
     repeat split; try apply _;
       compute[sg_op meet_is_sg_op meet_fset];
       toBool.
-    apply associativity.
   Defined.
 End set_lattice.
 

@@ -51,7 +51,7 @@ Section ListToSet.
     induction l ; unfold member in * ; simpl in *.
     - reflexivity.
     - rewrite IHl.
-      unfold hor, merely, lor.
+      unfold hor, merely.
       apply path_iff_hprop ; intros z ; strip_truncations ; destruct z as [z1 | z2].
       * apply (tr (inl (tr z1))).
       * apply (tr (inr z2)).
