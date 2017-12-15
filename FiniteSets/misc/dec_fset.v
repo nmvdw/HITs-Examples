@@ -241,4 +241,13 @@ Section pauli.
     compute.
     apply tt.
   Defined.
+
+  Definition pauli_id x y : hProp := BuildhProp(Pauli_mult x y = y).
+
+  Theorem Pauli_mult_id : exist (fun x => all (fun y => pauli_id x y) Pauli_list) Pauli_list.
+  Proof.
+    refine (from_squash (exist _ _)).
+    compute.
+    apply tt.
+  Defined.
 End pauli.  
