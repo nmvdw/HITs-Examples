@@ -18,7 +18,7 @@ Section k_finite.
 
   Definition Kf_sub_intern (B : Sub A) := exists (X : FSet A), B = map X.
 
-  Instance Kf_sub_hprop B : IsHProp (Kf_sub_intern B).
+  Global Instance Kf_sub_hprop B : IsHProp (Kf_sub_intern B).
   Proof.
     apply hprop_allpath.
     intros [X PX] [Y PY].
@@ -242,7 +242,86 @@ Section k_properties.
     - apply (tr idpath).
     - apply path_ishprop.
   Defined.
+
+  (** A type is Kuratowski-finite iff its set of connected components if Kuratowski-finite.
+      In order to prove this we need to generalize to finite subobjects first. *)
+
+  (* Extend the set truncation to subobjects *)
+  Definition trsub {A : Type} (B : Sub A) : Sub (Trunc 0 A) := Trunc_rec B.
+
+  Lemma trsub_equiv {A : Type} (B : Sub A) :
+    forall a, B a = trsub B (tr a).
+  Proof. reflexivity. Qed.
+
+  Lemma trsub_top `{Univalence} {A : Type} :
+    (fun _ => ⊤) = trsub (fun _ : A => ⊤).
+  Proof.
+    apply path_forall. refine (Trunc_ind _ _). done.
+  Defined.
+
+  (* We prove the lemma for set truncation of subobjects *)
+  (* TODO: clean up the proof *)
+  Lemma kf_sub_conn (A : Type) (B : Sub A):
+    Kf_sub (Trunc 0 A) (trsub B) -> Kf_sub A B.
+  Proof.
+    simpl. unfold Kf_sub_intern.
+    intros [X HX].
+    revert HX. revert B.
+    hinduction X; try (intros; apply path_ishprop).
+    - intros B HB. exists ∅.
+      apply path_forall; intro a.
+      simpl. by rewrite trsub_equiv, HB.
+    - refine (Trunc_ind _ _).
+      intros b B Hb.
+      exists {|b|}.
+      apply path_forall; intro a.
+      simpl. rewrite trsub_equiv, Hb.
+      simpl.
+      apply path_iff_hprop.
+      + intros X. strip_truncations.
+          by apply equiv_path_Tr.
+      + intros X. strip_truncations.
+        apply tr. f_ap.
+    - intros X Y HX HY B HB.
+      specialize (HX (fun a => (tr a) ∈ X)).
+      specialize (HY (fun a => (tr a) ∈ Y)).
+      assert ( trsub (fun a : A => (tr a) ∈ X) = map X ) as F1.
+      { apply path_forall.
+        refine (Trunc_ind _ _). intro a.
+        reflexivity. }
+      assert ( trsub (fun a : A => (tr a) ∈ Y) = map Y ) as F2.
+      { apply path_forall.
+        refine (Trunc_ind _ _). intro a.
+        reflexivity. }
+      specialize (HX F1). specialize (HY F2). clear F1 F2.
+      destruct HX as [X' HX'].
+      destruct HY as [Y' HY'].
+      exists (X' ∪ Y').
+      apply path_forall; intro a.
+      rewrite trsub_equiv, HB. simpl.
+        by rewrite <- HX', <- HY'.
+  Defined.
+
+  (* TODO: show the implication in the other direction *)
+  Lemma kf_conn (A : Type) :
+    Kf (Trunc 0 A) -> Kf A.
+  Proof.
+    intros HA. apply kf_sub_conn.
+    by rewrite <- trsub_top.
+  Defined.
   
+  (* TODO: for a proper proof first show that set truncation of S1 is a point *)
+  Lemma S1_Kfinite_alt : Kf S1.
+  Proof.
+    apply kf_conn.
+    apply Kf_unfold.
+    exists {|tr base|}. simpl.
+    refine (Trunc_ind _ _).
+    simple refine (S1_ind _ _ _); simpl.
+    - by apply tr.
+    - apply path_ishprop.
+  Defined.
+
 End k_properties.
 
 Section alternative_definition.
