@@ -1,7 +1,7 @@
 Require Import FSets list_representation.
 Require Import kuratowski.length misc.dec_kuratowski.
-From interfaces Require Import lattice_interface.
-From subobjects Require Import sub b_finite enumerated k_finite.
+From FSets.interfaces Require Import lattice_interface.
+From FSets.subobjects Require Import sub b_finite enumerated k_finite.
 
 Require Import HoTT.Spaces.Card.
 

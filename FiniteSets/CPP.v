@@ -1,7 +1,7 @@
 Require Import FSets list_representation.
 Require Import kuratowski.length misc.dec_kuratowski.
-From interfaces Require Import lattice_interface.
-From subobjects Require Import sub b_finite enumerated k_finite.
+From FSets.interfaces Require Import lattice_interface.
+From FSets.subobjects Require Import sub b_finite enumerated k_finite.
 
 (** * Definitions *)
 Definition definition_2_1 := FSet.
@@ -105,7 +105,7 @@ Definition proposition_4_22 `{Univalence} := bfin_to_kfin.
 Definition theorem_4_23 `{Univalence} (X : Type) `{DecidablePaths X} := Kf_to_Bf X.
 
 (** * Interface for finite sets *)
-From interfaces Require Import set_interface.
+From FSets.interfaces Require Import set_interface.
 (** ** Method *)
 Definition definition_5_1 := tt. (* not actually present; bundled in the next definition *)
 Definition definition_5_2 `{Univalence} := sets.

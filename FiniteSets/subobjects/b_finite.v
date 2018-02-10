@@ -1,7 +1,7 @@
 (* Bishop-finiteness is that "default" notion of finiteness in the HoTT library *)
 Require Import HoTT HitTactics.
 Require Import FSets interfaces.lattice_interface.
-From subobjects Require Import sub k_finite.
+From FSets.subobjects Require Import sub k_finite.
 
 Section finite_hott.
   Variable (A : Type).
